@@ -28,6 +28,7 @@ func main() {
 
 	startTime := time.Now()
 
+
 	httpClient := http.Client{}
 	htmlResponse, err := fetchAndReturnTheBodyAsString("https://www.youtube.com/watch?v=X7LA_VnHoAg", &httpClient)
 	if err != nil {
@@ -76,6 +77,8 @@ func main() {
 	// --## good now it is done , just make a func to check the size of the string  which one is smaller just send that(wait if the plain text contains it 
 	// then how will I detect where it is , do some sort of loop on the text , just do that as it will be efficient )
 	// --##  and get many llm keys
+
+	DbConnect()
 
 }
 
