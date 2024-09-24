@@ -34,6 +34,10 @@ type userForDB struct{
 }
 
 func main() {
+	// almost the base is done , now I should start assembling the pieces together
+	// what would that be >> well api  routes 
+	// >> concurrency, ---doing this
+	// >> tests and (a bit and see for yourself) 
 	
 	startTime := time.Now()
 	err := godotenv.Load()
@@ -91,48 +95,14 @@ func main() {
 
 
 	httpClient := http.Client{}
-	htmlResponse, err := fetchAndReturnTheBodyAsString("https://www.youtube.com/watch?v=X7LA_VnHoAg", &httpClient)
-	if err != nil {
+	youtubeUrl :="https://www.youtube.com/watch?v=X7LA_VnHoAg"
+
+	text_form_subtitile ,err :=get_the_subtitles(httpClient, youtubeUrl,true)
+	if err!= nil{
+		// return the response but here I will panic
 		panic(err.Error())
 	}
-
-	var captionsDataInJson map[string]interface{}
-
-	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// printJson(captionsDataInJson)
-
-	baseUrl, err := return_caption_url(captionsDataInJson)
-	if err != nil {
-
-		panic(err.Error())
-	}
-
-	captionsInXML, errorF := fetchAndReturnTheBodyAsByte(baseUrl, &httpClient)
-	if errorF != nil {
-		panic(errorF.Error())
-	}
-
-
-
-	transcripts := Transcripts{}
-	errorInXMl := xml.Unmarshal(captionsInXML, &transcripts)
-	if errorInXMl != nil {
-		panic(errorInXMl.Error())
-	}
-
-	// for _, subtitle := range transcripts.Subtitles {
-	// 	fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start,  subtitle.Text, subtitle.Dur)
-	// }
-
-	// 2. Second requirement: Generate single string with format "[start] text [dur]"
-	resultString := generateSubtitleString(transcripts.Subtitles)
-	println(resultString )
-
-	println("baseUrl -->", baseUrl)
+	println("\n\n ------------", text_form_subtitile, "\n\n -----------")
 	fmt.Printf("Time taken: %d ms\n", time.Since(startTime).Milliseconds())
 
 	// --## good now it is done , just make a func to check the size of the string  which one is smaller just send that(wait if the plain text contains it 
@@ -283,4 +253,57 @@ func generateSubtitleString(subtitles []Subtitle) string {
 	}
 	// Convert the result into a string and return
 	return result
+}
+
+func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool) (string, error) {
+
+	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httpClient)
+	if err != nil {
+		return "", err
+	}
+
+	var captionsDataInJson map[string]interface{}
+
+	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
+	if err != nil {
+		return "", err
+	}
+
+	// printJson(captionsDataInJson)
+
+	baseUrl, err := return_caption_url(captionsDataInJson)
+	if err != nil {
+
+		return "", err
+	}
+
+	captionsInXML, errorF := fetchAndReturnTheBodyAsByte(baseUrl, &httpClient)
+	if errorF != nil {
+		return "", errorF
+	}
+
+
+
+	transcripts := Transcripts{}
+	errorInXMl := xml.Unmarshal(captionsInXML, &transcripts)
+	if errorInXMl != nil {
+		return "", errorInXMl
+	}
+
+	// for _, subtitle := range transcripts.Subtitles {
+	// 	fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start,  subtitle.Text, subtitle.Dur)
+	// }
+
+	// 2. Second requirement: Generate single string with format "[start] text [dur]"
+	var resultString string
+	if want_text_without_time == true{
+		 resultString =  generateSubtitleString(transcripts.Subtitles)
+	}else {
+		for _, subtitle := range transcripts.Subtitles {
+		resultString += "[start" +subtitle.Start+"] "  + subtitle.Text+ "[Duration: "+subtitle.Dur +"]\n"
+		}
+	}
+
+	return resultString, nil
+
 }
