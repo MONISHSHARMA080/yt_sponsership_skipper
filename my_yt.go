@@ -25,6 +25,7 @@ type Transcripts struct {
 
 
 func main() {
+	DbConnect()
 
 	startTime := time.Now()
 
@@ -78,7 +79,7 @@ func main() {
 	// then how will I detect where it is , do some sort of loop on the text , just do that as it will be efficient )
 	// --##  and get many llm keys
 
-	DbConnect()
+	// DbConnect()
 
 }
 
