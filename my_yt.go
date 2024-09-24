@@ -2,14 +2,18 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type Subtitle struct {
@@ -23,11 +27,67 @@ type Transcripts struct {
 	Subtitles []Subtitle `xml:"text"`
 }
 
+type userForDB struct{
+	accountid int64
+	email string
+	UserToken string
+}
 
 func main() {
-	DbConnect()
-
+	
 	startTime := time.Now()
+	err := godotenv.Load()
+	if err != nil {
+		println("Error loading .env file: %v", err)
+		panic(err.Error())
+	}
+	
+	key:= []byte(os.Getenv("encryption_key"))
+	// --------- fill this
+	plaintext := []byte("jeionew")
+	// -------fill this
+	// Encrypt
+	ciphertext, err := encrypt(plaintext, key)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Encrypted: %x\n", ciphertext)
+
+	// Decrypt
+	decryptedText, err := decrypt(ciphertext, key)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Decrypted: %s\n", decryptedText)
+	// print(time.Since(startTime).Milliseconds())
+
+
+	// ------for the new user 
+	
+	// ------for the new user 
+	var db *sql.DB = DbConnect()
+	defer db.Close()
+
+	user := userForDB{accountid: 3887, email: "iuewewisuewwed@heb.com", UserToken: "ebwuewbcifduewbdiewdiewiduewjhb"}
+	errorCh := make(chan error)
+
+	go func() {
+		errorCh <- InsertUserInDB(db, user)
+	}()
+	if err := <-errorCh; err != nil {
+		panic(err.Error())
+	}
+
+	
+	// error_ff :=  InsertUserInDB(db, userForDB{accountid: 3298,email: "iuewwed@heb.com", UserToken: "ebwuewbciuewbdiewdiewidu"})
+	// error_ff :=  InsertUserInDB(db, userForDB{accountid: 3887,email: "iuewewisuewwed@heb.com", UserToken: "ebwuewbcifduewbdiewdiewiduewjhb"})
+	// if error_ff!= nil {
+	// 	panic(error_ff.Error())
+	// }
+
+
+	
 
 
 	httpClient := http.Client{}
