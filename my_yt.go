@@ -39,10 +39,14 @@ func main() {
 	// >> concurrency, ---doing this
 	// >> tests and (a bit and see for yourself)
 
+	err:= godotenv.Load()
+	if err!= nil{
+		panic(err)
+	}
 	encryption_key := os.Getenv("encryption_key")
+	println(encryption_key, "-----", len(encryption_key))
 	
 
-	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
 		panic(err.Error())

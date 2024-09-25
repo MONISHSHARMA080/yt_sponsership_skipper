@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,7 +14,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
   
 	return func(w http.ResponseWriter, r *http.Request) {
 	  db := DbConnect()
-	 time1:= time.Now()
+	//  time1:= time.Now()
   // when user signs up I want them to send me 
 	if r.Method != http.MethodPost{
 	  http.Error(w, "Invalid request method", http.StatusBadRequest)
@@ -84,8 +83,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(base64Ciphertext)
-	json.NewEncoder(w).Encode(string(time.Since(time1).Milliseconds()))
-  //  print( base64Ciphertext)
-	fmt.Printf("\n \n\n time taken in user_signup_func is %d", time.Since(time1).Milliseconds())
+	// json.NewEncoder(w).Encode(string(time.Since(time1).Milliseconds()))
+	// fmt.Printf("\n\n\n time taken in user_signup_func is %d", time.Since(time1).Milliseconds())
 	}
 }
