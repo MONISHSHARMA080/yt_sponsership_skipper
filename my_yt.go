@@ -2,16 +2,15 @@ package main
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
-	"os"
+
+	// "os"
 	"strings"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -27,92 +26,97 @@ type Transcripts struct {
 	Subtitles []Subtitle `xml:"text"`
 }
 
-type userForDB struct{
-	accountid int64
-	email string
-	UserToken string
+type userForDB struct {
+	accountid      int64
+	email          string
+	UserToken      string
+	is_a_paid_user bool
 }
 
 func main() {
+
 	// almost the base is done , now I should start assembling the pieces together
-	// what would that be >> well api  routes 
+	// what would that be >>  api  routes
 	// >> concurrency, ---doing this
-	// >> tests and (a bit and see for yourself) 
-	
-	startTime := time.Now()
+	// >> tests and (a bit and see for yourself)
+
 	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
 		panic(err.Error())
 	}
-	
-	key:= []byte(os.Getenv("encryption_key"))
-	// --------- fill this
-	plaintext := []byte("jeionew")
-	// -------fill this
-	// Encrypt
-	ciphertext, err := encrypt(plaintext, key)
-	if err != nil {
-		panic(err)
-	}
 
-	fmt.Printf("Encrypted: %x\n", ciphertext)
+	http.HandleFunc("/", getRoot)
+	http.HandleFunc("/signup", User_signup_handler())
 
-	// Decrypt
-	decryptedText, err := decrypt(ciphertext, key)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Decrypted: %s\n", decryptedText)
-	// print(time.Since(startTime).Milliseconds())
-
-
-	// ------for the new user 
-	
-	// ------for the new user 
-	var db *sql.DB = DbConnect()
-	defer db.Close()
-
-	user := userForDB{accountid: 3887, email: "iuewewisuewwed@heb.com", UserToken: "ebwuewbcifduewbdiewdiewiduewjhb"}
-	errorCh := make(chan error)
-
-	go func() {
-		errorCh <- InsertUserInDB(db, user)
-	}()
-	if err := <-errorCh; err != nil {
+	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
 	}
 
+	// key := []byte(os.Getenv("encryption_key"))
+	// // --------- fill this
+	// plaintext := []byte("jeionew")
+	// // -------fill this
+
+	// // Encrypt
+	// ciphertext, err := encrypt(plaintext, key)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Printf("Encrypted: %x\n", ciphertext)
+
+	// // Decrypt
+	// decryptedText, err := decrypt(ciphertext, key)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Printf("Decrypted: %s\n", decryptedText)
+	// print(time.Since(startTime).Milliseconds())
+
+	// ------for the new user
+
+	// ------for the new user
 	
+	// defer db.Close()
+
+	// user := userForDB{accountid: 138987, email: "mmmmmmhmewwed@heb.com", UserToken: "--------------++ebwuewbcifduewbdiewdiewiduewjhb"}
+	// errorCh := make(chan error)
+
+	// go func() {
+	// 	errorCh <- InsertUserInDB(db, user)
+	// }()
+	// if err := <-errorCh; err != nil {
+	// 	panic(err.Error())
+	// }
+
 	// error_ff :=  InsertUserInDB(db, userForDB{accountid: 3298,email: "iuewwed@heb.com", UserToken: "ebwuewbciuewbdiewdiewidu"})
 	// error_ff :=  InsertUserInDB(db, userForDB{accountid: 3887,email: "iuewewisuewwed@heb.com", UserToken: "ebwuewbcifduewbdiewdiewiduewjhb"})
 	// if error_ff!= nil {
 	// 	panic(error_ff.Error())
 	// }
 
+	// httpClient := http.Client{}
+	// youtubeUrl := "https://www.youtube.com/watch?v=X7LA_VnHoAg"
 
+	// text_form_subtitile, err := get_the_subtitles(httpClient, youtubeUrl, true)
+	// if err != nil {
+	// 	// return the response but here I will panic
+	// 	println("error I got -->", err)
+	// 	panic(err.Error())
+	// }
+	// println("\n\n ------------", text_form_subtitile, "\n\n -----------")
 	
 
-
-	httpClient := http.Client{}
-	youtubeUrl :="https://www.youtube.com/watch?v=X7LA_VnHoAg"
-
-	text_form_subtitile ,err :=get_the_subtitles(httpClient, youtubeUrl,true)
-	if err!= nil{
-		// return the response but here I will panic
-		panic(err.Error())
-	}
-	println("\n\n ------------", text_form_subtitile, "\n\n -----------")
-	fmt.Printf("Time taken: %d ms\n", time.Since(startTime).Milliseconds())
-
-	// --## good now it is done , just make a func to check the size of the string  which one is smaller just send that(wait if the plain text contains it 
+	// --## good now it is done , just make a func to check the size of the string  which one is smaller just send that(wait if the plain text contains it
 	// then how will I detect where it is , do some sort of loop on the text , just do that as it will be efficient )
 	// --##  and get many llm keys
 
 	// DbConnect()
 
-}
+	
 
+}
 
 func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Client) (string, error) {
 	response, err := httpClient.Get(youtubeVideoUrl)
@@ -131,12 +135,12 @@ func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Clie
 	// fmt.Printf("\n\nstring in fetchAndReturnTheBodyAsString -->  %s --++\n\n", responseBodyString)
 	return responseBodyString, nil
 }
-func fetchAndReturnTheBodyAsByte(youtubeVideoUrl string, httpClient *http.Client) ( []byte, error) {
+func fetchAndReturnTheBodyAsByte(youtubeVideoUrl string, httpClient *http.Client) ([]byte, error) {
 	response, err := httpClient.Get(youtubeVideoUrl)
 	defer response.Body.Close()
 
 	if err != nil {
-		return []byte{1} , err
+		return []byte{1}, err
 	}
 	responseBodyByte, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -242,8 +246,7 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 // 	return result
 // }
 
-
-// --- 2nd one for utf-8 strings 
+// --- 2nd one for utf-8 strings
 
 func generateSubtitleString(subtitles []Subtitle) string {
 	var result string
@@ -282,8 +285,6 @@ func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 		return "", errorF
 	}
 
-
-
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal(captionsInXML, &transcripts)
 	if errorInXMl != nil {
@@ -296,11 +297,11 @@ func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
 	var resultString string
-	if want_text_without_time == true{
-		 resultString =  generateSubtitleString(transcripts.Subtitles)
-	}else {
+	if want_text_without_time == true {
+		resultString = generateSubtitleString(transcripts.Subtitles)
+	} else {
 		for _, subtitle := range transcripts.Subtitles {
-		resultString += "[start" +subtitle.Start+"] "  + subtitle.Text+ "[Duration: "+subtitle.Dur +"]\n"
+			resultString += "[start" + subtitle.Start + "] " + subtitle.Text + "[Duration: " + subtitle.Dur + "]\n"
 		}
 	}
 
