@@ -87,3 +87,12 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 	// fmt.Printf("\n\n\n time taken in user_signup_func is %d", time.Since(time1).Milliseconds())
 	}
 }
+
+func return_where_to_skip(os_env_key string) http.HandlerFunc {
+// take the video id out and hash  ,  
+  return func(w http.ResponseWriter, r *http.Request) {
+
+	
+
+  }
+}

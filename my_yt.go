@@ -60,20 +60,16 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
 	}
-
 	// key := []byte(os.Getenv("encryption_key"))
 	// // --------- fill this
 	// plaintext := []byte("jeionew")
 	// // -------fill this
-
 	// // Encrypt
 	// ciphertext, err := encrypt(plaintext, key)
 	// if err != nil {
 	// 	panic(err)
 	// }
-
 	// fmt.Printf("Encrypted: %x\n", ciphertext)
-
 	// // Decrypt
 	// decryptedText, err := decrypt(ciphertext, key)
 	// if err != nil {
@@ -81,32 +77,24 @@ func main() {
 	// }
 	// fmt.Printf("Decrypted: %s\n", decryptedText)
 	// print(time.Since(startTime).Milliseconds())
-
 	// ------for the new user
-
 	// ------for the new user
-	
 	// defer db.Close()
-
 	// user := userForDB{accountid: 138987, email: "mmmmmmhmewwed@heb.com", UserToken: "--------------++ebwuewbcifduewbdiewdiewiduewjhb"}
 	// errorCh := make(chan error)
-
 	// go func() {
 	// 	errorCh <- InsertUserInDB(db, user)
 	// }()
 	// if err := <-errorCh; err != nil {
 	// 	panic(err.Error())
 	// }
-
 	// error_ff :=  InsertUserInDB(db, userForDB{accountid: 3298,email: "iuewwed@heb.com", UserToken: "ebwuewbciuewbdiewdiewidu"})
 	// error_ff :=  InsertUserInDB(db, userForDB{accountid: 3887,email: "iuewewisuewwed@heb.com", UserToken: "ebwuewbcifduewbdiewdiewiduewjhb"})
 	// if error_ff!= nil {
 	// 	panic(error_ff.Error())
 	// }
-
 	// httpClient := http.Client{}
 	// youtubeUrl := "https://www.youtube.com/watch?v=X7LA_VnHoAg"
-
 	// text_form_subtitile, err := get_the_subtitles(httpClient, youtubeUrl, true)
 	// if err != nil {
 	// 	// return the response but here I will panic
@@ -114,16 +102,10 @@ func main() {
 	// 	panic(err.Error())
 	// }
 	// println("\n\n ------------", text_form_subtitile, "\n\n -----------")
-	
-
 	// --## good now it is done , just make a func to check the size of the string  which one is smaller just send that(wait if the plain text contains it
 	// then how will I detect where it is , do some sort of loop on the text , just do that as it will be efficient )
 	// --##  and get many llm keys
-
 	// DbConnect()
-
-	
-
 }
 
 func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Client) (string, error) {
@@ -143,6 +125,7 @@ func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Clie
 	// fmt.Printf("\n\nstring in fetchAndReturnTheBodyAsString -->  %s --++\n\n", responseBodyString)
 	return responseBodyString, nil
 }
+
 func fetchAndReturnTheBodyAsByte(youtubeVideoUrl string, httpClient *http.Client) ([]byte, error) {
 	response, err := httpClient.Get(youtubeVideoUrl)
 	defer response.Body.Close()
