@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"os"
 
 	// "os"
 	"strings"
@@ -40,6 +41,9 @@ func main() {
 	// >> concurrency, ---doing this
 	// >> tests and (a bit and see for yourself)
 
+	encryption_key := os.Getenv("encryption_key")
+	
+
 	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
@@ -47,7 +51,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", getRoot)
-	http.HandleFunc("/signup", User_signup_handler())
+	http.HandleFunc("/signup", User_signup_handler(encryption_key))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
