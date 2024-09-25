@@ -9,8 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-
-	// "os"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -51,6 +49,8 @@ func main() {
 	}
 
 	http.HandleFunc("/", getRoot)
+	
+	// if need new token use this  
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
