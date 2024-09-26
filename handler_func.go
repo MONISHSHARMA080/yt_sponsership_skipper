@@ -88,8 +88,12 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 	}
 }
 
-func return_where_to_skip(os_env_key string) http.HandlerFunc {
-// take the video id out and hash  ,  
+func Return_to_client_where_to_skip_to_in_videos(os_env_key string) http.HandlerFunc {
+// take the video id out and hash  ,  and api will return (on success)
+
+//  ads : boolean, if true then starts at _ _ _ and ends at _ _ _ 
+// also has to search for the strings in the transcript by myself (probally should be using a on user device llm(like apple on device and cloud too) from gemini 
+// but there accuraccy is meh! I think )
   return func(w http.ResponseWriter, r *http.Request) {
 
 	
