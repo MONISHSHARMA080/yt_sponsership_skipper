@@ -141,7 +141,7 @@ func decrypt(ciphertext []byte, key []byte) ([]byte, error) {
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "This is my website!\n")
-  println("--++")
+  println("in root")
 }
 
 
@@ -153,4 +153,9 @@ func return_string_based_on_user_details_for_encryption_text(user_detail Signup_
   }else{
     return string(user_detail.AccountID)+"-"+user_detail.Email+"-"+user_detail.UserToken+"-"+"false"
   }
+}
+
+
+func write_to_json_a_error_message(){
+  // if encoding json for  the message
 }
