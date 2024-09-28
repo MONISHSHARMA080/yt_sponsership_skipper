@@ -8,9 +8,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
+  "encoding/json"
+
 
 	_ "github.com/tursodatabase/go-libsql"
 )
@@ -29,6 +30,7 @@ func DbConnect() *sql.DB {
   // url := os.Getenv("TURSO_DATABASE_URL")+".?authToken="+os.Getenv("TURSO_AUTH_TOKEN")
   dbURL := os.Getenv("TURSO_DATABASE_URL")
   authToken := os.Getenv("TURSO_AUTH_TOKEN")
+
   
   url := fmt.Sprintf("%s?authToken=%s", dbURL, authToken)
   // println(url,"\n\n")
@@ -163,6 +165,7 @@ func write_to_json_a_error_message(){
 
 func decrypt_and_write_to_channel(ciphertextAsString string, key []byte, channErr chan<- string_and_error_channel) {
   // First, decode the base64 encoded string
+  println("in the decrypt_and_write_to_channel ")
   ciphertextAsByte, err := base64.StdEncoding.DecodeString(ciphertextAsString)
   if err != nil {
       channErr <- string_and_error_channel{err: fmt.Errorf("failed to decode base64: %v", err), string_value: ""}
@@ -177,7 +180,13 @@ func decrypt_and_write_to_channel(ciphertextAsString string, key []byte, channEr
   }
 
   string_as_string := string(stringAsByte)
-  log.Printf("Decrypted string: >>>%s", string_as_string)
-
   channErr <- string_and_error_channel{err: nil, string_value: string_as_string}
+}
+
+
+func method_to_write_http_and_json_to_respond( w http.ResponseWriter, message string, http_status_code int64){
+
+  http.Error(w, message, int(http_status_code))
+  json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message:message, Status_code:http_status_code  })
+
 }

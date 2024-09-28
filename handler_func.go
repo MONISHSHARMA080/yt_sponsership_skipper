@@ -103,7 +103,7 @@ type request_for_youtubeVideo_struct struct{
 }
 
 
-func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte) http.HandlerFunc {
+func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client) http.HandlerFunc {
 // take the video id out and hash  ,  and api will return (on success)
 
 //  ads : boolean, if true then starts at _ _ _ and ends at _ _ _ 
@@ -133,27 +133,42 @@ return func(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if request_for_youtubeVideo_struct.Youtube_Video_Id == ""{
-	  http.Error(w, "Parameter youtube_video_id  not provided", http.StatusBadRequest)
-	  json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message:"Parameter youtube_video_id  not provided", Status_code:http.StatusBadRequest  })
+		method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided",http.StatusBadRequest)
 	  return
 	}
 
 	// now got the  video Id and the  encrypted string now we need to make a go routing to see whether the encrypted string is valid and fetch subtitles of the
 	// yt video, and if the id is valid then we can just send it to groq based on the account of the user 
 
-	// channel_err := make(chan string_and_error_channel )
-
-	// go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_err )
-	// result := <- channel_err
-	// if result.err != nil {
-	// 	println("nil---")
-	// }
-
 	channel_for_userDetails := make(chan string_and_error_channel )
+	channel_for_subtitles := make(chan string_and_error_channel )
+
 	go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
+	go get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id, true, channel_for_subtitles ) 
+
 	result_for_user_details := <- channel_for_userDetails
+
+	if result_for_user_details.err != nil {
+		method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
+		return 
+	}
 	
-	println(result_for_user_details.string_value, "efciuneriucne")
+	println("result_for_user_details--++",result_for_user_details.string_value)
+	// println("http client is nil -->", http_client == nil)
+	
+	
+
+	if err != nil {
+		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side", http.StatusInternalServerError)
+		println(http.StatusInternalServerError, "-----:::-----" ,err.Error(), "|||||||||\n")
+		return 
+	}
+	result_for_subtitles := <- channel_for_subtitles
+	if result_for_subtitles.err != nil {
+		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side", http.StatusInternalServerError)
+		println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
+	}
+	print(result_for_subtitles.string_value, "<--string value was this ")
 	// ciphertext, err := base64.StdEncoding.DecodeString(request_for_youtubeVideo_struct.Encrypted_string)
 
 

@@ -72,21 +72,6 @@ func main() {
 //	
 //
 	// dkj, _ := decrypt([]byte("NUntyC7TuShFIk9nGTVpWtta4lhqWKEAT3ej8ok9QHKu1rq3UY44AkqVKqgCbvxc9OTAUGUAhx50OxMS/SJF5D5ThdY="),key)
-	// fm
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	println(encryption_key, "-----", len(encryption_key))
 	
@@ -95,12 +80,12 @@ func main() {
 		println("Error loading .env file: %v", err)
 		panic(err.Error())
 	}
-
+	httpClient := http.Client{}
 	http.HandleFunc("/", getRoot)
 	
 	// if need new token use this  
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
-	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte))
+	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
@@ -154,8 +139,9 @@ func main() {
 }
 
 func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Client) (string, error) {
+	
 	response, err := httpClient.Get(youtubeVideoUrl)
-	defer response.Body.Close()
+	
 
 	if err != nil {
 		return "", err
@@ -294,37 +280,43 @@ func generateSubtitleString(subtitles []Subtitle) string {
 	return result
 }
 
-func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool) (string, error) {
-
-	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httpClient)
+func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel)  {
+	println(" in the get_the_subtitles func")
+	
+	httP_client_1 := http.Client{}
+	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httP_client_1)
 	if err != nil {
-		return "", err
+		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
+		return 
 	}
 
 	var captionsDataInJson map[string]interface{}
 
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
 	if err != nil {
-		return "", err
+		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
+		return
 	}
 
 	// printJson(captionsDataInJson)
 
 	baseUrl, err := return_caption_url(captionsDataInJson)
 	if err != nil {
-
-		return "", err
+		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
+		return
 	}
 
 	captionsInXML, errorF := fetchAndReturnTheBodyAsByte(baseUrl, &httpClient)
 	if errorF != nil {
-		return "", errorF
+		channel_for_subtitles <- string_and_error_channel{err: errorF, string_value: ""}
+		return
 	}
 
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal(captionsInXML, &transcripts)
 	if errorInXMl != nil {
-		return "", errorInXMl
+		channel_for_subtitles <- string_and_error_channel{err: errorInXMl, string_value: ""}
+		return
 	}
 
 	// for _, subtitle := range transcripts.Subtitles {
@@ -341,6 +333,5 @@ func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 		}
 	}
 
-	return resultString, nil
-
+	channel_for_subtitles <- string_and_error_channel{err: nil, string_value: resultString}
 }
