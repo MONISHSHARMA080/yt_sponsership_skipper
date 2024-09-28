@@ -1,17 +1,18 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"io"
-	"net/http"
-	"os"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"database/sql"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
 
 	_ "github.com/tursodatabase/go-libsql"
-
 )
 
 type Signup_detail_of_user struct {
@@ -147,15 +148,36 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 
 
-func return_string_based_on_user_details_for_encryption_text(user_detail Signup_detail_of_user, is_paid_user bool) string{
-  if is_paid_user == true{
-    return string(user_detail.AccountID)+"-"+user_detail.Email+"-"+user_detail.UserToken+"-"+"true"
-  }else{
-    return string(user_detail.AccountID)+"-"+user_detail.Email+"-"+user_detail.UserToken+"-"+"false"
+func return_string_based_on_user_details_for_encryption_text(user_detail Signup_detail_of_user, is_paid_user bool) string {
+  paid_status := "false"
+  if is_paid_user {
+      paid_status = "true"
   }
+  return fmt.Sprintf("%d-%s-%s-%s", user_detail.AccountID, user_detail.Email, user_detail.UserToken, paid_status)
 }
 
 
 func write_to_json_a_error_message(){
   // if encoding json for  the message
+}
+
+func decrypt_and_write_to_channel(ciphertextAsString string, key []byte, channErr chan<- string_and_error_channel) {
+  // First, decode the base64 encoded string
+  ciphertextAsByte, err := base64.StdEncoding.DecodeString(ciphertextAsString)
+  if err != nil {
+      channErr <- string_and_error_channel{err: fmt.Errorf("failed to decode base64: %v", err), string_value: ""}
+      return
+  }
+
+  // Now decrypt the actual ciphertext
+  stringAsByte, err := decrypt(ciphertextAsByte, key)
+  if err != nil {
+      channErr <- string_and_error_channel{err: fmt.Errorf("failed to decrypt: %v", err), string_value: ""}
+      return
+  }
+
+  string_as_string := string(stringAsByte)
+  log.Printf("Decrypted string: >>>%s", string_as_string)
+
+  channErr <- string_and_error_channel{err: nil, string_value: string_as_string}
 }

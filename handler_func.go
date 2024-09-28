@@ -6,12 +6,15 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"fmt"
 )
 
 type JsonError_HTTPErrorCode_And_Message struct {
     Message string `json:"message"`
     Status_code int64 `json:"status_code"`
+}
+type string_and_error_channel struct {
+    err error
+    string_value string
 }
 
 
@@ -77,21 +80,19 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 	  // --------- fill this
 	  plaintext := []byte(return_string_based_on_user_details_for_encryption_text(signup_user_details, false) )
 	  // -------fill this
-  
-	  // Encrypt
-	
+	  // Encrypt	
+	  
 	  ciphertext, err := encrypt(plaintext, key)
 	  if err != nil {
 		  panic(err)
-	  }
-  
-	base64Ciphertext := base64.StdEncoding.EncodeToString(ciphertext)
+		}
+		
+		base64Ciphertext := base64.StdEncoding.EncodeToString(ciphertext)
+		println("\n\nabout to encrypt -->", return_string_based_on_user_details_for_encryption_text(signup_user_details, false),"\n\n", "and ",base64Ciphertext ,"\n\n")
   
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(base64Ciphertext)
-	// json.NewEncoder(w).Encode(string(time.Since(time1).Milliseconds()))
-	// fmt.Printf("\n\n\n time taken in user_signup_func is %d", time.Since(time1).Milliseconds())
 	}
 }
 
@@ -102,7 +103,7 @@ type request_for_youtubeVideo_struct struct{
 }
 
 
-func Return_to_client_where_to_skip_to_in_videos(os_env_key string) http.HandlerFunc {
+func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte) http.HandlerFunc {
 // take the video id out and hash  ,  and api will return (on success)
 
 //  ads : boolean, if true then starts at _ _ _ and ends at _ _ _ 
@@ -120,15 +121,6 @@ return func(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	
-	// all_url_params := r.URL.Query()
-	// youtube_video_id := all_url_params.Get("youtube_video_id")
-	
-	// if youtube_video_id == ""{
-	//   http.Error(w, "Parameter youtube_video_id  not provided", http.StatusBadRequest)
-	//   json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message:"Parameter youtube_video_id  not provided", Status_code:http.StatusBadRequest  })
-	//   return
-	// }
 
 	var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
 	err:= json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
@@ -145,21 +137,50 @@ return func(w http.ResponseWriter, r *http.Request) {
 	  json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message:"Parameter youtube_video_id  not provided", Status_code:http.StatusBadRequest  })
 	  return
 	}
+
 	// now got the  video Id and the  encrypted string now we need to make a go routing to see whether the encrypted string is valid and fetch subtitles of the
 	// yt video, and if the id is valid then we can just send it to groq based on the account of the user 
 
+	// channel_err := make(chan string_and_error_channel )
+
+	// go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_err )
+	// result := <- channel_err
+	// if result.err != nil {
+	// 	println("nil---")
+	// }
+
+	channel_for_userDetails := make(chan string_and_error_channel )
+	go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
+	result_for_user_details := <- channel_for_userDetails
+	println(result_for_user_details.string_value, "efciuneriucne")
+	// ciphertext, err := base64.StdEncoding.DecodeString(request_for_youtubeVideo_struct.Encrypted_string)
+
+
+	// if err != nil {
+	// 	http.Error(w, "Invalid encrypted string", http.StatusBadRequest)
+	// 	json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message: "Invalid encrypted string", Status_code: http.StatusBadRequest})
+	// 	return
+	// }
+
+	// // Decrypt the ciphertext
+	// plaintext, err := decrypt(ciphertext, os_env_key)
+	// if err != nil {
+	// 	http.Error(w, "Error decrypting string", http.StatusInternalServerError)
+	// 	json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message: "Error decrypting string", Status_code: http.StatusInternalServerError})
+	// 	return
+	// }
+
+	// // Convert plaintext bytes to string
+	// decryptedString := string(plaintext)
+
+	// // Log the decrypted string
+	// log.Printf("Decrypted string: %s", decryptedString)
+
+
+	// println("value form the channel  is -->", result.string_value, channel_err)
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
+}
 }
 
-}
-
-
-func say(s string) {
-	for i := 0; i < 5; i++ {
-		time.Sleep(100 * time.Millisecond)
-		fmt.Println(s)
-	}
-}

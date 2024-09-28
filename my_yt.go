@@ -44,6 +44,50 @@ func main() {
 		panic(err)
 	}
 	encryption_key := os.Getenv("encryption_key")
+	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
+
+
+
+
+
+
+	// key := []byte(os.Getenv("encryption_key"))
+	// // --------- fill this
+	// a := Signup_detail_of_user{Email: "abc@gamil.com", AccountID: 123, UserToken: "dwunewiunwioc"}
+	// plaintext := []byte(return_string_based_on_user_details_for_encryption_text(a, false))
+	// // -------fill this
+	// // Encrypt
+	// ciphertext, err := encrypt(plaintext, key)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Printf("Encrypted: %x\n", ciphertext)
+	// // Decrypt
+	// decryptedText, err := decrypt(ciphertext, key)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Printf("Decrypted: %s\n", decryptedText)
+//
+//	
+//
+	// dkj, _ := decrypt([]byte("NUntyC7TuShFIk9nGTVpWtta4lhqWKEAT3ej8ok9QHKu1rq3UY44AkqVKqgCbvxc9OTAUGUAhx50OxMS/SJF5D5ThdY="),key)
+	// fm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	println(encryption_key, "-----", len(encryption_key))
 	
 
@@ -56,7 +100,7 @@ func main() {
 	
 	// if need new token use this  
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
-	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key))
+	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
