@@ -152,6 +152,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 	channel_for_userDetails := make(chan string_and_error_channel )
 	go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
 	result_for_user_details := <- channel_for_userDetails
+	
 	println(result_for_user_details.string_value, "efciuneriucne")
 	// ciphertext, err := base64.StdEncoding.DecodeString(request_for_youtubeVideo_struct.Encrypted_string)
 
