@@ -18,6 +18,7 @@ type string_and_error_channel struct {
 }
 
 
+
 func User_signup_handler(os_env_key string) http.HandlerFunc {
   
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -136,15 +137,13 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided",http.StatusBadRequest)
 	  return
 	}
-
 	// now got the  video Id and the  encrypted string now we need to make a go routing to see whether the encrypted string is valid and fetch subtitles of the
-	// yt video, and if the id is valid then we can just send it to groq based on the account of the user 
-
+	// yt video, and if the id is valid then we can just send it to groq based on the account of the user \
 	channel_for_userDetails := make(chan string_and_error_channel )
 	channel_for_subtitles := make(chan string_and_error_channel )
 
 	go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
-	go get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id, true, channel_for_subtitles ) 
+	go Get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id, true, channel_for_subtitles ) 
 
 	result_for_user_details := <- channel_for_userDetails
 
@@ -156,8 +155,6 @@ return func(w http.ResponseWriter, r *http.Request) {
 	println("result_for_user_details--++",result_for_user_details.string_value)
 	// println("http client is nil -->", http_client == nil)
 	
-	
-
 	if err != nil {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side", http.StatusInternalServerError)
 		println(http.StatusInternalServerError, "-----:::-----" ,err.Error(), "|||||||||\n")

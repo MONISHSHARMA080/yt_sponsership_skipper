@@ -33,23 +33,18 @@ type userForDB struct {
 }
 
 func main() {
-
 	// almost the base is done , now I should start assembling the pieces together
 	// what would that be >>  api  routes
 	// >> concurrency, ---doing this
 	// >> tests and (a bit and see for yourself)
 
-	err:= godotenv.Load()
-	if err!= nil{
+	err := godotenv.Load()
+	if err != nil {
+		println("Error loading .env file: %v", err)
 		panic(err)
 	}
 	encryption_key := os.Getenv("encryption_key")
 	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
-
-
-
-
-
 
 	// key := []byte(os.Getenv("encryption_key"))
 	// // --------- fill this
@@ -68,28 +63,24 @@ func main() {
 	// 	panic(err)
 	// }
 	// fmt.Printf("Decrypted: %s\n", decryptedText)
-//
-//	
-//
+	//
+	//
+	//
 	// dkj, _ := decrypt([]byte("NUntyC7TuShFIk9nGTVpWtta4lhqWKEAT3ej8ok9QHKu1rq3UY44AkqVKqgCbvxc9OTAUGUAhx50OxMS/SJF5D5ThdY="),key)
 
 	println(encryption_key, "-----", len(encryption_key))
-	
 
-	if err != nil {
-		println("Error loading .env file: %v", err)
-		panic(err.Error())
-	}
 	httpClient := http.Client{}
 	http.HandleFunc("/", getRoot)
-	
-	// if need new token use this  
+
+	// if need new token use this
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
 	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
 	}
+
 	// key := []byte(os.Getenv("encryption_key"))
 	// // --------- fill this
 	// plaintext := []byte("jeionew")
@@ -136,13 +127,11 @@ func main() {
 	// then how will I detect where it is , do some sort of loop on the text , just do that as it will be efficient )
 	// --##  and get many llm keys
 	// DbConnect()
+
 }
 
 func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Client) (string, error) {
-	
 	response, err := httpClient.Get(youtubeVideoUrl)
-	
-
 	if err != nil {
 		return "", err
 	}
@@ -181,7 +170,6 @@ func printJson(data interface{}) {
 }
 
 func convertHtmlToJsonAndWriteItToAMAp(htmlResponse string, captionsData *map[string]interface{}) error {
-
 	parts := strings.Split(htmlResponse, `"captions":`)
 	if len(parts) <= 1 {
 		println("no captions found for video ")
@@ -197,10 +185,9 @@ func convertHtmlToJsonAndWriteItToAMAp(htmlResponse string, captionsData *map[st
 }
 
 func return_caption_url(captionsDataInJson map[string]interface{}) (string, error) {
-
 	// why -->
 	// error in the patrick video, https://www.youtube.com/watch?v=Wx51CffrBIg, it is returning the subtitles in arabic by default , so I should check
-	//the lang to be english (auto etc) and  avoid the loss when converting bytes to str in fetchAndReturnTheBodyAsString
+	// the lang to be english (auto etc) and  avoid the loss when converting bytes to str in fetchAndReturnTheBodyAsString
 
 	playerCaptionsTracklistRenderer, ok := captionsDataInJson["playerCaptionsTracklistRenderer"].(map[string]interface{})
 	if !ok {
@@ -280,24 +267,23 @@ func generateSubtitleString(subtitles []Subtitle) string {
 	return result
 }
 
-func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel)  {
-	println(" in the get_the_subtitles func")
+func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
 	
+	println(" in the get_the_subtitles func")
+
 	httP_client_1 := http.Client{}
 	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httP_client_1)
 	if err != nil {
 		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
-		return 
+		return
 	}
-
 	var captionsDataInJson map[string]interface{}
-
+	// probally take it as a htmlresponse *string
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
 	if err != nil {
 		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
 		return
 	}
-
 	// printJson(captionsDataInJson)
 
 	baseUrl, err := return_caption_url(captionsDataInJson)
@@ -305,7 +291,6 @@ func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
 		return
 	}
-
 	captionsInXML, errorF := fetchAndReturnTheBodyAsByte(baseUrl, &httpClient)
 	if errorF != nil {
 		channel_for_subtitles <- string_and_error_channel{err: errorF, string_value: ""}
@@ -325,7 +310,7 @@ func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
 	var resultString string
-	if want_text_without_time == true {
+	if want_text_without_time {
 		resultString = generateSubtitleString(transcripts.Subtitles)
 	} else {
 		for _, subtitle := range transcripts.Subtitles {
