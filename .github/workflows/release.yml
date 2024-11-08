@@ -1,23 +1,38 @@
-name: Go Tests
+name: Go Test on Release
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  release:
+    types: [created]
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.23.1
-        
-    - name: Run go test
-      run: go test -v ./...
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '^1.18'
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go mod download
+
+      - name: Load .env file
+        run: |
+          if [ -f .env ]; then
+            export $(cat .env | xargs)
+          fi
+          echo "secret_key_for_hash="MonishPleaseEnterThis--0098" >> .env
+          echo "encryption_key="my16dchbsdbebciuhfhqhThhhhhhhhhh" >> .env
+
+
+
+      - name: Run tests
+        run: go test ./...
+        env:
+          GO111MODULE: "on"
