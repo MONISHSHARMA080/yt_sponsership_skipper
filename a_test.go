@@ -14,7 +14,9 @@ func TestGetTheSubtitles(t *testing.T) {
 	want_text_without_time := true
 	channel_for_subtitles := make(chan string_and_error_channel)
 	println("sleeping")
+	
 	time.Sleep(3000)
+
 	println("finished sleeping")
 	go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
 	result := <- channel_for_subtitles
