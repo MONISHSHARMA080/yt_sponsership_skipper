@@ -22,7 +22,7 @@ func TestGetTheSubtitles(t *testing.T) {
 	go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
 	result := <- channel_for_subtitles
 	if result.err != nil {
-		print("error ocurred -->\n")
+		print("error ocurred -->"+result.err.Error()+"\n")
 	}
 	print("\n\n",result.string_value+"<<===,,,result value was this \n\n")
 	print(time.Since(a).Seconds())
