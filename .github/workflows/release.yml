@@ -1,9 +1,10 @@
 name: Go Test on Release
 
 on:
-  release:
-    types: [created]
-
+    push:
+        branches: [ "main" ]
+    pull_request:
+        branches: [ "main" ]
 jobs:
   test:
     runs-on: ubuntu-latest
