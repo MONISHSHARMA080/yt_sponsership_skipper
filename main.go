@@ -11,9 +11,9 @@ import (
 	"os"
 	"strings"
 	"time"
+
 	"github.com/joho/godotenv"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
-
 )
 
 type Subtitle struct {
@@ -35,40 +35,33 @@ type userForDB struct {
 }
 
 func main() {
-	
-		httP_client_1 := http.Client{}
-		youtubeUrl := "https://www.youtube.com/watch?v=sS6u5UU3t3c"
-		want_text_without_time := true
-		channel_for_subtitles := make(chan string_and_error_channel)
-		println("sleeping")
-	
-		time.Sleep(30000)
-	
-		println("finished sleeping")
-		a:= time.Now()
-		go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
-		result := <- channel_for_subtitles
-		if result.err != nil {
-			print("error ocurred -->"+result.err.Error()+"\n")
-		}
-		print("\n\n",result.string_value+"<<===,,,result value was this \n\n")
-		print(time.Since(a).Seconds())
+	httP_client_1 := http.Client{}
+	youtubeUrl := "https://www.youtube.com/watch?v=sS6u5UU3t3c"
+	want_text_without_time := true
+	channel_for_subtitles := make(chan string_and_error_channel)
+	println("sleeping")
+
+	time.Sleep(30000)
+
+	println("finished sleeping")
+	a := time.Now()
+	go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
+	result := <-channel_for_subtitles
+	if result.err != nil {
+		print("error ocurred -->" + result.err.Error() + "\n")
+	}
+	print("\n\n", result.string_value+"<<===,,,result value was this \n\n")
+	print(time.Since(a).Seconds())
 	// almost the base is done , now I should start assembling the pieces together
 	// what would that be >>  api  routes
 	// >> concurrency, ---doing this
 	// >> tests and (a bit and see for yourself)
-
-	
 
 	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
 		panic(err)
 	}
-	
-
-
-
 
 	encryption_key := os.Getenv("encryption_key")
 	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
@@ -154,7 +147,6 @@ func main() {
 	// then how will I detect where it is , do some sort of loop on the text , just do that as it will be efficient )
 	// --##  and get many llm keys
 	// DbConnect()
-
 }
 
 func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Client) (string, error) {
@@ -295,7 +287,6 @@ func generateSubtitleString(subtitles []Subtitle) string {
 }
 
 func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
-	
 	println(" in the get_the_subtitles func")
 
 	httP_client_1 := http.Client{}
@@ -304,7 +295,6 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
 		return
 	}
-	println("html response -->"+htmlResponse)
 	var captionsDataInJson map[string]interface{}
 	// probally take it as a htmlresponse *string
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
