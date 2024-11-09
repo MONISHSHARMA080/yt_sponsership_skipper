@@ -13,7 +13,8 @@ import (
   "encoding/json"
 
 
-	_ "github.com/tursodatabase/go-libsql"
+	// _ "github.com/tursodatabase/go-libsql"
+   _ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
 type Signup_detail_of_user struct {
