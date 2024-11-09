@@ -304,6 +304,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
 		return
 	}
+	println("html response -->"+htmlResponse)
 	var captionsDataInJson map[string]interface{}
 	// probally take it as a htmlresponse *string
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
