@@ -34,6 +34,6 @@ jobs:
 
 
       - name: Run tests
-        run: go test -v
+        run: ./build/yt_sponsership_skipper 
         env:
           GO111MODULE: "on"
