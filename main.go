@@ -277,16 +277,16 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 // --- 2nd one for utf-8 strings
 
 func generateSubtitleString(subtitles []Subtitle) string {
-	var result string
+    var result strings.Builder
+	// Concatenate the subtitle text with spaces in between
 	for _, subtitle := range subtitles {
-		// Concatenate the subtitle text with spaces in between
-		result += html.UnescapeString(strings.TrimSpace(subtitle.Text))
-	}
+        result.WriteString(html.UnescapeString(strings.TrimSpace(subtitle.Text)))
+    }
 	// Convert the result into a string and return
-	return result
+	return result.String()
 }
 
-func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
+func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_initial_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
 	println(" in the get_the_subtitles func")
 
 	httP_client_1 := http.Client{}
@@ -295,6 +295,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
 		return
 	}
+
 	var captionsDataInJson map[string]interface{}
 	// probally take it as a htmlresponse *string
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
@@ -328,13 +329,47 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_with
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
 	var resultString string
-	if want_text_without_time {
+	if want_initial_text_without_time {
 		resultString = generateSubtitleString(transcripts.Subtitles)
 	} else {
-		for _, subtitle := range transcripts.Subtitles {
-			resultString += "[start" + subtitle.Start + "] " + subtitle.Text + "[Duration: " + subtitle.Dur + "]\n"
-		}
+		// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later; probally itegrate over the string or asyncly convert in a array
+		// I think (not thought it through) either way I will itereate through the string so why not just do it once 
+		channel_for_subtitles <- string_and_error_channel{err: nil, string_value: GenerateSubtitleWithTimeWithoutChannels(transcripts.Subtitles) }
+		return
 	}
-
 	channel_for_subtitles <- string_and_error_channel{err: nil, string_value: resultString}
+}
+
+func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan <- string)  {
+
+	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
+
+	var result strings.Builder
+	for _, subtitle := range Subtitles {
+		result.WriteString("[start")
+		result.WriteString(subtitle.Start)
+		result.WriteString("] ")
+		result.WriteString(subtitle.Text)
+		result.WriteString("[Duration: ")
+		result.WriteString(subtitle.Dur)
+		result.WriteString("]\n")
+	}
+	channel_for_subtitles <- result.String()
+}
+
+func GenerateSubtitleWithTimeWithoutChannels(Subtitles []Subtitle) string {
+	
+	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
+
+	var result strings.Builder
+	for _, subtitle := range Subtitles {
+		result.WriteString("[start")
+		result.WriteString(subtitle.Start)
+		result.WriteString("] ")
+		result.WriteString(subtitle.Text)
+		result.WriteString("[Duration: ")
+		result.WriteString(subtitle.Dur)
+		result.WriteString("]\n")
+	}
+	return result.String()
 }

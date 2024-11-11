@@ -137,8 +137,10 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided",http.StatusBadRequest)
 	  return
 	}
+
 	// now got the  video Id and the  encrypted string now we need to make a go routing to see whether the encrypted string is valid and fetch subtitles of the
 	// yt video, and if the id is valid then we can just send it to groq based on the account of the user \
+
 	channel_for_userDetails := make(chan string_and_error_channel )
 	channel_for_subtitles := make(chan string_and_error_channel )
 
@@ -153,44 +155,16 @@ return func(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	println("result_for_user_details--++",result_for_user_details.string_value)
-	// println("http client is nil -->", http_client == nil)
-	
-	if err != nil {
-		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side", http.StatusInternalServerError)
-		println(http.StatusInternalServerError, "-----:::-----" ,err.Error(), "|||||||||\n")
-		return 
-	}
+
 	result_for_subtitles := <- channel_for_subtitles
 	if result_for_subtitles.err != nil {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side", http.StatusInternalServerError)
 		println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 	}
 	print(result_for_subtitles.string_value, "<--string value was this ")
-	// ciphertext, err := base64.StdEncoding.DecodeString(request_for_youtubeVideo_struct.Encrypted_string)
+	
+	//make a chanel and a format for the 
 
-
-	// if err != nil {
-	// 	http.Error(w, "Invalid encrypted string", http.StatusBadRequest)
-	// 	json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message: "Invalid encrypted string", Status_code: http.StatusBadRequest})
-	// 	return
-	// }
-
-	// // Decrypt the ciphertext
-	// plaintext, err := decrypt(ciphertext, os_env_key)
-	// if err != nil {
-	// 	http.Error(w, "Error decrypting string", http.StatusInternalServerError)
-	// 	json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message: "Error decrypting string", Status_code: http.StatusInternalServerError})
-	// 	return
-	// }
-
-	// // Convert plaintext bytes to string
-	// decryptedString := string(plaintext)
-
-	// // Log the decrypted string
-	// log.Printf("Decrypted string: %s", decryptedString)
-
-
-	// println("value form the channel  is -->", result.string_value, channel_err)
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
