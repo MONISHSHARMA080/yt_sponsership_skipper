@@ -171,9 +171,17 @@ return func(w http.ResponseWriter, r *http.Request) {
 	}
 	print(result_for_subtitles.string_value, "<--string value was this ")
 	
-	// function to request to the groq and what about the free user and paid user channel 
-	// AskGroqabouttheSponsorship(httpClient)
-
+	// what about the free user and paid user channel/key_channel and prompt the groq 
+	channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
+	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse)
+	groq_response := <- channel_for_groqResponse
+	if groq_response.err != nil {
+		if groq_response.http_response_for_go_api_ptr.StatusCode == 429 {
+			method_to_write_http_and_json_to_respond(w,"the request time out on this tier", http.StatusTooManyRequests)
+		}else{
+			method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
+		}
+	}
 
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")
