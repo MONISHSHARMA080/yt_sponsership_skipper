@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/joho/godotenv"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
@@ -35,23 +34,23 @@ type userForDB struct {
 }
 
 func main() {
-	httP_client_1 := http.Client{}
-	youtubeUrl := "https://www.youtube.com/watch?v=sS6u5UU3t3c"
-	want_text_without_time := true
-	channel_for_subtitles := make(chan string_and_error_channel)
-	println("sleeping")
+	// httP_client_1 := http.Client{}
+	// youtubeUrl := "https://www.youtube.com/watch?v=sS6u5UU3t3c"
+	// want_text_without_time := true
+	// channel_for_subtitles := make(chan string_and_error_channel)
+	// println("sleeping")
 
-	time.Sleep(30000)
+	// time.Sleep(30000)
 
-	println("finished sleeping")
-	a := time.Now()
-	go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
-	result := <-channel_for_subtitles
-	if result.err != nil {
-		print("error ocurred -->" + result.err.Error() + "\n")
-	}
-	print("\n\n", result.string_value+"<<===,,,result value was this \n\n")
-	print(time.Since(a).Seconds())
+	// println("finished sleeping")
+	// a := time.Now()
+	// go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
+	// result := <-channel_for_subtitles
+	// if result.err != nil {
+	// 	print("error ocurred -->" + result.err.Error() + "\n")
+	// }
+	// print("\n\n", result.string_value+"<<===,,,result value was this \n\n")
+	// print(time.Since(a).Seconds())
 	// almost the base is done , now I should start assembling the pieces together
 	// what would that be >>  api  routes
 	// >> concurrency, ---doing this
@@ -286,13 +285,13 @@ func generateSubtitleString(subtitles []Subtitle) string {
 	return result.String()
 }
 
-func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_initial_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
+func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_subtitles chan<- string_and_error_channel_for_subtitles, transcript_in_xml *Transcripts) {
 	println(" in the get_the_subtitles func")
 
 	httP_client_1 := http.Client{}
 	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httP_client_1)
 	if err != nil {
-		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil }
 		return
 	}
 
@@ -300,26 +299,26 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_initial_t
 	// probally take it as a htmlresponse *string
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
 	if err != nil {
-		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
 	// printJson(captionsDataInJson)
 
 	baseUrl, err := return_caption_url(captionsDataInJson)
 	if err != nil {
-		channel_for_subtitles <- string_and_error_channel{err: err, string_value: ""}
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
 	captionsInXML, errorF := fetchAndReturnTheBodyAsByte(baseUrl, &httpClient)
 	if errorF != nil {
-		channel_for_subtitles <- string_and_error_channel{err: errorF, string_value: ""}
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorF, string_value: "", transcript: nil}
 		return
 	}
 
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal(captionsInXML, &transcripts)
 	if errorInXMl != nil {
-		channel_for_subtitles <- string_and_error_channel{err: errorInXMl, string_value: ""}
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
 		return
 	}
 
@@ -328,16 +327,13 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, want_initial_t
 	// }
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
-	var resultString string
-	if want_initial_text_without_time {
-		resultString = generateSubtitleString(transcripts.Subtitles)
-	} else {
-		// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later; probally itegrate over the string or asyncly convert in a array
-		// I think (not thought it through) either way I will itereate through the string so why not just do it once 
-		channel_for_subtitles <- string_and_error_channel{err: nil, string_value: GenerateSubtitleWithTimeWithoutChannels(transcripts.Subtitles) }
-		return
-	}
-	channel_for_subtitles <- string_and_error_channel{err: nil, string_value: resultString}
+
+	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later; probally itegrate over the string or asyncly convert in a array
+	// I think (not thought it through) either way I will itereate through the string so why not just do it once 
+
+	// now this block is useless as I will return the xml to myself
+	
+	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript:  &transcripts }
 }
 
 func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan <- string)  {

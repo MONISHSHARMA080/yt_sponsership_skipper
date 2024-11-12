@@ -12,9 +12,15 @@ type JsonError_HTTPErrorCode_And_Message struct {
     Message string `json:"message"`
     Status_code int64 `json:"status_code"`
 }
+
 type string_and_error_channel struct {
     err error
     string_value string
+}
+type string_and_error_channel_for_subtitles struct {
+    err error
+    string_value string
+	transcript *Transcripts
 }
 
 
@@ -142,10 +148,12 @@ return func(w http.ResponseWriter, r *http.Request) {
 	// yt video, and if the id is valid then we can just send it to groq based on the account of the user \
 
 	channel_for_userDetails := make(chan string_and_error_channel )
-	channel_for_subtitles := make(chan string_and_error_channel )
+	channel_for_subtitles := make(chan string_and_error_channel_for_subtitles )
+	// channel_for_subtitles := make(chan string_and_error_channel )
 
+	var transcript *Transcripts
 	go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
-	go Get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id, true, channel_for_subtitles ) 
+	go Get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id,  channel_for_subtitles, transcript ) 
 
 	result_for_user_details := <- channel_for_userDetails
 
