@@ -1,26 +1,63 @@
 package main
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-  "encoding/json"
-
 
 	// _ "github.com/tursodatabase/go-libsql"
-   _ "github.com/tursodatabase/libsql-client-go/libsql"
+	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
 type Signup_detail_of_user struct {
   AccountID  int64    `json:"account_id"`
   Email      string `json:"email"`
   UserToken  string `json:"user_token"`
+}
+
+type GroqApiResponse struct {
+  ID                string             `json:"id"`
+  Object           string             `json:"object"`
+  Created          int64              `json:"created"`
+  Model            string             `json:"model"`
+  Choices          []GroqApiChoice    `json:"choices"`
+  Usage            GroqApiUsage       `json:"usage"`
+  SystemFingerprint string            `json:"system_fingerprint"`
+  XGroq            GroqApiXGroq       `json:"x_groq"`
+}
+
+type GroqApiChoice struct {
+  Index        int              `json:"index"`
+  Message      GroqApiMessage   `json:"message"`
+  LogProbs     any             `json:"logprobs"`
+  FinishReason string          `json:"finish_reason"`
+}
+
+type GroqApiMessage struct {
+  Role    string `json:"role"`
+  Content string `json:"content"`
+}
+
+type GroqApiUsage struct {
+  QueueTime        float64 `json:"queue_time"`
+  PromptTokens     int     `json:"prompt_tokens"`
+  PromptTime       float64 `json:"prompt_time"`
+  CompletionTokens int     `json:"completion_tokens"`
+  CompletionTime   float64 `json:"completion_time"`
+  TotalTokens      int     `json:"total_tokens"`
+  TotalTime        float64 `json:"total_time"`
+}
+
+type GroqApiXGroq struct {
+  ID string `json:"id"`
 }
 
 func DbConnect() *sql.DB {
@@ -189,5 +226,52 @@ func method_to_write_http_and_json_to_respond( w http.ResponseWriter, message st
 
   http.Error(w, message, int(http_status_code))
   json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message:message, Status_code:http_status_code  })
+
+}
+
+func AskGroqabouttheSponsorship( httpClient *http.Client) error {
+  
+  // make the structs for the response 
+  // set up context it we want to run it async
+  err ,http_req := factoryGroqPostReqCreator("")
+  if err!= nil {
+    return err // probally retur it in contexr
+  }
+  http_response , err := httpClient.Do(http_req)
+  if err!= nil {
+    return err // probally return it in contexr
+  }
+  // take the response and json decode it and put it in the response and return the ptr in the channel 
+  var response GroqApiResponse
+}
+
+func factoryGroqPostReqCreator(GroqApiKey string) (error, *http.Request) {
+
+  // GroqApiKey is asked as I need to decide wether the user is paid or free
+
+  url := "https://api.groq.com/openai/v1/chat/completions"
+  
+  payload := map[string]interface{}{
+		"model": os.Getenv("MODEL"),
+		"messages": []map[string]string{
+			{
+				"role":    "user",
+				"content": os.Getenv("MESSAGE_CONTENT"),
+			},
+		},
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err,nil
+	}
+
+  createdHttpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err,nil
+	}
+  createdHttpReq.Header.Set("Content-Type", "application/json")
+	createdHttpReq.Header.Set("Authorization", "Bearer "+GroqApiKey)
+
+return nil, createdHttpReq
 
 }

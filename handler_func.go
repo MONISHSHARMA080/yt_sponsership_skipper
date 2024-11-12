@@ -171,7 +171,9 @@ return func(w http.ResponseWriter, r *http.Request) {
 	}
 	print(result_for_subtitles.string_value, "<--string value was this ")
 	
-	//make a chanel and a format for the 
+	// function to request to the groq and what about the free user and paid user channel 
+	// AskGroqabouttheSponsorship(httpClient)
+
 
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")

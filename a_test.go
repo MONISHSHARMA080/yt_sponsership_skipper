@@ -66,7 +66,8 @@ func TestGetTheSubtitlesMediantime(t *testing.T) {
         // Handle results
         if result.err != nil {
             t.Logf("Iteration %d error: %v", i+1, result.err)
-            continue
+			t.Fail()
+            return
         }
         
         if result.transcript != nil {
