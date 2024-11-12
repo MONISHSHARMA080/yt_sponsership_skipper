@@ -336,6 +336,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript:  &transcripts }
 }
 
+
 func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan <- string)  {
 
 	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
