@@ -11,6 +11,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	// _ "github.com/tursodatabase/go-libsql"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
@@ -20,6 +22,12 @@ type Signup_detail_of_user struct {
   AccountID  int64    `json:"account_id"`
   Email      string `json:"email"`
   UserToken  string `json:"user_token"`
+}
+type UserInDb struct {
+  AccountID  int64    
+  Email      string 
+  UserToken  string 
+  paid_status bool
 }
 
 type GroqApiResponse struct {
@@ -192,9 +200,27 @@ func return_string_based_on_user_details_for_encryption_text(user_detail Signup_
   if is_paid_user {
       paid_status = "true"
   }
-  return fmt.Sprintf("%d-%s-%s-%s", user_detail.AccountID, user_detail.Email, user_detail.UserToken, paid_status)
+  return fmt.Sprintf("%d-|-%s-|-%s-|-%s", user_detail.AccountID, user_detail.Email, user_detail.UserToken, paid_status)
 }
 
+func returnUserInDbFormEncryptedString(decypted_string_of_user_in_db string) (UserInDb, error) {
+  
+  parts := strings.Split(decypted_string_of_user_in_db, "-|-")
+  if len(parts) < 4 {
+    return UserInDb{} , fmt.Errorf("string has less than 4 parts")
+  }
+  accountID, err := strconv.ParseInt(parts[0], 10, 64)
+  if err != nil {
+    // Handle the error if parsing fails, e.g., return a zero-value struct
+    return UserInDb{}, fmt.Errorf("can't parse the AccountID string in encreypted string form db to int")
+  }
+  paid_status_of_user , err := strconv.ParseBool(parts[3])
+  if err != nil {
+    // Handle the error if parsing fails, e.g., return a zero-value struct
+    return UserInDb{}, fmt.Errorf("can't parse the paid_status string in encreypted string form db to bool")
+  }
+  return UserInDb{AccountID: accountID, Email: parts[1], UserToken: parts[2], paid_status: paid_status_of_user}, nil
+}
 
 func write_to_json_a_error_message(){
   // if encoding json for  the message

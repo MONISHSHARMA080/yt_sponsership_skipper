@@ -8,3 +8,7 @@ type String_and_error_channel_for_groq_response struct {
 	groqApiResponsePtr *GroqApiResponse
 	http_response_for_go_api_ptr *http.Response
 }
+
+func (groqResp *String_and_error_channel_for_groq_response) f (){
+	
+}

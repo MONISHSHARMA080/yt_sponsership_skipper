@@ -100,7 +100,8 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(base64Ciphertext)
-	}
+		// should have a strucutred json response on this path
+  }
 }
 
 
@@ -118,13 +119,13 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 // but there accuraccy is meh! I think )
 
 return func(w http.ResponseWriter, r *http.Request) {
-	
+
 	if r.Method != http.MethodPost{
 		http.Error(w, "Invalid request method", http.StatusBadRequest)
 		// this cpuld return in error , if there is a error decoding json then I am sending the same error in the request code 
 		err:=json.NewEncoder(w).Encode(JsonError_HTTPErrorCode_And_Message{Message:"Invalid request method", Status_code:http.StatusBadRequest})
 		if err!= nil{
-
+		// idk
 		}
 		return
 	}
@@ -161,6 +162,12 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
 		return 
 	}
+	userInDb , err := returnUserInDbFormEncryptedString(result_for_user_details.string_value)
+	if err!= nil{
+		// this could be a bad request too 
+		println(" in the returnUserInDbFormEncryptedString's error -->", err.Error(), "\n")
+		method_to_write_http_and_json_to_respond(w,"Something went wron on out side , error recognizing you form the auth token", http.StatusInternalServerError)
+	}
 	
 	println("result_for_user_details--++",result_for_user_details.string_value)
 
@@ -173,7 +180,12 @@ return func(w http.ResponseWriter, r *http.Request) {
 	
 	// what about the free user and paid user channel/key_channel and prompt the groq 
 	channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
-	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse)
+	apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userInDb.paid_status)
+	if err != nil {
+		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
+		println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
+	}
+	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey)
 	groq_response := <- channel_for_groqResponse
 	if groq_response.err != nil {
 		if groq_response.http_response_for_go_api_ptr.StatusCode == 429 {
@@ -182,7 +194,6 @@ return func(w http.ResponseWriter, r *http.Request) {
 			method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
 		}
 	}
-
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
