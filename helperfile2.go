@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -24,12 +25,19 @@ import (
 	if err!= nil {
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: nil} 
 	}
+	bodyBytes, err := io.ReadAll(http_response.Body)
+	if err != nil {
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response}
+		return
+	}
+	println("\ngroq api response body -->",string(bodyBytes),"\n\n")
 	var groqApiResponse GroqApiResponse
+	
 	err =  json.NewDecoder(http_response.Body).Decode(&groqApiResponse)
 	if err != nil{
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response} 
 	}
-	println("\n groq api response--==>>", groqApiResponse.Choices[0].Message.Content, "<--====----\n")
+	// println("\n groq api response--==>>", groqApiResponse.Choices[0].Message.Content, "<--====----\n")
 	channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response } 
   }
   
@@ -47,7 +55,7 @@ import (
 				  "content": "don't forget I only need json form you nothing else; sutitles-->"+*subtitlesInTheVideo,
 			  },
 			  {
-				"role": "model",
+				"role": "system",
 				"content": os.Getenv("GROQ_MESSAGE_CONTENT"),
 			  },
 		  },
@@ -85,10 +93,14 @@ import (
 		return "", err
 	}
 	random_number_for_apiKey := rand.Intn(int(number_ofKeys))
-	
-	if is_user_paid == true {
-		return os.Getenv("API_KEY_PAID"+strconv.Itoa(random_number_for_apiKey)),nil
-	}else{
-		return os.Getenv("API_KEY_UNPAID"+strconv.Itoa(random_number_for_apiKey)),nil
+	println("the nummber of key in the env is --> ",number_ofKeys)
+	if is_user_paid {
+        a := strconv.Itoa(random_number_for_apiKey)
+        println("random number generated is ->", a)
+        return os.Getenv("API_KEY_PAID" + a), nil
+    } else {
+        a := strconv.Itoa(random_number_for_apiKey)
+        println("random number generated is ->", a)
+        return os.Getenv("API_KEY_UNPAID" + a), nil
 	}
   }

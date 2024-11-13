@@ -47,6 +47,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 	// checking if the user has not provided the field
 	if signup_user_details.AccountID == 0 || signup_user_details.Email == "" || signup_user_details.UserToken == "" {
 	  http.Error(w, "Missing required fields", http.StatusBadRequest)
+	  println("-->",signup_user_details.AccountID, "--", signup_user_details.Email, "--", signup_user_details.UserToken)
 	  return
 	}
 	println( "User signed up successfully", signup_user_details.AccountID, "-", signup_user_details.Email, " - ", signup_user_details.UserToken )
@@ -64,7 +65,6 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		  }
 		  
 		  err := InsertUserInDB(db, userToInsert) // Assuming 'db' is accessible here
-		  println(" it is done")
 		  errChan <- err // Send error (or nil) to channel
 	  }()
   
@@ -169,7 +169,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w,"Something went wron on out side , error recognizing you form the auth token", http.StatusInternalServerError)
 	}
 	
-	println("result_for_user_details--++",result_for_user_details.string_value)
+	println("result_for_user_details--++",result_for_user_details.string_value,"\n user in db is -> ",userInDb.UserToken,userInDb.AccountID,userInDb.Email,userInDb.paid_status)
 
 	result_for_subtitles := <- channel_for_subtitles
 	if result_for_subtitles.err != nil {
@@ -185,6 +185,8 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
 		println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 	}
+	println("and the random key picked by the logic is --> ",apiKey)
+
 	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey, &result_for_subtitles.string_value)
 	groq_response := <- channel_for_groqResponse
 	if groq_response.err != nil {
@@ -194,6 +196,16 @@ return func(w http.ResponseWriter, r *http.Request) {
 			method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
 		}
 	}
+	// printJson(groq_response)
+	println("=------ending---=-=--")
+	println(groq_response.groqApiResponsePtr.Choices[0].Message.Content)
+	
+	
+	
+	// || ---handle groq error api and how it relates to the error here 
+	
+	
+	
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
