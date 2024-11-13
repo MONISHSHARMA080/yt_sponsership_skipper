@@ -12,11 +12,11 @@ import (
 
 
   
-  func AskGroqabouttheSponsorship( httpClient *http.Client, channel_for_groq_response chan<- String_and_error_channel_for_groq_response, APIKEY_according_to_users_teir string )  {
+  func AskGroqabouttheSponsorship( httpClient *http.Client, channel_for_groq_response chan<- String_and_error_channel_for_groq_response, APIKEY_according_to_users_tier string, subtitlesInTheVideo *string )  {
 	
 	// make the structs for the response 
 	// set up context it we want to run it async
-	err ,http_req := factoryGroqPostReqCreator(APIKEY_according_to_users_teir)
+	err ,http_req := factoryGroqPostReqCreator(APIKEY_according_to_users_tier, subtitlesInTheVideo )
 	if err!= nil {
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: nil} 
 	}
@@ -33,9 +33,9 @@ import (
 	channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response } 
   }
   
-  func factoryGroqPostReqCreator(GroqApiKey string) (error, *http.Request) {
+  func factoryGroqPostReqCreator(GroqApiKey string, subtitlesInTheVideo *string) (error, *http.Request) {
   
-	// GroqApiKey is asked as I need to decide wether the user is paid or free
+	// stringify a json schema in the end 
   
 	url := "https://api.groq.com/openai/v1/chat/completions"
 	
@@ -44,7 +44,11 @@ import (
 		  "messages": []map[string]string{
 			  {
 				  "role":    "user",
-				  "content": os.Getenv("GROQ_MESSAGE_CONTENT"),
+				  "content": "don't forget I only need json form you nothing else; sutitles-->"+*subtitlesInTheVideo,
+			  },
+			  {
+				"role": "model",
+				"content": os.Getenv("GROQ_MESSAGE_CONTENT"),
 			  },
 		  },
 	}

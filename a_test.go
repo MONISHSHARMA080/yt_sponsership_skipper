@@ -10,14 +10,10 @@ func TestGetTheSubtitles(t *testing.T) {
 	// func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
 
 	httP_client_1 := http.Client{}
-	youtubeUrl := "https://www.youtube.com/watch?v=E58qLXBfLrs"
+	youtubeUrl := "https://www.youtube.com/watch?v=E2i4oaRoaG0"
 
 	channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
-	println("sleeping")
-
-	time.Sleep(30000)
-
-	println("finished sleeping")
+	
 	a := time.Now()
 	var transcript *Transcripts
 	go Get_the_subtitles(httP_client_1, youtubeUrl, channel_for_subtitles, transcript)
@@ -31,7 +27,7 @@ func TestGetTheSubtitles(t *testing.T) {
 	}else{
 		println()
 	}
-	print("\n\n", result.string_value+"<<===,,,result value was this \n\n")
+	print("\n\n", result.string_value+" \n\n\n <<===,,,result value was this \n\n")
 	print("time passes -->",time.Since(a).Seconds(), "\n\n\n")
 
 }

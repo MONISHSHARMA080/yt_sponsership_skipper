@@ -176,7 +176,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side", http.StatusInternalServerError)
 		println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 	}
-	print(result_for_subtitles.string_value, "<--string value was this ")
+	print("\n string value is this --> ",result_for_subtitles.string_value, "<--string value was this ")
 	
 	// what about the free user and paid user channel/key_channel and prompt the groq 
 	channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
@@ -185,7 +185,7 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
 		println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 	}
-	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey)
+	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey, &result_for_subtitles.string_value)
 	groq_response := <- channel_for_groqResponse
 	if groq_response.err != nil {
 		if groq_response.http_response_for_go_api_ptr.StatusCode == 429 {
