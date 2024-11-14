@@ -5,3 +5,5 @@ what if we get 429 and the I need to send it to the
 
 in the return_string_based_on_user_details_for_encryption_text func I should escape if the user enters a string with -|- my code cannot parse it or will give me 
 an error. so I should parse it   
+
+for paid user use openai charge them 3 dollar where 1 dollar is for you and 2 for their api pricing and give them some tokens

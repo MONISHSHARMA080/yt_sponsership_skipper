@@ -162,6 +162,10 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
 		return 
 	}
+	// if the paid user has the 
+	if len(result_for_user_details.string_value) >=3000{
+
+	}
 	userInDb , err := returnUserInDbFormEncryptedString(result_for_user_details.string_value)
 	if err!= nil{
 		// this could be a bad request too 
@@ -189,26 +193,48 @@ return func(w http.ResponseWriter, r *http.Request) {
 
 	go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey, &result_for_subtitles.string_value)
 	groq_response := <- channel_for_groqResponse
-	if groq_response.err != nil {
+
+	if groq_response.err != nil && groq_response.groqApiResponsePtr == nil {
 		if groq_response.http_response_for_go_api_ptr.StatusCode == 429 {
 			method_to_write_http_and_json_to_respond(w,"the request time out on this tier", http.StatusTooManyRequests)
+			return
+		}else if groq_response.groqApiResponsePtr == nil {
+			// erro decoding json 
+			println(groq_response.err.Error())
+			method_to_write_http_and_json_to_respond(w,"somethign went wrong on our side", http.StatusInternalServerError)
+			return 
 		}else{
-			method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
+			// should only do explicit comparison
+			// println("error in the groq request -->", groq_response.err.Error(), "   status code -->", groq_response.http_response_for_go_api_ptr.StatusCode)
+			// method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
+			// return
 		}
 	}
 	// printJson(groq_response)
 	println("=------ending---=-=--")
-	println(groq_response.groqApiResponsePtr.Choices[0].Message.Content)
+	if groq_response.groqApiResponsePtr.Choices[0].Message.Content != ""{
+		var sponsorshipContent SponsorshipContent
+		err := json.Unmarshal([]byte(groq_response.groqApiResponsePtr.Choices[0].Message.Content), &sponsorshipContent)
+		if err != nil {
+			println("error in the json unmarshall in the sponsrsgip content --", err.Error())
+		}else{
+			println("\n ++++",sponsorshipContent.DoesVideoHaveSponsorship, "--",sponsorshipContent.SponsorshipSubtitle)
+		}
+
 	
-	
-	
-	// || ---handle groq error api and how it relates to the error here 
-	
-	
-	
+	}else{
+		println("content is empty")
+	}
+
+	// getting error deciding the escaped json in the json response
+
+
+
+
 	// For now, we'll just send it back as a response
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	method_to_write_http_and_json_to_respond(w,"in the end", http.StatusOK)
+
 }
 }
 
