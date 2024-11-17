@@ -285,7 +285,7 @@ func generateSubtitleString(subtitles []Subtitle) string {
 	return result.String()
 }
 
-func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_subtitles chan<- string_and_error_channel_for_subtitles, transcript_in_xml *Transcripts) {
+func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_subtitles chan<- string_and_error_channel_for_subtitles) {
 	println(" in the get_the_subtitles func")
 
 	httP_client_1 := http.Client{}

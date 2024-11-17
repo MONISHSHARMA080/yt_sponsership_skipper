@@ -144,17 +144,12 @@ return func(w http.ResponseWriter, r *http.Request) {
 		method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided",http.StatusBadRequest)
 	  return
 	}
-
-	// now got the  video Id and the  encrypted string now we need to make a go routing to see whether the encrypted string is valid and fetch subtitles of the
-	// yt video, and if the id is valid then we can just send it to groq based on the account of the user \
-
+	
 	channel_for_userDetails := make(chan string_and_error_channel )
 	channel_for_subtitles := make(chan string_and_error_channel_for_subtitles )
-	// channel_for_subtitles := make(chan string_and_error_channel )
 
-	var transcript *Transcripts
 	go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
-	go Get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id,  channel_for_subtitles, transcript ) 
+	go Get_the_subtitles(*httpClient , request_for_youtubeVideo_struct.Youtube_Video_Id,  channel_for_subtitles ) 
 
 	result_for_user_details := <- channel_for_userDetails
 
@@ -203,32 +198,18 @@ return func(w http.ResponseWriter, r *http.Request) {
 			println(groq_response.err.Error())
 			method_to_write_http_and_json_to_respond(w,"somethign went wrong on our side", http.StatusInternalServerError)
 			return 
-		}else{
-			// should only do explicit comparison
-			// println("error in the groq request -->", groq_response.err.Error(), "   status code -->", groq_response.http_response_for_go_api_ptr.StatusCode)
-			// method_to_write_http_and_json_to_respond(w,"Something is wrong with your encrypted string", http.StatusBadRequest)
-			// return
 		}
-	}
-	// printJson(groq_response)
-	println("=------ending---=-=--")
-	if groq_response.groqApiResponsePtr.Choices[0].Message.Content != ""{
-		var sponsorshipContent SponsorshipContent
-		err := json.Unmarshal([]byte(groq_response.groqApiResponsePtr.Choices[0].Message.Content), &sponsorshipContent)
-		if err != nil {
-			println("error in the json unmarshall in the sponsrsgip content --", err.Error())
-		}else{
-			println("\n ++++",sponsorshipContent.DoesVideoHaveSponsorship, "--",sponsorshipContent.SponsorshipSubtitle)
-		}
-
-	
-	}else{
-		println("content is empty")
 	}
 
 	// getting error deciding the escaped json in the json response
 
-
+	if groq_response.SponsorshipContent.DoesVideoHaveSponsorship && groq_response.SponsorshipContent.SponsorshipSubtitle != ""{
+		// go get the subtitles from the transcript.subtitles 
+		// (result_for_subtitles.transcript)
+	}else{
+		// return no to the user as either the video does not have subtitles or the groq did not return it 
+		
+	}
 
 
 	// For now, we'll just send it back as a response

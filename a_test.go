@@ -10,13 +10,12 @@ func TestGetTheSubtitles(t *testing.T) {
 	// func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
 
 	httP_client_1 := http.Client{}
-	youtubeUrl := "https://www.youtube.com/watch?v=E2i4oaRoaG0"
+	youtubeUrl := "https://www.youtube.com/watch?v=xSBGYoS6z68"
 
 	channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
 	
 	a := time.Now()
-	var transcript *Transcripts
-	go Get_the_subtitles(httP_client_1, youtubeUrl, channel_for_subtitles, transcript)
+	go Get_the_subtitles(httP_client_1, youtubeUrl, channel_for_subtitles )
 	result := <-channel_for_subtitles
 	if result.err != nil {
 		print("error ocurred -->" + result.err.Error() + "\n")
@@ -25,9 +24,8 @@ func TestGetTheSubtitles(t *testing.T) {
 		bb := result.transcript
 		println("xml -->", bb.Subtitles[1].Start, bb.Subtitles[1].Text, bb.Subtitles[1].Dur )
 	}else{
-		println()
+		println("")
 	}
-	print("\n\n", result.string_value+" \n\n\n <<===,,,result value was this \n\n")
 	print("time passes -->",time.Since(a).Seconds(), "\n\n\n")
 
 }
@@ -46,13 +44,12 @@ func TestGetTheSubtitlesMediantime(t *testing.T) {
     // Slice to store individual run times
     runTimes := make([]time.Duration, iterations)
     
-    var transcript *Transcripts
     
     // Run the test iterations times
     for i := 0; i < iterations; i++ {
         start := time.Now()
         
-        go Get_the_subtitles(httP_client_1, youtubeUrl, channel_for_subtitles, transcript)
+        go Get_the_subtitles(httP_client_1, youtubeUrl, channel_for_subtitles)
         
         result := <-channel_for_subtitles
         
