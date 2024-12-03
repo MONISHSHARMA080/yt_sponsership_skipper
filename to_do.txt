@@ -1,12 +1,14 @@
 sql injection in go
 
-what if we get 429 and the I need to send it to the 
+what if we get 429 and the I need to send it to the
 
 
- in the return_string_based_on_user_details_for_encryption_text func I should escape if the user enters a string with -|- my code cannot parse it or will give me 
- an error. so I should parse it   
+ in the return_string_based_on_user_details_for_encryption_text func I should escape if the user enters a string with -|- my code cannot parse it or will give me
+ an error. so I should parse it
 
  for paid user use openai charge them 3 dollar where 1 dollar is for you and 2 for their api pricing and give them some tokens
  a func to make the user a paid user
 
  a len check if the string is more than 2000 char then do not make the response to the groq for the unpaid user
+
+add openAi integration for the paid users and also a way to add some sort way for the user to use ti 2 a day(paid)

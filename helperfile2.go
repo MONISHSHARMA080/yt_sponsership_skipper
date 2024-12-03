@@ -10,9 +10,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"text/template/parse"
-
-	"gotest.tools/assert"
+	// "strings"
+	// "text/template/parse"
+	// "gotest.tools/assert"
 )
 
 func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_response chan<- String_and_error_channel_for_groq_response, APIKEY_according_to_users_tier string, subtitlesInTheVideo *string) {
@@ -157,97 +157,112 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 
 	// search for the subtitles in the caption string and at what number of char it is there , and then itereate overt the transcript until we get the desired
 	// length/index of the string
-
-
+	//  use go routine for both of the for loops as it can speed it up
 
 	// the len is 1 indexed and the index is  0 so take it out
-	length_of_full_captions := len(*full_captions)
+	// length_of_full_captions := len(*full_captions)
 	length_of_subtitles := len(transcripts.Subtitles)
 	//cause if the index is there it contian if too and no need to compare the too
 	sponsership_subtitles_index := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
 	if sponsership_subtitles_index == -1 {
-		return 0,0,fmt.Errorf("error getting the substring position in the string")
+		return 0, 0, fmt.Errorf("error getting the substring position in the string")
 	}
+	println("sponsership_subtitles_index is ", sponsership_subtitles_index)
 	tracker_for_len_of_sub_in_transcript := 0
 	tracker_for_len_of_sub_in_transcript_prev_value := 0
 	var timeAndDurationFromStartSub TimeAndDurationFromSub
 	var whereTheIndexForSubtitlesWas int
 	// make this one a seperate function to test
 	for i := 0; i < length_of_subtitles; i++ {
-		// here iterate over the full subtitles, in individual subtitle get the length -1 of that and compare it to index of subtitles, if it is less than add it 
-		// to a tracker var and keep going until it is    
-		tracker_for_len_of_sub_in_transcript_prev_value = tracker_for_len_of_sub_in_transcript	
-		 tracker_for_len_of_sub_in_transcript = len(transcripts.Subtitles[i].Text) -1
-		 if tracker_for_len_of_sub_in_transcript >=sponsership_subtitles_index{
+		// here iterate over the full subtitles, in individual subtitle get the length -1 of that and compare it to index of subtitles, if it is less than add it
+		// to a tracker var and keep going until it is
+		tracker_for_len_of_sub_in_transcript_prev_value = tracker_for_len_of_sub_in_transcript
+		tracker_for_len_of_sub_in_transcript = len(transcripts.Subtitles[i].Text) - 1 + tracker_for_len_of_sub_in_transcript
+		println("in the index ", i, "in start loop and the tracker_for_len_of_sub_in_transcript is ", tracker_for_len_of_sub_in_transcript)
+		if tracker_for_len_of_sub_in_transcript >= sponsership_subtitles_index {
+			println("clash at index -->", i)
 			// subtitles in sponsership starts form here
 			whereTheIndexForSubtitlesWas = i
-			// what to do 1) get where it starts  and the duration and divide duration by the words there and return the startTime + dur and 
+			// what to do 1) get where it starts  and the duration and divide duration by the words there and return the startTime + dur and
 			// call that field an estimated field and a raw start field
-			// 2) return the same (above func) but for the end and also how do we determine where it ends --> keep some sort of tracker that has the 
-			// len of subtitle  string there and itereate over the subtitles until you react that length 
-			timeAndDurationFromStartSub = getTimeAndDurFromSubtitles(&transcripts.Subtitles[i].Text, transcripts.Subtitles[i].Dur, transcripts.Subtitles[i].Start, tracker_for_len_of_sub_in_transcript_prev_value, sponsership_subtitles_index )
+			// 2) return the same (above func) but for the end and also how do we determine where it ends --> keep some sort of tracker that has the
+			// len of subtitle  string there and itereate over the subtitles until you react that length
+			timeAndDurationFromStartSub = getTimeAndDurFromSubtitles(&transcripts.Subtitles[i].Text, transcripts.Subtitles[i].Dur, transcripts.Subtitles[i].Start, tracker_for_len_of_sub_in_transcript_prev_value, sponsership_subtitles_index)
 			if timeAndDurationFromStartSub.err != nil {
-				// handel error 
-				return 0,0, timeAndDurationFromStartSub.err
+				// handel error
+				return 0, 0, timeAndDurationFromStartSub.err
 			}
-			
 
 			println("the line in subtiltes is -->", transcripts.Subtitles[i].Text)
-		 }
+			break
+		}
 	}
 	// now for the end one's for loop
-	// this one is till the end of the 
+	// this one is till the end of the
 	index_of_end_substring := sponsership_subtitles_index + len(*sponsership_subtitles_form_groq)
-
-	// -1 as len is 1 indexed  
-	for i := whereTheIndexForSubtitlesWas - length_of_subtitles -1 ; i < length_of_subtitles; i++ {
-		
+	var timeAndDurationFromEndSub TimeAndDurationFromSub
+	// start form where the index was +1 and then
+	// -1 as len is 1 indexed
+	for i := whereTheIndexForSubtitlesWas + 1; i < length_of_subtitles; i++ {
+		// count the lenght of the string until I go to the or over the length of the length of the string and then
+		tracker_for_len_of_sub_in_transcript_prev_value = tracker_for_len_of_sub_in_transcript
+		tracker_for_len_of_sub_in_transcript = len(transcripts.Subtitles[i].Text) - 1 + tracker_for_len_of_sub_in_transcript
+		if tracker_for_len_of_sub_in_transcript >= index_of_end_substring {
+			// transcripts.Subtitles[]
+			timeAndDurationFromEndSub = getTimeAndDurFromSubtitles(&transcripts.Subtitles[i].Text, transcripts.Subtitles[i].Dur, transcripts.Subtitles[i].Start, tracker_for_len_of_sub_in_transcript_prev_value, index_of_end_substring)
+			if timeAndDurationFromEndSub.err != nil {
+				// handel error
+				return 0, 0, timeAndDurationFromEndSub.err
+			}
+			println("the line in subtiltes is -->", transcripts.Subtitles[i].Text)
+			break
+		}
 	}
-	
-	return 0, 0, nil
+
+	return int(timeAndDurationFromStartSub.start_time), int(timeAndDurationFromEndSub.start_time), nil
 }
 
-type TimeAndDurationFromSub struct{
-	err error
+type TimeAndDurationFromSub struct {
+	err                  error
 	estimated_start_time int64
-	start_time int64
+	start_time           int64
 }
 
-func getTimeAndDurFromSubtitles(subtitles *string, dur string, start string, prev_value_of_transcript_tracker int, index_of_substring int)TimeAndDurationFromSub{
-	
+func getTimeAndDurFromSubtitles(subtitles *string, dur string, start string, prev_value_of_transcript_tracker int, index_of_substring int) TimeAndDurationFromSub {
+
 	//  will be here if the subtiutle string is in the current index (or nearby i.e in the string), this function will go to the index of the substring and return
 	//  the estimeated start time of the sponsership and
-	
-	duration, err :=strconv.ParseInt(dur, 10, 64)
 
-	if  err!= nil {
-		return TimeAndDurationFromSub{err: err, estimated_start_time:0, start_time: 0}
+	duration, err := strconv.ParseInt(dur, 10, 64)
+
+	if err != nil {
+		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
 	}
-	
-	startTime, err :=strconv.ParseInt(start, 10, 64)
-	
-	if  err!= nil {
-		return TimeAndDurationFromSub{err: err, estimated_start_time:0, start_time: 0}
+
+	startTime, err := strconv.ParseInt(start, 10, 64)
+
+	if err != nil {
+		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
 	}
-	
-	println("asserting in getTimeAndDurFromSubtitles() prev_value_of_transcript_tracker is less than index_of_substring",index_of_substring >= prev_value_of_transcript_tracker)
-	println("prev_value_of_transcript_tracker is ",prev_value_of_transcript_tracker ," and index_of_substring is ", index_of_substring)
+
+	println("asserting in getTimeAndDurFromSubtitles() prev_value_of_transcript_tracker is less than index_of_substring", index_of_substring >= prev_value_of_transcript_tracker)
+	println("prev_value_of_transcript_tracker is ", prev_value_of_transcript_tracker, " and index_of_substring is ", index_of_substring)
 
 	var length_of_subtitles int = len(*subtitles)
 	var value_to_increment_index_by int = index_of_substring - prev_value_of_transcript_tracker
-	
-	if length_of_subtitles < value_to_increment_index_by{
-		// handle error 
-		return TimeAndDurationFromSub{err: err, estimated_start_time:0, start_time: 0}
+
+	if length_of_subtitles < value_to_increment_index_by {
+		// handle error
+		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
 	}
-	
+
 	prev_value_of_transcript_tracker = value_to_increment_index_by
-	
-	//  calc the time taken in speaking the whole by subtitle/caption[n] / by len(length_of_subtitles), now we got the w.p. unit and now will get the words 
-	//  per unit of the bytes in the beginning by wpU * value of bytes before and then we remove it form dur  and get the estimated time to skip 
-	
-	estamited_time_to_skip:=  duration - ( duration/int64(length_of_subtitles) * int64(value_to_increment_index_by) )
+
+	//  calc the time taken in speaking the whole by subtitle/caption[n] / by len(length_of_subtitles), now we got the w.p. unit and now will get the words
+	//  per unit of the bytes in the beginning by wpU * value of bytes before and then we remove it form dur  and get the estimated time to skip
+
+	estamited_time_to_skip := duration - (duration / int64(length_of_subtitles) * int64(value_to_increment_index_by))
 	println("estimated time to skip is less than duration --> ", estamited_time_to_skip <= duration)
 
-	return TimeAndDurationFromSub{err: nil, estimated_start_time:estamited_time_to_skip + startTime, start_time: startTime}
+	return TimeAndDurationFromSub{err: nil, estimated_start_time: estamited_time_to_skip + startTime, start_time: startTime}
 }
