@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 	// "strings"
 	// "text/template/parse"
 	// "gotest.tools/assert"
@@ -41,6 +42,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		return
 	}
 
+	bodyBytes = []byte(string(bodyBytes))
 	println("\n=== START OF RESPONSE BODY ===")
 	println(string(bodyBytes))
 	println("=== END OF RESPONSE BODY ===\n")
@@ -66,6 +68,15 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 			channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 			return
 		}
+		// converting it to utf-8 (string is not working)
+
+		if !utf8.ValidString(sponsorshipContent.SponsorshipSubtitle) {
+			println(" the strign is not valid utf-8")
+			sponsorshipContent.SponsorshipSubtitle = string(sponsorshipContent.SponsorshipSubtitle)
+			if !utf8.ValidString(sponsorshipContent.SponsorshipSubtitle) {
+				println("even after the strign() still not valid utf-8")
+			}
+		}
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: &sponsorshipContent}
 	} else {
 		println("No choices in response")
@@ -79,13 +90,13 @@ func factoryGroqPostReqCreator(GroqApiKey string, subtitlesInTheVideo *string) (
 	// stringify a json schema in the end
 
 	url := "https://api.groq.com/openai/v1/chat/completions"
-
+	println(os.Getenv("GROQ_MESSAGE_CONTENT"))
 	payload := map[string]interface{}{
 		"model": os.Getenv("GROQ_MODEL"),
 		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": "don't forget I only need json form you nothing else; sutitles-->" + *subtitlesInTheVideo,
+				"content": "don't forget I only need json form you nothing else; sutitles for the youtube video is -->" + *subtitlesInTheVideo,
 			},
 			{
 				"role":    "system",
@@ -166,11 +177,12 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	//  use go routine for both of the for loops as it can speed it up
 
 	// the len is 1 indexed and the index is  0 so take it out
-	// length_of_full_captions := len(*full_captions)
-	length_of_subtitles := len(transcripts.Subtitles)
+	// length_of_full_captions := len(*full_captionsa)
+	length_of_subtitles := len(*full_captions)
 	//cause if the index is there it contian if too and no need to compare the too
 	sponsership_subtitles_index := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
 	if sponsership_subtitles_index == -1 {
+		println(" can't find subtitle in the full video")
 		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("error getting the substring position in the string")}
 		return
 	}
@@ -187,7 +199,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 		tracker_for_len_of_sub_in_transcript = len(transcripts.Subtitles[i].Text) - 1 + tracker_for_len_of_sub_in_transcript
 		println("in the index ", i, "in start loop and the tracker_for_len_of_sub_in_transcript is ", tracker_for_len_of_sub_in_transcript)
 		if tracker_for_len_of_sub_in_transcript >= sponsership_subtitles_index {
-			println("clash at index -->", i)
+			println("clash at index -->", i, " and the dur is", transcripts.Subtitles[i].Text)
 			// subtitles in sponsership starts form here
 			whereTheIndexForSubtitlesWas = i
 			// what to do 1) get where it starts  and the duration and divide duration by the words there and return the startTime + dur and
@@ -234,8 +246,8 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 
 type TimeAndDurationFromSub struct {
 	err                  error
-	estimated_start_time int64
-	start_time           int64
+	estimated_start_time float64
+	start_time           float64
 }
 
 func getTimeAndDurFromSubtitles(subtitles *string, dur string, start string, prev_value_of_transcript_tracker int, index_of_substring int) TimeAndDurationFromSub {
@@ -243,13 +255,13 @@ func getTimeAndDurFromSubtitles(subtitles *string, dur string, start string, pre
 	//  will be here if the subtiutle string is in the current index (or nearby i.e in the string), this function will go to the index of the substring and return
 	//  the estimeated start time of the sponsership and
 
-	duration, err := strconv.ParseInt(dur, 10, 64)
+	duration, err := strconv.ParseFloat(dur, 10)
 
 	if err != nil {
 		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
 	}
 
-	startTime, err := strconv.ParseInt(start, 10, 64)
+	startTime, err := strconv.ParseFloat(start, 10)
 
 	if err != nil {
 		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
@@ -271,8 +283,19 @@ func getTimeAndDurFromSubtitles(subtitles *string, dur string, start string, pre
 	//  calc the time taken in speaking the whole by subtitle/caption[n] / by len(length_of_subtitles), now we got the w.p. unit and now will get the words
 	//  per unit of the bytes in the beginning by wpU * value of bytes before and then we remove it form dur  and get the estimated time to skip
 
-	estamited_time_to_skip := duration - (duration / int64(length_of_subtitles) * int64(value_to_increment_index_by))
+	estamited_time_to_skip := duration - (duration / float64(length_of_subtitles) * float64(value_to_increment_index_by))
 	println("estimated time to skip is less than duration --> ", estamited_time_to_skip <= duration)
 
 	return TimeAndDurationFromSub{err: nil, estimated_start_time: estamited_time_to_skip + startTime, start_time: startTime}
+}
+
+func parseXMLAndAdd(subtitles []Subtitle) string {
+	var result strings.Builder
+	for _, subtitle := range subtitles {
+		result.WriteString(fmt.Sprintf("[%s] %s [%s] ",
+			subtitle.Start,
+			strings.TrimSpace(subtitle.Text),
+			subtitle.Dur))
+	}
+	return result.String()
 }

@@ -42,20 +42,6 @@ func main() {
 
 	// time.Sleep(30000)
 
-	// println("finished sleeping")
-	// a := time.Now()
-	// go Get_the_subtitles(httP_client_1, youtubeUrl, want_text_without_time, channel_for_subtitles)
-	// result := <-channel_for_subtitles
-	// if result.err != nil {
-	// 	print("error ocurred -->" + result.err.Error() + "\n")
-	// }
-	// print("\n\n", result.string_value+"<<===,,,result value was this \n\n")
-	// print(time.Since(a).Seconds())
-	// almost the base is done , now I should start assembling the pieces together
-	// what would that be >>  api  routes
-	// >> concurrency, ---doing this
-	// >> tests and (a bit and see for yourself)
-
 	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
@@ -231,8 +217,10 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 		if languageCode == "en" {
 			if simpleText == "English" {
 				englishTrack = captionTrack
+				println("in the english track")
 				break
 			} else if simpleText == "English (auto-generated)" {
+				println("in the auto generated track")
 				englishAutoTrack = captionTrack
 			}
 		}
@@ -255,6 +243,7 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 	}
 
 	baseUrl, ok := selectedTrack["baseUrl"].(string)
+	println("baseurl of the string is -->", baseUrl)
 	if !ok {
 		return "", fmt.Errorf("baseUrl not found in selected captionTrack")
 	}
@@ -276,11 +265,11 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 // --- 2nd one for utf-8 strings
 
 func generateSubtitleString(subtitles []Subtitle) string {
-    var result strings.Builder
+	var result strings.Builder
 	// Concatenate the subtitle text with spaces in between
 	for _, subtitle := range subtitles {
-        result.WriteString(html.UnescapeString(strings.TrimSpace(subtitle.Text)))
-    }
+		result.WriteString(html.UnescapeString(strings.TrimSpace(subtitle.Text) + " "))
+	}
 	// Convert the result into a string and return
 	return result.String()
 }
@@ -291,7 +280,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	httP_client_1 := http.Client{}
 	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httP_client_1)
 	if err != nil {
-		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil }
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
 
@@ -323,21 +312,20 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	}
 
 	// for _, subtitle := range transcripts.Subtitles {
-	// 	fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start,  subtitle.Text, subtitle.Dur)
+	// 	fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
 	// }
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
 
 	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later; probally itegrate over the string or asyncly convert in a array
-	// I think (not thought it through) either way I will itereate through the string so why not just do it once 
+	// I think (not thought it through) either way I will itereate through the string so why not just do it once
 
 	// now this block is useless as I will return the xml to myself
-	
-	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript:  &transcripts }
+
+	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }
 
-
-func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan <- string)  {
+func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan<- string) {
 
 	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
 
@@ -355,7 +343,7 @@ func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan <
 }
 
 func GenerateSubtitleWithTimeWithoutChannels(Subtitles []Subtitle) string {
-	
+
 	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
 
 	var result strings.Builder

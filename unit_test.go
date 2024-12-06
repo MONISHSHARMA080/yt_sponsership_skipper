@@ -38,7 +38,6 @@ func TestGetTimeAndDurInTheSubtitles(t *testing.T) {
 	}
 }
 
-// func TestGetTheSubtitles(t *testing.T) {
 // 	// func get_the_subtitles(httpClient http.Client, youtubeUrl string, want_text_without_time bool, channel_for_subtitles chan<- string_and_error_channel) {
 // 	httP_client_1 := http.Client{}
 // 	youtubeUrl := "https://www.youtube.com/watch?v=xSBGYoS6z68"

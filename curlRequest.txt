@@ -1,0 +1,15 @@
+curl -X POST http://localhost:8080/signup \
+     -H "Content-Type: application/json" \
+     -d '{
+         "account_id": 123,
+         "email": "user@example.com",
+         "user_token": "some_unique_user_token"
+     }'
+
+----------------
+curl -X POST http://localhost:8080/youtubeVideo \
+     -H "Content-Type: application/json" \
+     -d '{
+         "youtube_Video_Id": "https://www.youtube.com/watch?v=b-zfad1jOuw&t",
+         "encrypted_string": "o+HsWfmJ48pU4Fr5agL3DQ2UupQKH2eqKlXsZrt0NJ+GzfxZQMGw6owRnn/dMbIRRGT9sOtZmL9qF8CgU1LvG9a6T1b3K3E="
+     }'
