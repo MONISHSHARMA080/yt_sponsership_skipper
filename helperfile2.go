@@ -137,7 +137,13 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 	}
 }
 
-func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string) (int, int, error) {
+type ResponseForGettingSubtitlesTiming struct {
+	startTime int
+	endTime   int
+	err       error
+}
+
+func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
 	// should probally use/communicate with goroutine
 
 	// do some sort of two pointer  to pruse through
@@ -165,7 +171,8 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	//cause if the index is there it contian if too and no need to compare the too
 	sponsership_subtitles_index := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
 	if sponsership_subtitles_index == -1 {
-		return 0, 0, fmt.Errorf("error getting the substring position in the string")
+		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("error getting the substring position in the string")}
+		return
 	}
 	println("sponsership_subtitles_index is ", sponsership_subtitles_index)
 	tracker_for_len_of_sub_in_transcript := 0
@@ -190,7 +197,8 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 			timeAndDurationFromStartSub = getTimeAndDurFromSubtitles(&transcripts.Subtitles[i].Text, transcripts.Subtitles[i].Dur, transcripts.Subtitles[i].Start, tracker_for_len_of_sub_in_transcript_prev_value, sponsership_subtitles_index)
 			if timeAndDurationFromStartSub.err != nil {
 				// handel error
-				return 0, 0, timeAndDurationFromStartSub.err
+				responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, timeAndDurationFromStartSub.err}
+				return
 			}
 
 			println("the line in subtiltes is -->", transcripts.Subtitles[i].Text)
@@ -212,14 +220,16 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 			timeAndDurationFromEndSub = getTimeAndDurFromSubtitles(&transcripts.Subtitles[i].Text, transcripts.Subtitles[i].Dur, transcripts.Subtitles[i].Start, tracker_for_len_of_sub_in_transcript_prev_value, index_of_end_substring)
 			if timeAndDurationFromEndSub.err != nil {
 				// handel error
-				return 0, 0, timeAndDurationFromEndSub.err
+				responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, timeAndDurationFromEndSub.err}
+				return
 			}
 			println("the line in subtiltes is -->", transcripts.Subtitles[i].Text)
 			break
 		}
 	}
 
-	return int(timeAndDurationFromStartSub.start_time), int(timeAndDurationFromEndSub.start_time), nil
+	responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{int(timeAndDurationFromStartSub.start_time), int(timeAndDurationFromEndSub.start_time), nil}
+	return
 }
 
 type TimeAndDurationFromSub struct {
