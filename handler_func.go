@@ -199,6 +199,10 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		groq_response := <-channel_for_groqResponse
 
 		if groq_response.err != nil && groq_response.groqApiResponsePtr == nil {
+			if groq_response.http_response_for_go_api_ptr != nil {
+				method_to_write_http_and_json_to_respond(w, "somethign went wrong on our side", http.StatusInternalServerError)
+				return
+			}
 			if groq_response.http_response_for_go_api_ptr.StatusCode == 429 {
 				method_to_write_http_and_json_to_respond(w, "the request time out on this tier", http.StatusTooManyRequests)
 				return
