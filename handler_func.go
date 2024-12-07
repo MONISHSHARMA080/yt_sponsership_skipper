@@ -163,9 +163,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			return
 		}
 		// if the paid user has the
-		if len(result_for_user_details.string_value) >= 3000 {
-			// block it I guess
-		}
+
 		userInDb, err := returnUserInDbFormEncryptedString(result_for_user_details.string_value)
 		if err != nil {
 			// this could be a bad request too
@@ -174,7 +172,12 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		}
 
 		println("result_for_user_details--++", result_for_user_details.string_value, "\n user in db is -> ", userInDb.UserToken, userInDb.AccountID, userInDb.Email, userInDb.paid_status)
-
+		if len(result_for_user_details.string_value) >= 4700 && !userInDb.paid_status {
+			// block it I guess
+			println(" +++++++++++string is longer than 3000")
+			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
+			return
+		}
 		result_for_subtitles := <-channel_for_subtitles
 		if result_for_subtitles.err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side", http.StatusInternalServerError)

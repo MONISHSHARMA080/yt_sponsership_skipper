@@ -8,30 +8,33 @@ import (
 func TestGetTimeAndDurInTheSubtitles(t *testing.T) {
 	transcript := Transcripts{
 		Subtitles: []Subtitle{
-			{Text: "Hello, and welcome to the presentation.", Start: "1000", Dur: "3500"},
-			{Text: "Today, we'll discuss the topic in depth.", Start: "4000", Dur: "3000"},
-			{Text: "Feel free to ask any questions during the session.", Start: "7500", Dur: "4000"},
-			{Text: "Now, let's dive into the first section.", Start: "12000", Dur: "3000"},
-			{Text: "This section covers the basics of the subject.", Start: "15500", Dur: "4500"},
-			{Text: "Make sure to take notes as we go along.", Start: "20500", Dur: "2500"},
-			{Text: "Moving on, let's explore the advanced concepts.", Start: "24000", Dur: "3500"},
-			{Text: "These concepts are essential for deeper understanding.", Start: "28000", Dur: "3000"},
-			{Text: "We'll now summarize the key points covered.", Start: "32000", Dur: "2500"},
-			{Text: "Thank you for your attention!", Start: "35000", Dur: "2000"},
+			{Text: "Hello, and welcome to the presentation.", Start: "1000.00", Dur: "3500.00"},
+			{Text: "Today, we'll discuss the topic in depth.", Start: "4000.00", Dur: "6000.00"},
+			{Text: "Feel free to ask any questions during the session.", Start: "7500.00", Dur: "4000.01"},
+			{Text: "Now, let's dive into the first section.", Start: "12000.00", Dur: "3000.00"},
+			{Text: "This section covers the basics of the subject.", Start: "15500.00", Dur: "4500.00"},
+			{Text: "Make sure to take notes as we go along.", Start: "20500.00", Dur: "2500.00"},
+			{Text: "Moving on, let's explore the advanced concepts.", Start: "24000.00", Dur: "3500.00"},
+			{Text: "These concepts are essential for deeper understanding.", Start: "28000.00", Dur: "3000.00"},
+			{Text: "We'll now summarize the key points covered.", Start: "32000.00", Dur: "2500.00"},
+			{Text: "Thank you for your attention!", Start: "35000.00", Dur: "2000.00"},
 		},
 	}
 	fullCaption := "Hello, and welcome to the presentation. Today, we'll discuss the topic in depth. Feel free to ask any questions during the session. Now, let's dive into the first section. This section covers the basics of the subject. Make sure to take notes as we go along. Moving on, let's explore the advanced concepts. These concepts are essential for deeper understanding. We'll now summarize the key points covered. Thank you for your attention!"
 	sponserShipSubtitles := "the advanced concepts. These concepts are essential for deeper understanding. We'll now summarize the key points covered. Thank"
 	pik := strings.Index(strings.ToLower(fullCaption), strings.ToLower(sponserShipSubtitles))
 	println("and is -->", pik)
-	startTime, endTime, err := GetTimeAndDurInTheSubtitles(&transcript, &sponserShipSubtitles, &fullCaption)
-	if err != nil {
+	ChanForResponseForGettingSubtitlesTiming := make(chan ResponseForGettingSubtitlesTiming)
+	go GetTimeAndDurInTheSubtitles(&transcript, &sponserShipSubtitles, &fullCaption, ChanForResponseForGettingSubtitlesTiming)
+	responseFromGettingSubtitleTimming := <-ChanForResponseForGettingSubtitlesTiming
+	println("++\n\n\n")
+	if responseFromGettingSubtitleTimming.err != nil {
 		println("error occurred")
-		t.Fatal(err)
-		panic(err)
+		t.Fatal(responseFromGettingSubtitleTimming.err)
+		panic(responseFromGettingSubtitleTimming.err)
 	}
-	println("StartTime is -->", startTime, "endtime is -->", endTime)
-	if startTime != 24000 && endTime != 35000 {
+	println("StartTime is -->", responseFromGettingSubtitleTimming.startTime, "endtime is -->", responseFromGettingSubtitleTimming.endTime)
+	if responseFromGettingSubtitleTimming.startTime != 24000 && responseFromGettingSubtitleTimming.endTime != 35000 {
 		t.Fail()
 		t.FailNow()
 		t.Fatal("function did not provided the expected output")
