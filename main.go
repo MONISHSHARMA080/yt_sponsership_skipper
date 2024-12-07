@@ -310,6 +310,11 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
 		return
 	}
+	// formatting the transcript to be in utf-8
+	println("formatting the transctipt.subtitles.text to be utf-8")
+	for i, text := range transcripts.Subtitles {
+		transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
+	}
 
 	// for _, subtitle := range transcripts.Subtitles {
 	// 	fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
