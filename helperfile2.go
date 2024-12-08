@@ -183,10 +183,13 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	sponsershipLengthTracker := 0
 	sponsershipStartSubtitleIndex := 0
 	for i, subtitle := range transcripts.Subtitles {
-		sponsershipLengthTracker += len(subtitle.Text)
+		sponsershipLengthTracker += len(subtitle.Text + " ") // cause this does not include space
 		if sponsershipLengthTracker >= sponsershipSubtitlesStartIndex {
 			// need a better way to reach the strign than this
 			sponsershipStartSubtitleIndex = i - 3
+			println("+++---", transcripts.Subtitles[i-1].Text)
+			println("+++---", subtitle.Text)
+			println("+++---", transcripts.Subtitles[i+1].Text)
 			println(transcripts.Subtitles[sponsershipStartSubtitleIndex].Text, "  --at ", sponsershipStartSubtitleIndex, " and sponsershipSubtitlesStartIndex is ", sponsershipSubtitlesStartIndex, " sponsershipLengthTracker is ", sponsershipLengthTracker)
 			println("ads from full_caption", (*full_captions)[sponsershipSubtitlesStartIndex:sponsershipSubtitlesEndIndex])
 			break
