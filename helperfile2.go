@@ -43,9 +43,9 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 	}
 
 	bodyBytes = []byte(string(bodyBytes))
-	println("\n=== START OF RESPONSE BODY ===")
-	println(string(bodyBytes))
-	println("=== END OF RESPONSE BODY ===\n")
+	// println("\n=== START OF RESPONSE BODY ===")
+	// println(string(bodyBytes))
+	// println("=== END OF RESPONSE BODY ===\n")
 
 	// Create a new reader from the body bytes for json.NewDecoder
 	var groqApiResponse GroqApiResponse
@@ -58,7 +58,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 	}
 
 	if len(groqApiResponse.Choices) > 0 {
-		println("\nContent field:", groqApiResponse.Choices[0].Message.Content, "\n\n")
+		// println("\nContent field:", groqApiResponse.Choices[0].Message.Content, "\n\n")
 		// formatting json
 		a := formatGroqJson(groqApiResponse.Choices[0].Message.Content)
 		if a == "" {
@@ -168,6 +168,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	// reach the first position and get the timeandDur and then the last and ...
 	//
 	//  just reach the end and  start from indexes and just calculate the dur, start
+	// mean just go to that string location and get the dur and start
 	//
 	sponsershipSubtitlesStartIndex := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
 	if sponsershipSubtitlesStartIndex == -1 {
@@ -175,24 +176,30 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("can't find the subtitles")}
 		return // string is not present
 	}
+	// make a new branch and try 2 pointer approach(splip on the " ")
+	// or normilization in both the strings
+	// compare both strings to see if they are eqaul or not(before any of above stradegy)
 	sponsershipSubtitlesEndIndex := sponsershipSubtitlesStartIndex + len(*sponsership_subtitles_form_groq)
 	sponsershipLengthTracker := 0
-	for i := 0; i < len(transcripts.Subtitles); i++ {
-		sponsershipLengthTracker = len(transcripts.Subtitles[i].Text) - 1 + sponsershipLengthTracker
-		println("sponsership length tracker-->", sponsershipLengthTracker)
+	sponsershipStartSubtitleIndex := 0
+	for i, subtitle := range transcripts.Subtitles {
+		sponsershipLengthTracker += len(subtitle.Text)
 		if sponsershipLengthTracker >= sponsershipSubtitlesStartIndex {
-
-			println(" I think I found it ")
-			println(transcripts.Subtitles[i].Text)
-			println("---------")
-			println((*full_captions)[sponsershipSubtitlesStartIndex:sponsershipSubtitlesEndIndex])
-			println("\n-------\n")
-			println((*full_captions)[sponsershipLengthTracker:sponsershipSubtitlesEndIndex])
+			// need a better way to reach the strign than this
+			sponsershipStartSubtitleIndex = i - 3
+			println(transcripts.Subtitles[sponsershipStartSubtitleIndex].Text, "  --at ", sponsershipStartSubtitleIndex, " and sponsershipSubtitlesStartIndex is ", sponsershipSubtitlesStartIndex, " sponsershipLengthTracker is ", sponsershipLengthTracker)
+			println("ads from full_caption", (*full_captions)[sponsershipSubtitlesStartIndex:sponsershipSubtitlesEndIndex])
 			break
 		}
 	}
+	// after the for loop go for the last for loop (make it i-3 as well (see first))
+	for i := 0; i < len(transcripts.Subtitles); i++ {
+		// try utf8.RuneCountInString() as a last resort
+	}
 	println("sponsershipSubtitlesStartIndex, sponsershipSubtitlesEndIndex--", sponsershipSubtitlesStartIndex, sponsershipSubtitlesEndIndex)
 
+	// a := strings.Compare(makeStringFromASubtitle(transcripts.Subtitles), *full_captions)
+	// println("are both the strings equal -->", a)
 	responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("can't find the subtitles")}
 	return
 }
@@ -253,6 +260,17 @@ func parseXMLAndAdd(subtitles []Subtitle) string {
 	return result.String()
 }
 
+func makeStringFromASubtitle(a []Subtitle) string {
+	var resultStr strings.Builder
+	for _, subtitle := range a {
+		i, err := resultStr.WriteString(subtitle.Text + " ")
+		if err != nil {
+			println("\nerror in building the string in iter..", i, " form subtitle-->", err.Error())
+		}
+	}
+	return resultStr.String()
+}
+
 func formatGroqJson(JSONBYGroq string) string {
 	// why cause ti hallucinates on json and sometimes write ```json{....}```
 	startIndex := strings.Index(JSONBYGroq, "{")
@@ -266,8 +284,10 @@ func formatGroqJson(JSONBYGroq string) string {
 		return ""
 	}
 
-	// Extract the substring
-	return JSONBYGroq[startIndex : endIndex+1]
+	return strings.Replace(JSONBYGroq, `"true"`, "true", 1)[startIndex : endIndex+1]
+
+	// // Extract the substring
+	// return JSONBYGroq[startIndex : endIndex+1]
 }
 
 // func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {

@@ -243,7 +243,7 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 	}
 
 	baseUrl, ok := selectedTrack["baseUrl"].(string)
-	println("baseurl of the string is -->", baseUrl)
+	// println("baseurl of the string is -->", baseUrl)
 	if !ok {
 		return "", fmt.Errorf("baseUrl not found in selected captionTrack")
 	}

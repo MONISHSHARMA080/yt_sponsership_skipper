@@ -184,7 +184,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 			return
 		}
-		print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
+		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
 
 		// what about the free user and paid user channel/key_channel and prompt the groq
 		channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
