@@ -176,22 +176,33 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("can't find the subtitles")}
 		return // string is not present
 	}
-	// make a new branch and try 2 pointer approach(splip on the " ")
-	// or normilization in both the strings
-	// compare both strings to see if they are eqaul or not(before any of above stradegy)
 	sponsershipSubtitlesEndIndex := sponsershipSubtitlesStartIndex + len(*sponsership_subtitles_form_groq)
 	sponsershipLengthTracker := 0
 	sponsershipStartSubtitleIndex := 0
+	// subtitleFoundInForstString:= false // not using as just check if the sponsershipStartSubtitleIndex!=0
 	for i, subtitle := range transcripts.Subtitles {
 		sponsershipLengthTracker += len(subtitle.Text + " ") // cause this does not include space
 		if sponsershipLengthTracker >= sponsershipSubtitlesStartIndex {
-			// need a better way to reach the strign than this
-			sponsershipStartSubtitleIndex = i - 3
-			println("+++---", transcripts.Subtitles[i-1].Text)
-			println("+++---", subtitle.Text)
-			println("+++---", transcripts.Subtitles[i+1].Text)
-			println(transcripts.Subtitles[sponsershipStartSubtitleIndex].Text, "  --at ", sponsershipStartSubtitleIndex, " and sponsershipSubtitlesStartIndex is ", sponsershipSubtitlesStartIndex, " sponsershipLengthTracker is ", sponsershipLengthTracker)
-			println("ads from full_caption", (*full_captions)[sponsershipSubtitlesStartIndex:sponsershipSubtitlesEndIndex])
+			if sponsershipLengthTracker > sponsershipStartSubtitleIndex {
+				// we can say that we have came overBoard(cause sponsershipLengthTracker > sponsershipStartSubtitleIndex ) so if we go back it should not be that far off
+				// make sure i is not 0(starting case, it can)
+				// what I am going to do it get the first 2 words of the sponserSub and search it in this-1 it !found then  2nd if not !found still then search the first in the
+				// or calculate the len of 1st 2 words of caption sub it it is in the index of
+				if i > 0 {
+					println("got overboard, the text in prev one is(I think correct)-->", transcripts.Subtitles[i-1].Text)
+					println("this text is -->", subtitle.Text)
+					// now the subtitle is either here or in prev subtitle
+					sponsershipStartSubtitleIndex = getIndexOfSponserSubtitleFromThisOrBeforeIndex(*transcripts, i, sponsership_subtitles_form_groq)
+					if sponsershipStartSubtitleIndex == i-1 {
+						sponsershipLengthTracker = sponsershipLengthTracker - len(subtitle.Text+" ") // over counted
+					} // else we are just on track
+					println("the correct text is -->", transcripts.Subtitles[sponsershipStartSubtitleIndex].Text)
+				} else {
+					sponsershipStartSubtitleIndex = i
+				}
+			} else {
+				sponsershipStartSubtitleIndex = i
+			}
 			break
 		}
 	}
@@ -275,36 +286,50 @@ func makeStringFromASubtitle(a []Subtitle) string {
 }
 
 func formatGroqJson(JSONBYGroq string) string {
-	// why cause ti hallucinates on json and sometimes write ```json{....}```
-	startIndex := strings.Index(JSONBYGroq, "{")
-	if startIndex == -1 {
-		return ""
+	// Trim any leading whitespace
+	JSONBYGroq = strings.TrimSpace(JSONBYGroq)
+
+	// Find the first '{' and last '}'
+	firstBrace := strings.Index(JSONBYGroq, "{")
+	lastBrace := strings.LastIndex(JSONBYGroq, "}")
+
+	// Extract the JSON substring
+	if firstBrace == -1 || lastBrace == -1 {
+		return JSONBYGroq
 	}
 
-	// Find the last occurrence of }
-	endIndex := strings.LastIndex(JSONBYGroq, "}")
-	if endIndex == -1 || endIndex <= startIndex {
-		return ""
-	}
+	trimmedJSON := JSONBYGroq[firstBrace : lastBrace+1]
 
-	return strings.Replace(JSONBYGroq, `"true"`, "true", 1)[startIndex : endIndex+1]
+	// Replace "true" with true, but only the first occurrence
+	formattedJSON := strings.Replace(trimmedJSON, `"true"`, "true", 1)
 
-	// // Extract the substring
-	// return JSONBYGroq[startIndex : endIndex+1]
+	return formattedJSON
 }
 
-// func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
-// 	// write it in a single for loop
-// 	sponserShipSubtitlesFromGroqLowerCase := strings.ToLower(*sponsership_subtitles_form_groq)
-// 	for i, subtitle := range transcripts.Subtitles {
+func getIndexOfSponserSubtitleFromThisOrBeforeIndex(transcript Transcripts, currentIndex int, subtitleCaptionByGroq *string) int {
+	firstWord, secondWord, err := getFirstTwoWords(subtitleCaptionByGroq)
+	if err != nil {
+		// probally only 1 character  <<- jsut gonna return the current index
+		return currentIndex
+	}
+	firstWordPresentInCurrentIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex].Text), strings.ToLower(firstWord))
+	secondWordPresentInCurrentIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex].Text), strings.ToLower(secondWord))
+	firstWordPresentInPrevIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex-1].Text), strings.ToLower(firstWord))
+	secondWordPresentInPrevIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex-1].Text), strings.ToLower(secondWord))
+	if firstWordPresentInCurrentIndex && !secondWordPresentInCurrentIndex || firstWordPresentInCurrentIndex && secondWordPresentInCurrentIndex {
+		return currentIndex
+	} else {
+		println("assesting -->firstWordPresentInPrevIndex && secondWordPresentInPrevIndex", firstWordPresentInPrevIndex && secondWordPresentInPrevIndex == true)
+		return currentIndex - 1
+	}
+}
 
-// 		if strings.Index(sponserShipSubtitlesFromGroqLowerCase, strings.ToLower(subtitle.Text)) != -1 {
-// 			// we found our first string
-// 			getTimeAndDurFromSubtitles()
-// 		} else {
-// 			// subtitle is not in transcript
-// 			continue
-// 		}
-
-// 	}
-// }
+func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error) {
+	strToReturn := strings.Fields(*stringToPerformOperationOn)
+	if len(strToReturn) < 2 {
+		println("+++", strToReturn)
+		return "", "", fmt.Errorf("the string has less than 2 words")
+	}
+	println("==", strToReturn[0])
+	return strToReturn[0], strToReturn[1], nil
+}

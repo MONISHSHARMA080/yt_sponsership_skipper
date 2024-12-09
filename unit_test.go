@@ -3,7 +3,18 @@ package main
 import (
 	"strings"
 	"testing"
+	// "testing"
 )
+
+// func TestStr(t *testing.T) {
+// 	a := " abc njfv kjdscn diocn owcn sjodcn sodcn oiwn"
+// 	b, c := getFirstTwoWords(&a)
+// 	println(b, "---")
+// 	if c != nil {
+// 		println("error is --", c.Error())
+// 	}
+// 	time.Sleep(time.Second * 13)
+// }
 
 func TestGetTimeAndDurInTheSubtitles(t *testing.T) {
 	transcript := Transcripts{
