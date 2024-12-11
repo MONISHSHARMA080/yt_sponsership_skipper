@@ -291,7 +291,8 @@ func decrypt_and_write_to_channel(ciphertextAsString string, key []byte, channEr
 
 func method_to_write_http_and_json_to_respond(w http.ResponseWriter, message string, http_status_code int64) {
 	println(" message in the-->", message)
-	http.Error(w, message, int(http_status_code))
+	// http.Error(w, message, int(http_status_code))
+	w.WriteHeader(int(http_status_code))
 	err := json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: message, Status_code: int(http_status_code)})
 	if err != nil {
 		println("error in the method____-->", err.Error())

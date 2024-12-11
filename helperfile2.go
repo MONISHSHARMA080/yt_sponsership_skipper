@@ -179,10 +179,15 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	sponsershipSubtitlesEndIndex := sponsershipSubtitlesStartIndex + len(*sponsership_subtitles_form_groq)
 	sponsershipLengthTracker := 0
 	sponsershipStartSubtitleIndex := 0
+	sponsershipEndSubtitleIndex := 0
+	lengthOfTranscriptSubtitle := len(transcripts.Subtitles)
+	startingSubtitleFound := false
+	endingSubtitleFound := false
 	// subtitleFoundInForstString:= false // not using as just check if the sponsershipStartSubtitleIndex!=0
 	for i, subtitle := range transcripts.Subtitles {
 		sponsershipLengthTracker += len(subtitle.Text + " ") // cause this does not include space
 		if sponsershipLengthTracker >= sponsershipSubtitlesStartIndex {
+			startingSubtitleFound = true
 			if sponsershipLengthTracker > sponsershipStartSubtitleIndex {
 				// we can say that we have came overBoard(cause sponsershipLengthTracker > sponsershipStartSubtitleIndex ) so if we go back it should not be that far off
 				// make sure i is not 0(starting case, it can)
@@ -192,7 +197,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 					println("got overboard, the text in prev one is(I think correct)-->", transcripts.Subtitles[i-1].Text)
 					println("this text is -->", subtitle.Text)
 					// now the subtitle is either here or in prev subtitle
-					sponsershipStartSubtitleIndex = getIndexOfSponserSubtitleFromThisOrBeforeIndex(*transcripts, i, sponsership_subtitles_form_groq)
+					sponsershipStartSubtitleIndex = getIndexOfSponserSubtitleForEndFromAdjacentIndex(*transcripts, i, sponsership_subtitles_form_groq, true, lengthOfTranscriptSubtitle)
 					if sponsershipStartSubtitleIndex == i-1 {
 						sponsershipLengthTracker = sponsershipLengthTracker - len(subtitle.Text+" ") // over counted
 					} // else we are just on track
@@ -206,61 +211,52 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 			break
 		}
 	}
-	// after the for loop go for the last for loop (make it i-3 as well (see first))
-	for i := 0; i < len(transcripts.Subtitles); i++ {
-		// try utf8.RuneCountInString() as a last resort
+	for i := sponsershipStartSubtitleIndex + 1; i < lengthOfTranscriptSubtitle; i++ {
+		sponsershipLengthTracker += len(transcripts.Subtitles[i].Text + " ")
+		if sponsershipLengthTracker >= sponsershipSubtitlesEndIndex {
+			endingSubtitleFound = true
+			if sponsershipLengthTracker > sponsershipSubtitlesEndIndex {
+				// if i>0 will result in true
+				// i+1 cause this checks on the prev and current one(yes it is a hack)
+				sponsershipEndSubtitleIndex = getIndexOfSponserSubtitleForEndFromAdjacentIndex(*transcripts, i, sponsership_subtitles_form_groq, false, lengthOfTranscriptSubtitle)
+				// if sponsershipStartSubtitleIndex == i-1 { // do I need to do it as it is unnecessary (in the end)
+				// 	sponsershipLengthTracker = sponsershipLengthTracker - len(transcripts.Subtitles[i].Text+" ") // over counted
+				// }
+			}
+		}
 	}
-	println("sponsershipSubtitlesStartIndex, sponsershipSubtitlesEndIndex--", sponsershipSubtitlesStartIndex, sponsershipSubtitlesEndIndex)
+	println("correct ending text--", transcripts.Subtitles[sponsershipEndSubtitleIndex].Text)
 
-	// a := strings.Compare(makeStringFromASubtitle(transcripts.Subtitles), *full_captions)
-	// println("are both the strings equal -->", a)
-	responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("can't find the subtitles")}
-	return
+	println("sponsershipSubtitlesStartIndex, sponsershipSubtitlesEndIndex, sponsershipSubtitlesEndIndex--", sponsershipSubtitlesStartIndex, sponsershipSubtitlesEndIndex, sponsershipEndSubtitleIndex)
+
+	if startingSubtitleFound && endingSubtitleFound {
+		// return the time(implement the fucntion)
+		startTimeOfSubtitle, err := getTimeAndDurFromSubtitles(transcripts, sponsershipStartSubtitleIndex)
+		if err != nil {
+			responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, err}
+			return
+		}
+		endTimeOfSubtitle, err := getTimeAndDurFromSubtitles(transcripts, sponsershipEndSubtitleIndex)
+		if err != nil {
+			responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, err}
+			return
+		}
+		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{int(startTimeOfSubtitle), int(endTimeOfSubtitle), nil}
+		return
+
+	} else {
+		// return o
+		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("Starting or ending subtitle was not found")}
+		return
+	}
 }
 
-type TimeAndDurationFromSub struct {
-	err                  error
-	estimated_start_time float64
-	start_time           float64
-}
-
-func getTimeAndDurFromSubtitles(subtitles *string, dur string, start string, prev_value_of_transcript_tracker int, index_of_substring int) TimeAndDurationFromSub {
-
-	//  will be here if the subtiutle string is in the current index (or nearby i.e in the string), this function will go to the index of the substring and return
-	//  the estimeated start time of the sponsership and
-
-	duration, err := strconv.ParseFloat(dur, 10)
-
+func getTimeAndDurFromSubtitles(t *Transcripts, subtitleIndex int) (float64, error) {
+	startTime, err := strconv.ParseFloat(t.Subtitles[subtitleIndex].Start, 64)
 	if err != nil {
-		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
+		return 0, err
 	}
-
-	startTime, err := strconv.ParseFloat(start, 10)
-
-	if err != nil {
-		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
-	}
-
-	println("asserting in getTimeAndDurFromSubtitles() prev_value_of_transcript_tracker is less than index_of_substring", index_of_substring >= prev_value_of_transcript_tracker)
-	println("prev_value_of_transcript_tracker is ", prev_value_of_transcript_tracker, " and index_of_substring is ", index_of_substring)
-
-	var length_of_subtitles int = len(*subtitles)
-	var value_to_increment_index_by int = index_of_substring - prev_value_of_transcript_tracker
-
-	if length_of_subtitles < value_to_increment_index_by {
-		// handle error
-		return TimeAndDurationFromSub{err: err, estimated_start_time: 0, start_time: 0}
-	}
-
-	prev_value_of_transcript_tracker = value_to_increment_index_by
-
-	//  calc the time taken in speaking the whole by subtitle/caption[n] / by len(length_of_subtitles), now we got the w.p. unit and now will get the words
-	//  per unit of the bytes in the beginning by wpU * value of bytes before and then we remove it form dur  and get the estimated time to skip
-
-	estamited_time_to_skip := duration - (duration / float64(length_of_subtitles) * float64(value_to_increment_index_by))
-	println("estimated time to skip is less than duration --> ", estamited_time_to_skip <= duration)
-
-	return TimeAndDurationFromSub{err: nil, estimated_start_time: estamited_time_to_skip + startTime, start_time: startTime}
+	return startTime, nil
 }
 
 func parseXMLAndAdd(subtitles []Subtitle) string {
@@ -306,7 +302,47 @@ func formatGroqJson(JSONBYGroq string) string {
 	return formattedJSON
 }
 
-func getIndexOfSponserSubtitleFromThisOrBeforeIndex(transcript Transcripts, currentIndex int, subtitleCaptionByGroq *string) int {
+func getIndexOfSponserSubtitleFromAdjacentIndex2(transcript Transcripts, currentIndex int, subtitleCaptionByGroq *string, returnFirst bool) int {
+	firstWord, secondWord, err := getFirstTwoWords(subtitleCaptionByGroq)
+	if err != nil {
+		// If only one character, return the current index
+		return currentIndex
+	}
+
+	// Search indices to check (previous, current, next)
+	searchIndices := []int{currentIndex - 1, currentIndex, currentIndex + 1}
+
+	// To store matching indices
+	matchingIndices := []int{}
+
+	for _, idx := range searchIndices {
+		// Ensure index is within slice bounds
+		if idx >= 0 && idx < len(transcript.Subtitles) {
+			subtitleText := strings.ToLower(transcript.Subtitles[idx].Text)
+			// Check if both first and second words are present
+			if strings.Contains(subtitleText, strings.ToLower(firstWord)) &&
+				strings.Contains(subtitleText, strings.ToLower(secondWord)) {
+				matchingIndices = append(matchingIndices, idx)
+			}
+		}
+	}
+
+	// If no matching indices found, return current index
+	if len(matchingIndices) == 0 {
+		println("can't find so returning the basic")
+		return currentIndex
+	}
+
+	// Determine which index to return based on the flag
+	if returnFirst {
+		// Return the first (lowest) matching index
+		return matchingIndices[0]
+	} else {
+		// Return the last (highest) matching index
+		return matchingIndices[len(matchingIndices)-1]
+	}
+}
+func getIndexOfSponserSubtitleForEndFromAdjacentIndex(transcript Transcripts, currentIndex int, subtitleCaptionByGroq *string, returnBasedOnFirstWord bool, lengthOfSubtitle int) int {
 	firstWord, secondWord, err := getFirstTwoWords(subtitleCaptionByGroq)
 	if err != nil {
 		// probally only 1 character  <<- jsut gonna return the current index
@@ -314,14 +350,45 @@ func getIndexOfSponserSubtitleFromThisOrBeforeIndex(transcript Transcripts, curr
 	}
 	firstWordPresentInCurrentIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex].Text), strings.ToLower(firstWord))
 	secondWordPresentInCurrentIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex].Text), strings.ToLower(secondWord))
-	firstWordPresentInPrevIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex-1].Text), strings.ToLower(firstWord))
-	secondWordPresentInPrevIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex-1].Text), strings.ToLower(secondWord))
-	if firstWordPresentInCurrentIndex && !secondWordPresentInCurrentIndex || firstWordPresentInCurrentIndex && secondWordPresentInCurrentIndex {
-		return currentIndex
+	if returnBasedOnFirstWord {
+		if currentIndex-1 > 0 {
+			return currentIndex
+		}
+		firstWordPresentInPrevIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex-1].Text), strings.ToLower(firstWord))
+		secondWordPresentInPrevIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex-1].Text), strings.ToLower(secondWord))
+		if firstWordPresentInCurrentIndex && !secondWordPresentInCurrentIndex || firstWordPresentInCurrentIndex && secondWordPresentInCurrentIndex {
+			return currentIndex
+		} else {
+			println("assesting -->firstWordPresentInPrevIndex && secondWordPresentInPrevIndex", firstWordPresentInPrevIndex && secondWordPresentInPrevIndex == true)
+			return currentIndex - 1
+		}
 	} else {
-		println("assesting -->firstWordPresentInPrevIndex && secondWordPresentInPrevIndex", firstWordPresentInPrevIndex && secondWordPresentInPrevIndex == true)
-		return currentIndex - 1
+		if currentIndex+1 >= lengthOfSubtitle {
+			return currentIndex // safe bet
+		}
+		firstWordPresentInNextIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex+1].Text), strings.ToLower(firstWord))
+		secondWordPresentInNextIndex := strings.Contains(strings.ToLower(transcript.Subtitles[currentIndex+1].Text), strings.ToLower(secondWord))
+		if secondWordPresentInNextIndex && !firstWordPresentInNextIndex || firstWordPresentInNextIndex && secondWordPresentInNextIndex {
+			return currentIndex + 1
+		} else {
+			println("assesting -->firstWordPresentInNextIndex && secondWordPresentInNextIndex", firstWordPresentInNextIndex && secondWordPresentInNextIndex == true)
+			return currentIndex
+		}
 	}
+
+	// for _, idx := range []int{currentIndex - 1, currentIndex, currentIndex + 1} {
+	// 	// Ensure index is within slice bounds
+	// 	if idx >= 0 && idx < len(transcript.Subtitles) {
+	// 		subtitleText := strings.ToLower(transcript.Subtitles[idx].Text)
+	// 		// Check if both first and second words are present
+	// 		if strings.Contains(subtitleText, strings.ToLower(firstWord)) &&
+	// 			strings.Contains(subtitleText, strings.ToLower(secondWord)) {
+	// 			return idx
+	// 		}
+	// 	}
+	// }
+	// println("can't find so returning the basic")
+	// return currentIndex // as a safe bet
 }
 
 func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error) {

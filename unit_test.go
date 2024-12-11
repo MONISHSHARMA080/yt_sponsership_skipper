@@ -1,20 +1,34 @@
 package main
 
 import (
+	"os"
 	"strings"
 	"testing"
 	// "testing"
 )
 
-// func TestStr(t *testing.T) {
-// 	a := " abc njfv kjdscn diocn owcn sjodcn sodcn oiwn"
-// 	b, c := getFirstTwoWords(&a)
-// 	println(b, "---")
-// 	if c != nil {
-// 		println("error is --", c.Error())
-// 	}
-// 	time.Sleep(time.Second * 13)
-// }
+func TestGetIndexOfSponserSubtitleFromAdjacentIndex(t *testing.T) {
+	// do it
+	transcript := Transcripts{
+		Subtitles: []Subtitle{
+			{Text: "Hello, and welcome to the presentation.", Start: "1000.00", Dur: "3500.00"},
+			{Text: "Today, we'll discuss the topic in depth", Start: "4000.00", Dur: "6000.00"},
+			{Text: "Feel free to ask any questions during the session", Start: "7500.00", Dur: "4000.01"},
+			{Text: "Now let's dive into the first section", Start: "12000.00", Dur: "3000.00"},
+			{Text: "This section covers the basics of the subject", Start: "15500.00", Dur: "4500.00"},
+			{Text: "Make sure to take notes as we go along.", Start: "20500.00", Dur: "2500.00"},
+			{Text: "Moving on, let's explore the advanced concepts.", Start: "24000.00", Dur: "3500.00"},
+			{Text: "These concepts are essential for deeper understanding.", Start: "28000.00", Dur: "3000.00"},
+			{Text: "We'll now summarize the key points covered.", Start: "32000.00", Dur: "2500.00"},
+			{Text: "Thank you for your attention!", Start: "35000.00", Dur: "2000.00"},
+		},
+	}
+	sub := "session Now, let's dive"
+	a := getIndexOfSponserSubtitleFromAdjacentIndex2(transcript, 2, &sub, true)
+	b := getIndexOfSponserSubtitleFromAdjacentIndex2(transcript, 2, &sub, false)
+	println("the a is ", a, " and the b is ", b)
+	os.Exit(2)
+}
 
 func TestGetTimeAndDurInTheSubtitles(t *testing.T) {
 	transcript := Transcripts{

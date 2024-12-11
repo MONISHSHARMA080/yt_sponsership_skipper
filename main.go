@@ -316,9 +316,9 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 		transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
 	}
 
-	// for _, subtitle := range transcripts.Subtitles {
-	// 	fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
-	// }
+	for _, subtitle := range transcripts.Subtitles {
+		fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
+	}
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
 
