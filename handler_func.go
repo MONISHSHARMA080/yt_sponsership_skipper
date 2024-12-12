@@ -238,16 +238,12 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			println("error in result_for_subtitles.err --> ", SubtitlesTimming.err.Error())
 			return
 		}
-		println(" err is not there in the SubtitlesTimming--> ", SubtitlesTimming.startTime, SubtitlesTimming.endTime)
 		err = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusOK, Error: "", Message: "subtitles found", StartTime: int64(SubtitlesTimming.startTime), EndTime: int64(SubtitlesTimming.endTime)})
 		if err != nil {
 			println("error decoding json", SubtitlesTimming.err.Error(), SubtitlesTimming.endTime, SubtitlesTimming.startTime)
 			method_to_write_http_and_json_to_respond(w, "Subtitles found but not able to provide json response", http.StatusInternalServerError)
 			return
 		}
-
-		println("no error in enciding json")
 		w.Header().Set("Content-Type", "application/json")
-		// method_to_write_http_and_json_to_respond(w, "in the end", http.StatusOK)
 	}
 }

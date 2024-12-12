@@ -14,3 +14,5 @@ what if we get 429 and the I need to send it to the
 add openAi integration for the paid users and also a way to add some sort way for the user to use ti 2 a day(paid)-- or run some sort of credit(maybe implement a interface for it)
 
 the code panics if my groq key is wrong -- use QXxeyOVpnCU in the ytvideo to reproduce
+
+verify the auth token form the forntend and then in the function when you send the video subtitle check the db for the user preety sure I have a way around this (they key would not be signed)
