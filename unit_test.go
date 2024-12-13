@@ -1,14 +1,13 @@
 package main
 
 import (
-	"os"
 	"strings"
 	"testing"
 	// "testing"
 )
 
 func TestGetIndexOfSponserSubtitleFromAdjacentIndex(t *testing.T) {
-	// do it
+	t.Parallel()
 	transcript := Transcripts{
 		Subtitles: []Subtitle{
 			{Text: "Hello, and welcome to the presentation.", Start: "1000.00", Dur: "3500.00"},
@@ -24,10 +23,27 @@ func TestGetIndexOfSponserSubtitleFromAdjacentIndex(t *testing.T) {
 		},
 	}
 	sub := "session Now, let's dive"
-	a := getIndexOfSponserSubtitleFromAdjacentIndex2(transcript, 2, &sub, true)
-	b := getIndexOfSponserSubtitleFromAdjacentIndex2(transcript, 2, &sub, false)
-	println("the a is ", a, " and the b is ", b)
-	os.Exit(2)
+	startTime := 7500
+	endTime := 3000
+	indexOFStartSubtitle := getIndexOfSponserSubtitleFromAdjacentIndex2(transcript, 2, &sub, true)
+	indexOFEndSubtitle := getIndexOfSponserSubtitleFromAdjacentIndex2(transcript, 2, &sub, false)
+	println("the indexOFStartSubtitle is ", indexOFStartSubtitle, " and the indexOFEndSubtitle is ", indexOFEndSubtitle)
+	startTimeReturned, err := getTimeAndDurFromSubtitles(&transcript, indexOFStartSubtitle)
+	if err != nil {
+		t.Fatal(err)
+		t.Fail()
+	}
+	endTimeReturned, err := getTimeAndDurFromSubtitles(&transcript, indexOFEndSubtitle)
+	if err != nil {
+		t.Fatal(err)
+		t.Fail()
+	}
+	if startTime != int(startTimeReturned) && endTime != int(endTimeReturned) {
+		t.Fail()
+		println("time returned is not equal to time of the subtitle ")
+	} else {
+		println("time of the subtitle is equal to the time returned")
+	}
 }
 
 func TestGetTimeAndDurInTheSubtitles(t *testing.T) {
