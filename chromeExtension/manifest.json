@@ -1,0 +1,19 @@
+{
+  "name": "Youtube Sponsorship Skipper",
+  "description": "Helps you skip YouTube sponsorships",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["storage", "activeTab", "scripting"],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "content_scripts": [
+    {
+      "js": ["contentScript.js"],
+      "matches": ["https://*/*"]
+    }
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  }
+}

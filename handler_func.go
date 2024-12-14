@@ -139,6 +139,12 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 
 		if err != nil {
 			println(err.Error())
+			_, errorInUserResponse := err.(*json.UnmarshalTypeError)
+			if errorInUserResponse {
+				http.Error(w, "request json object does not match the expected result", http.StatusBadRequest)
+				json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result"})
+				return
+			}
 			http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side"})
 			return
