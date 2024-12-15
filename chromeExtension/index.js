@@ -22,4 +22,5 @@ function getUserDetailsForSignUp() {
     console.log("profile user info is ", ProfileUserInfo);
   });
   chrom.identity.getAuthToken({}, (GetAuthTokenResult) => {});
+  // --
 }
