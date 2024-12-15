@@ -3,7 +3,13 @@
   "description": "Helps you skip YouTube sponsorships",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "identity",
+    "identity.email"
+  ],
   "action": {
     "default_popup": "index.html"
   },
