@@ -1,3 +1,6 @@
+// @ts-check
+/// <reference types="chrome" />
+
 console.log("hi form the index.js");
 
 try {
@@ -21,6 +24,8 @@ function getUserDetailsForSignUp() {
   chrome.identity.getProfileUserInfo({}, (ProfileUserInfo) => {
     console.log("profile user info is ", ProfileUserInfo);
   });
-  chrom.identity.getAuthToken({}, (GetAuthTokenResult) => {});
-  // --
+  console.log("getting auth toekn");
+  // chrome.identity.getAuthToken({}, (GetAuthTokenResult) => {
+  //   console.log("auth token-->", GetAuthTokenResult);
+  // });
 }
