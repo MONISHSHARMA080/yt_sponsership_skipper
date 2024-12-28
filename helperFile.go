@@ -7,8 +7,10 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -18,17 +20,15 @@ import (
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
-type Signup_detail_of_user struct {
-	AccountID int64  `json:"account_id"`
-	Email     string `json:"email"`
-	UserToken string `json:"user_token"`
-}
 type UserInDb struct {
-	AccountID   int64
-	Email       string
-	UserToken   string
-	paid_status bool
+	accounID       string
+	email          string
+	userName       string
+	is_a_paid_user bool
 }
+
+// userForDB
+// Signup_detail_of_user
 
 // type GroqApiResponse struct {
 //   ID                string             `json:"id"`
@@ -141,22 +141,25 @@ func DbConnect() *sql.DB {
 	return db
 }
 
-func InsertUserInDB(db *sql.DB, userStructToEnter userForDB) error {
+func InsertUserInDB(db *sql.DB, userStructToEnter UserInDb) error {
 
 	query := `
-        INSERT INTO UserAccount (accountid, email, UserToken, is_a_paid_user )
-        SELECT ?, ?, ?, ?
-
+        INSERT OR IGNORE INTO UserAccount
+        (accountid, email, userName, is_a_paid_user)
+        VALUES (?, ?, ?, ?)
     `
+
 	// should also check if the user already exists, if it does then do not insert it
-	rows_returned, err := db.Query(query, userStructToEnter.accountid, userStructToEnter.email, userStructToEnter.UserToken, userStructToEnter.is_a_paid_user)
+	rows_returned, err := db.Query(query, userStructToEnter.accounID, userStructToEnter.email, userStructToEnter.userName, userStructToEnter.is_a_paid_user)
+	println(" things to insert in db is --", query, userStructToEnter.accounID, userStructToEnter.email, userStructToEnter.userName, userStructToEnter.is_a_paid_user)
 
 	if err != nil {
+		println("error in the query --", err.Error())
 		return err
 	}
 	error_in_row_returned := rows_returned.Err()
 	if error_in_row_returned != nil {
-		println(error_in_row_returned.Error())
+		println("error_in_row_returned", error_in_row_returned.Error())
 		return error_in_row_returned
 	}
 	err = rows_returned.Close()
@@ -164,12 +167,11 @@ func InsertUserInDB(db *sql.DB, userStructToEnter userForDB) error {
 		return err
 	}
 	return nil
-
 }
 
-func CheckIfTheUserInDb(db *sql.DB, userInDBStruct userForDB) error {
+func CheckIfTheUserInDb(db *sql.DB, userInDBStruct UserInDb) error {
 	// the db has unique fields
-	rows_returned, err := db.Query(" SELECT * FROM UserAccount WHERE accountid = ? AND email = ? AND UserToken = ? AND is_a_paid_user = ?  ", userInDBStruct.accountid, userInDBStruct.email, userInDBStruct.UserToken, userInDBStruct.is_a_paid_user)
+	rows_returned, err := db.Query(" SELECT * FROM UserAccount WHERE accountid = ? AND email = ? AND UserToken = ? AND is_a_paid_user = ?  ", userInDBStruct.accounID, userInDBStruct.email, userInDBStruct.userName, userInDBStruct.is_a_paid_user)
 	if err != nil {
 		return err
 	}
@@ -238,12 +240,12 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	println("in root")
 }
 
-func return_string_based_on_user_details_for_encryption_text(user_detail Signup_detail_of_user, is_paid_user bool) string {
+func return_string_based_on_user_details_for_encryption_text(user_detail UserInDb, is_paid_user bool) string {
 	paid_status := "false"
 	if is_paid_user {
 		paid_status = "true"
 	}
-	return fmt.Sprintf("%d-|-%s-|-%s-|-%s", user_detail.AccountID, user_detail.Email, user_detail.UserToken, paid_status)
+	return fmt.Sprintf("%d-|-%s-|-%s-|-%s", user_detail.accounID, user_detail.email, user_detail.userName, paid_status)
 }
 
 func returnUserInDbFormEncryptedString(decypted_string_of_user_in_db string) (UserInDb, error) {
@@ -252,17 +254,17 @@ func returnUserInDbFormEncryptedString(decypted_string_of_user_in_db string) (Us
 	if len(parts) < 4 {
 		return UserInDb{}, fmt.Errorf("string has less than 4 parts")
 	}
-	accountID, err := strconv.ParseInt(parts[0], 10, 64)
-	if err != nil {
-		// Handle the error if parsing fails, e.g., return a zero-value struct
-		return UserInDb{}, fmt.Errorf("can't parse the AccountID string in encreypted string form db to int")
-	}
+	// accountID, err := strconv.ParseInt(parts[0], 10, 64)
+	// if err != nil {
+	// 	// Handle the error if parsing fails, e.g., return a zero-value struct
+	// 	return UserInDb{}, fmt.Errorf("can't parse the AccountID string in encreypted string form db to int")
+	// }
 	paid_status_of_user, err := strconv.ParseBool(parts[3])
 	if err != nil {
 		// Handle the error if parsing fails, e.g., return a zero-value struct
 		return UserInDb{}, fmt.Errorf("can't parse the paid_status string in encreypted string form db to bool")
 	}
-	return UserInDb{AccountID: accountID, Email: parts[1], UserToken: parts[2], paid_status: paid_status_of_user}, nil
+	return UserInDb{accounID: parts[0], email: parts[1], userName: parts[2], is_a_paid_user: paid_status_of_user}, nil
 }
 
 func write_to_json_a_error_message() {
@@ -296,5 +298,50 @@ func method_to_write_http_and_json_to_respond(w http.ResponseWriter, message str
 	err := json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: message, Status_code: int(http_status_code)})
 	if err != nil {
 		println("error in the method____-->", err.Error())
+	}
+}
+
+func (r *ResponseFromTheUserAuthStruct) writeJSONAndHttpForUserSignupFunc(w http.ResponseWriter) error {
+	w.WriteHeader(int(r.Status_code))
+	err := json.NewEncoder(w).Encode(r)
+	if err != nil {
+		println("error in the json encoding for the user signup -->", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (r *ResponseFromTheUserAuthStruct) handleJSONSentByUserError(err error, w http.ResponseWriter) {
+	// do i need to send 400 or 500
+	response := ResponseFromTheUserAuthStruct{
+		Success: false,
+	}
+
+	var syntaxError *json.SyntaxError
+	var unmarshalTypeError *json.UnmarshalTypeError
+
+	switch {
+	case err == io.EOF:
+		response.Message = "Empty request body"
+		response.Status_code = http.StatusBadRequest
+	case errors.As(err, &syntaxError):
+		response.Message = "Malformed JSON"
+		response.Status_code = http.StatusBadRequest
+	case errors.As(err, &unmarshalTypeError):
+		response.Message = "Incorrect JSON field type"
+		response.Status_code = http.StatusBadRequest
+	default:
+		// Log the error for debugging
+		println("Server error while decoding JSON:", err.Error())
+		response.Message = "Internal server error"
+		response.Status_code = http.StatusInternalServerError
+	}
+
+	// Write the response
+	w.Header().Set("Content-Type", "application/json")
+	println(response.Message, response.Status_code)
+	w.WriteHeader(int(response.Status_code))
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
 	}
 }

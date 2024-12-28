@@ -17,88 +17,128 @@ type string_and_error_channel struct {
 	err          error
 	string_value string
 }
+
 type string_and_error_channel_for_subtitles struct {
 	err          error
 	string_value string
 	transcript   *Transcripts
 }
 
+type Signup_detail_of_user struct {
+	AccountID string `json:"account_id"`
+	UserToken string `json:"user_token"`
+}
+
+type ResponseFromTheUserAuthStruct struct {
+	Message      string `json:"message"`
+	Status_code  int64  `json:"status_code"`
+	Success      bool   `json:"success"`
+	EncryptedKey string `json:"encrypted_key"`
+}
+
 func User_signup_handler(os_env_key string) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		println("in signup ")
-
-		//  time1:= time.Now()
-		// when user signs up I want them to send me
+		ResponseFromTheUserAuth := ResponseFromTheUserAuthStruct{}
 		if r.Method != http.MethodPost {
-			http.Error(w, "Invalid request method", http.StatusBadRequest)
+			http.Error(w, "", http.StatusBadRequest)
+			a := ResponseFromTheUserAuthStruct{Message: "Invalid request method", Status_code: http.StatusBadRequest, Success: false}
+			a.writeJSONAndHttpForUserSignupFunc(w)
 			return
 		}
-		var signup_user_details Signup_detail_of_user
+
+		var signup_user_details Signup_detail_of_user // to refactor the function
 
 		// Parsing JSON
 		err := json.NewDecoder(r.Body).Decode(&signup_user_details)
 		if err != nil {
-			http.Error(w, "Error decoding JSON", http.StatusBadRequest)
+			// http.Error(w, "Error decoding JSON", http.StatusBadRequest)
+			ResponseFromTheUserAuth.handleJSONSentByUserError(err, w)
 			return
 		}
 		// checking if the user has not provided the field
-		if signup_user_details.AccountID == 0 || signup_user_details.Email == "" || signup_user_details.UserToken == "" {
-			http.Error(w, "Missing required fields", http.StatusBadRequest)
-			println("-->", signup_user_details.AccountID, "--", signup_user_details.Email, "--", signup_user_details.UserToken)
+		println("22")
+
+		if signup_user_details.AccountID == "" || signup_user_details.UserToken == "" {
+			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
+			ResponseFromTheUserAuth.Message = "Bad request"
+			ResponseFromTheUserAuth.Success = false
+			println("3")
+			println("id is ", signup_user_details.AccountID, "-- user token is --", signup_user_details.UserToken)
+			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 			return
 		}
-		println("User signed up successfully", signup_user_details.AccountID, "-", signup_user_details.Email, " - ", signup_user_details.UserToken)
+
+		println("User signed up successfully", signup_user_details.AccountID, " - ", signup_user_details.UserToken)
 		db := DbConnect()
-
 		errChan := make(chan error, 1)
+		responseFromGoogleAuth := make(chan TokenResponseFromGoogleAuth)
 
-		// Run InsertUserInDB asynchronously
-		go func() {
-			userToInsert := userForDB{
-				accountid:      signup_user_details.AccountID,
-				email:          signup_user_details.Email,
-				UserToken:      signup_user_details.UserToken,
-				is_a_paid_user: false, // Assuming default is false
+		// --------------- check for the oauth and see wether the user detail is true or not and then take the email(from OAUTH2) etc, name etc and put that in the db
+
+		go verifyGoogleAuthToken(signup_user_details.UserToken, responseFromGoogleAuth)
+		responseFormGoogleAuthToken := <-responseFromGoogleAuth
+		if responseFormGoogleAuthToken.Error != nil {
+			println("error occurred in the google Oauth", responseFormGoogleAuthToken.Error.Error())
+			ResponseFromTheUserAuth.Status_code = int64(responseFormGoogleAuthToken.StatusCode)
+			ResponseFromTheUserAuth.Message = "can't authenticate you"
+			ResponseFromTheUserAuth.Success = false
+			println("4")
+			err := ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
+			if err != nil {
+				println("problem with json encoding in the struct method", err.Error())
 			}
+			return
+		}
+		// ---> now make the json response func <---
+		// -------- this one should send the json response and not http error
 
+		userToInsert := UserInDb{
+			accounID:       signup_user_details.AccountID,
+			email:          responseFormGoogleAuthToken.Email,
+			userName:       responseFormGoogleAuthToken.Name,
+			is_a_paid_user: false, // Assuming default is false
+		}
+		println("user acount id", signup_user_details.AccountID)
+
+		go func() {
 			err := InsertUserInDB(db, userToInsert) // Assuming 'db' is accessible here
 			errChan <- err                          // Send error (or nil) to channel
 		}()
-
 		// Wait for the goroutine to finish or timeout
 		select {
 		case err := <-errChan:
 			if err != nil {
-				http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
+				ResponseFromTheUserAuth.Message = "error inserting you in the DB"
+				ResponseFromTheUserAuth.Success = false
+				ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
+				ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 				log.Printf("Error inserting user into DB: %v", err)
 				return
 			}
 		case <-time.After(6 * time.Second): // Timeout after 5 seconds
-			http.Error(w, "Database operation timed out", http.StatusInternalServerError)
+			ResponseFromTheUserAuth.Message = "timeout while inserting you in the DB"
+			ResponseFromTheUserAuth.Success = false
+			ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
+			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 			return
 		}
-
-		// now add the user to the db and give them the key
-
-		key := []byte(os_env_key)
-		// --------- fill this
-		plaintext := []byte(return_string_based_on_user_details_for_encryption_text(signup_user_details, false))
-		// -------fill this
-		// Encrypt
-
-		ciphertext, err := encrypt(plaintext, key)
+		plaintext := []byte(return_string_based_on_user_details_for_encryption_text(userToInsert, false))
+		ciphertext, err := encrypt(plaintext, []byte(os_env_key))
 		if err != nil {
-			panic(err)
+			ResponseFromTheUserAuth.Message = "can't make the key for you"
+			ResponseFromTheUserAuth.Success = false
+			ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
+			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
+			return
 		}
-
 		base64Ciphertext := base64.StdEncoding.EncodeToString(ciphertext)
-		println("\n\nabout to encrypt -->", return_string_based_on_user_details_for_encryption_text(signup_user_details, false), "\n\n", "and ", base64Ciphertext, "\n\n")
-
+		println("\n\nabout to encrypt -->", return_string_based_on_user_details_for_encryption_text(userToInsert, false), "\n\n", "and ", base64Ciphertext, "\n\n")
+		ResponseFromTheUserAuth.Message = "successfully completed user signup"
+		ResponseFromTheUserAuth.Success = true
+		ResponseFromTheUserAuth.Status_code = http.StatusOK
+		ResponseFromTheUserAuth.EncryptedKey = base64Ciphertext
+		ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(base64Ciphertext)
-		// should have a strucutred json response on this path
 	}
 }
 
@@ -177,8 +217,8 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			method_to_write_http_and_json_to_respond(w, "Something went wron on out side , error recognizing you form the auth token", http.StatusInternalServerError)
 		}
 
-		println("result_for_user_details--++", result_for_user_details.string_value, "\n user in db is -> ", userInDb.UserToken, userInDb.AccountID, userInDb.Email, userInDb.paid_status)
-		if len(result_for_user_details.string_value) >= 4700 && !userInDb.paid_status {
+		println("result_for_user_details--++", result_for_user_details.string_value, "\n user in db is -> ", userInDb.userName, userInDb.accounID, userInDb.email, userInDb.is_a_paid_user)
+		if len(result_for_user_details.string_value) >= 4700 && !userInDb.is_a_paid_user {
 			// block it I guess
 			println(" +++++++++++string is longer than 3000")
 			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
@@ -194,7 +234,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 
 		// what about the free user and paid user channel/key_channel and prompt the groq
 		channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
-		apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userInDb.paid_status)
+		apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userInDb.is_a_paid_user)
 		if err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
 			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())

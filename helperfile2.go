@@ -389,6 +389,7 @@ func getIndexOfSponserSubtitleForEndFromAdjacentIndex(transcript Transcripts, cu
 	// }
 	// println("can't find so returning the basic")
 	// return currentIndex // as a safe bet
+
 }
 
 func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error) {

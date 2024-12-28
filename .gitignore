@@ -2,3 +2,6 @@
 *.db
 youtubeAdsSkipper
 pass.txt
+manifest.json
+*.zip
+*.env

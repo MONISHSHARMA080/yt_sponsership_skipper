@@ -26,12 +26,12 @@ type Transcripts struct {
 	Subtitles []Subtitle `xml:"text"`
 }
 
-type userForDB struct {
-	accountid      int64
-	email          string
-	UserToken      string
-	is_a_paid_user bool
-}
+// type userForDB struct {
+// 	accountid      int64
+// 	email          string
+// 	UserToken      string
+// 	is_a_paid_user bool
+// }
 
 func main() {
 

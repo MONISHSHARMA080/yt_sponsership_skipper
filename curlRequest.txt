@@ -2,7 +2,6 @@ curl -X POST http://localhost:8080/signup \
      -H "Content-Type: application/json" \
      -d '{
          "account_id": 123,
-         "email": "user@example.com",
          "user_token": "some_unique_user_token"
      }'
 
