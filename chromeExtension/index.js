@@ -31,9 +31,15 @@ async function getUserDetailsForSignUp() {
       chrome.identity.getProfileUserInfo({}, resolve);
     });
 
-    UserDetail.account_id = userInfo.id;
+    UserDetail.account_id = userInfo.id; // This ensures we send a number, not a string
     console.log("email:", userInfo.email);
-    console.log("id:", userInfo.id);
+    console.log("user info type -->", typeof userInfo.id);
+    console.log(
+      "id:",
+      UserDetail.account_id,
+      "  type of id is ",
+      typeof UserDetail.account_id,
+    );
 
     // Convert getAuthToken to Promise
     const authToken = await new Promise((resolve, reject) => {

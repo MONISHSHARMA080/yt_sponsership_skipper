@@ -21,7 +21,7 @@ import (
 )
 
 type UserInDb struct {
-	accounID       string
+	accounID       int64
 	email          string
 	userName       string
 	is_a_paid_user bool
@@ -254,17 +254,17 @@ func returnUserInDbFormEncryptedString(decypted_string_of_user_in_db string) (Us
 	if len(parts) < 4 {
 		return UserInDb{}, fmt.Errorf("string has less than 4 parts")
 	}
-	// accountID, err := strconv.ParseInt(parts[0], 10, 64)
-	// if err != nil {
-	// 	// Handle the error if parsing fails, e.g., return a zero-value struct
-	// 	return UserInDb{}, fmt.Errorf("can't parse the AccountID string in encreypted string form db to int")
-	// }
+	accountID, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		// Handle the error if parsing fails, e.g., return a zero-value struct
+		return UserInDb{}, fmt.Errorf("can't parse the AccountID string in encreypted string form db to int")
+	}
 	paid_status_of_user, err := strconv.ParseBool(parts[3])
 	if err != nil {
 		// Handle the error if parsing fails, e.g., return a zero-value struct
 		return UserInDb{}, fmt.Errorf("can't parse the paid_status string in encreypted string form db to bool")
 	}
-	return UserInDb{accounID: parts[0], email: parts[1], userName: parts[2], is_a_paid_user: paid_status_of_user}, nil
+	return UserInDb{accounID: accountID, email: parts[1], userName: parts[2], is_a_paid_user: paid_status_of_user}, nil
 }
 
 func write_to_json_a_error_message() {
@@ -328,6 +328,7 @@ func (r *ResponseFromTheUserAuthStruct) handleJSONSentByUserError(err error, w h
 		response.Message = "Malformed JSON"
 		response.Status_code = http.StatusBadRequest
 	case errors.As(err, &unmarshalTypeError):
+		println("incorrect json field error -->", err.Error())
 		response.Message = "Incorrect JSON field type"
 		response.Status_code = http.StatusBadRequest
 	default:
@@ -344,4 +345,24 @@ func (r *ResponseFromTheUserAuthStruct) handleJSONSentByUserError(err error, w h
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response: %v", err)
 	}
+}
+
+func (usr *Signup_detail_of_user_temp) convertAccountIDToNumber() (Signup_detail_of_user, error) {
+	// Remove any non-digit characters
+	digits := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, usr.AccountID)
+	// Take only first 19 digits
+	if len(digits) > 19 {
+		digits = digits[:19]
+	}
+	// Convert to int64
+	num, err := strconv.ParseInt(digits, 10, 64)
+	if err != nil {
+		return Signup_detail_of_user{}, err
+	}
+	return Signup_detail_of_user{AccountID: num, UserToken: usr.UserToken}, nil
 }

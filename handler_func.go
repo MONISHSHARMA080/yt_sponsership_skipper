@@ -25,10 +25,13 @@ type string_and_error_channel_for_subtitles struct {
 }
 
 type Signup_detail_of_user struct {
+	AccountID int64  `json:"account_id"`
+	UserToken string `json:"user_token"`
+}
+type Signup_detail_of_user_temp struct {
 	AccountID string `json:"account_id"`
 	UserToken string `json:"user_token"`
 }
-
 type ResponseFromTheUserAuthStruct struct {
 	Message      string `json:"message"`
 	Status_code  int64  `json:"status_code"`
@@ -46,10 +49,10 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 			return
 		}
 
-		var signup_user_details Signup_detail_of_user // to refactor the function
+		var signup_user_details_temp Signup_detail_of_user_temp // to refactor the function
 
 		// Parsing JSON
-		err := json.NewDecoder(r.Body).Decode(&signup_user_details)
+		err := json.NewDecoder(r.Body).Decode(&signup_user_details_temp)
 		if err != nil {
 			// http.Error(w, "Error decoding JSON", http.StatusBadRequest)
 			ResponseFromTheUserAuth.handleJSONSentByUserError(err, w)
@@ -58,7 +61,17 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		// checking if the user has not provided the field
 		println("22")
 
-		if signup_user_details.AccountID == "" || signup_user_details.UserToken == "" {
+		signup_user_details, err := signup_user_details_temp.convertAccountIDToNumber()
+		if err != nil {
+			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
+			ResponseFromTheUserAuth.Message = "Bad request, can't parse your accountID"
+			ResponseFromTheUserAuth.Success = false
+			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
+			println("can't convert account ID to int, error -->", err.Error())
+			return
+		}
+
+		if signup_user_details.AccountID == 0 || signup_user_details.UserToken == "" {
 			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
 			ResponseFromTheUserAuth.Message = "Bad request"
 			ResponseFromTheUserAuth.Success = false
