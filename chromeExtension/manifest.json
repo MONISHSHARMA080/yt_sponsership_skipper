@@ -8,7 +8,9 @@
     "activeTab",
     "scripting",
     "identity",
-    "identity.email"
+    "storage",
+    "identity.email",
+    "unlimitedStorage"
   ],
   "action": {
     "default_popup": "index.html"
@@ -17,6 +19,12 @@
     {
       "js": ["contentScript.js"],
       "matches": ["https://*/*"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["config.js"],
+      "matches": ["<all_urls>"]
     }
   ],
   "background": {
