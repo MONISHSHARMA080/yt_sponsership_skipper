@@ -17,13 +17,13 @@
   },
   "content_scripts": [
     {
-      "js": ["contentScript.js"],
+      "js": ["helper.js", "contentScript.js"],
       "matches": ["https://*/*"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["config.js"],
+      "resources": ["helper.js", "contentScript.js"],
       "matches": ["<all_urls>"]
     }
   ],
