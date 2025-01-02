@@ -7,8 +7,51 @@ try {
   if (element !== null) {
     element.addEventListener("click", async function a() {
       console.log("hi from the index.js button-- ");
-      const encryptedKey = await userAuthAndGetTheKey();
-      console.log("encrypted key is ->", encryptedKey);
+
+      let [valueFromStorage, error] = await getValueFromTheStorage(
+        "key",
+        () => {
+          console.log("func to run in the getValueFormStorage");
+        },
+      );
+      if (error) {
+        console.log(
+          "there is the error in the getting the vlaue form the storage-->",
+          error,
+        );
+        return;
+      }
+      console.log(
+        " the value we got from the storage is -->",
+        valueFromStorage,
+        "\n putting the value in the storage ",
+      );
+      if (valueFromStorage != "") {
+        console.log(
+          " the value is there and exiting the function, value -->",
+          valueFromStorage,
+        );
+        return;
+      }
+
+      let encryptedKey;
+      try {
+        encryptedKey = await userAuthAndGetTheKey();
+      } catch (error) {
+        console.log("error in the fetuser key -->", error);
+        return;
+      }
+      console.log("encrypted key is ->", encryptedKey, "\n storing process --");
+
+      let errorFromStoring = saveValueToTheStorage("key", encryptedKey, () => {
+        console.log("hi func will run on saving the value in the db");
+      });
+      if (errorFromStoring) {
+        console.log(
+          "there is an error in storing the value -->",
+          errorFromStoring,
+        );
+      }
     });
   }
 } catch (e) {
@@ -33,43 +76,59 @@ try {
  */
 
 async function userAuthAndGetTheKey() {
-  /** @type {UserDetail}  */
+  /** @type {UserDetail} */
   const UserDetail = {
     account_id: "",
     user_token: "",
   };
+
   try {
-    let userInfo;
-    chrome.identity.getProfileUserInfo({}, (userInfoFromChrome) => {
-      userInfo = userInfoFromChrome;
-      UserDetail.account_id = userInfo.id; // This ensures we send a number, not a string
-      console.log("email:", userInfo.email);
-      console.log("user info type -->", typeof userInfo.id);
-      console.log(
-        "id:",
-        UserDetail.account_id,
-        "  type of id is ",
-        typeof UserDetail.account_id,
-      );
+    // Get user info
+    const userInfo = await new Promise((resolve, reject) => {
+      chrome.identity.getProfileUserInfo({}, (userInfoFromChrome) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(userInfoFromChrome);
+        }
+      });
     });
-    /**
-     * Gets the authentication token for the current user
-     * @returns {Promise<string>} A promise that resolves with the auth token
-     * @throws {Error} If there's an error getting the token
-     */
-    let authToken;
-    chrome.identity.getAuthToken({ interactive: true }, (token) => {
-      if (chrome.runtime.lastError) {
-        console.log(
-          "error happened during the authToken part, error is -->",
-          chrome.runtime.lastError.message,
-        );
-        return "";
-      }
-      authToken = token;
+
+    // Set user info
+    UserDetail.account_id = userInfo.id;
+    console.log("email:", userInfo.email);
+    console.log("user info type -->", typeof userInfo.id);
+    console.log(
+      "id:",
+      UserDetail.account_id,
+      "  type of id is ",
+      typeof UserDetail.account_id,
+    );
+
+    // Get auth token
+    const authToken = await new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({ interactive: true }, (token) => {
+        if (chrome.runtime.lastError) {
+          console.log(
+            "error happened during the authToken part, error is -->",
+            chrome.runtime.lastError.message,
+          );
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(token);
+        }
+      });
     });
+
     UserDetail.user_token = authToken;
     console.log("auth token:", authToken);
+
+    try {
+      console.log("config is -->", config.BACKEND_URL);
+    } catch (error) {
+      console.log("error in printing the config-->", error);
+      return "";
+    }
 
     const response = await fetch(config.BACKEND_URL + "/signup", {
       method: "POST",
@@ -78,16 +137,11 @@ async function userAuthAndGetTheKey() {
       },
       body: JSON.stringify(UserDetail),
     });
-    try {
-      console.log("config is -->", config.BACKEND_URL);
-    } catch (error) {
-      console.log("error in printing the config-->", error);
-      return "";
-    }
 
-    if (!response.ok && response.status != 200) {
+    if (!response.ok && response.status !== 200) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
+
     /** @type {AuthResponse} */
     const data = await response.json();
     console.log("Success:", data);
@@ -106,6 +160,9 @@ async function userAuthAndGetTheKey() {
  * @returns {Error|null} error
  */
 function saveValueToTheStorage(key, value, functionToRun) {
+  if (value === "") {
+    return new Error("value can't be empty");
+  }
   try {
     chrome.storage.sync.set({ [key]: value }, () => {
       functionToRun();
@@ -120,7 +177,7 @@ function saveValueToTheStorage(key, value, functionToRun) {
  * Gets a value from Chrome storage by key and processes it with the provided function
  * @param {string} key
  * @param {Function} functionToRun -
- * @returns {Promise<[any|null, Error|null]>} A tuple containing [value, error]
+ * @returns {Promise<[string|null, Error|null]>} A tuple containing [value, error]
  */
 function getValueFromTheStorage(key, functionToRun) {
   return new Promise((resolve) => {

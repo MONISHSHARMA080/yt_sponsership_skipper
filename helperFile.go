@@ -349,6 +349,7 @@ func (r *ResponseFromTheUserAuthStruct) handleJSONSentByUserError(err error, w h
 
 func (usr *Signup_detail_of_user_temp) convertAccountIDToNumber() (Signup_detail_of_user, error) {
 	// Remove any non-digit characters
+	println("converting the acc ID to number, id is  -->", usr.AccountID)
 	digits := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
