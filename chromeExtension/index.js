@@ -6,52 +6,17 @@ try {
   let element = document.getElementById("status");
   if (element !== null) {
     element.addEventListener("click", async function a() {
-      console.log("hi from the index.js button-- ");
-
-      let [valueFromStorage, error] = await getValueFromTheStorage(
-        "key",
-        () => {
-          console.log("func to run in the getValueFormStorage");
-        },
-      );
+      let [key, error] = await getKeyFromStorageOrBackend();
       if (error) {
         console.log(
-          "there is the error in the getting the vlaue form the storage-->",
+          "error is there in getting the key and it is -->",
           error,
+          "\n\n the key is",
+          key,
         );
         return;
       }
-      console.log(
-        " the value we got from the storage is -->",
-        valueFromStorage,
-        "\n putting the value in the storage ",
-      );
-      if (valueFromStorage != "") {
-        console.log(
-          " the value is there and exiting the function, value -->",
-          valueFromStorage,
-        );
-        return;
-      }
-
-      let encryptedKey;
-      try {
-        encryptedKey = await userAuthAndGetTheKey();
-      } catch (error) {
-        console.log("error in the fetuser key -->", error);
-        return;
-      }
-      console.log("encrypted key is ->", encryptedKey, "\n storing process --");
-
-      let errorFromStoring = saveValueToTheStorage("key", encryptedKey, () => {
-        console.log("hi func will run on saving the value in the db");
-      });
-      if (errorFromStoring) {
-        console.log(
-          "there is an error in storing the value -->",
-          errorFromStoring,
-        );
-      }
+      console.log("the key is -->", key);
     });
   }
 } catch (e) {
@@ -59,7 +24,7 @@ try {
 }
 
 /**
- * Authenticates user and retrieves a key; will return empty string
+ * Authenticates user and retrieves a key; will return empty string on the error
  * @typedef {Object} AuthResponse
  * @property {string} message - Response message
  * @property {number} status_code - HTTP status code
@@ -72,7 +37,7 @@ try {
  *
  * @throws {Error} If there's an error getting the token
  *
- * @returns {Promise<string>} key - The authentication key
+ * @returns {Promise<[string, Error|null]>} key - The authentication key
  */
 
 async function userAuthAndGetTheKey() {
@@ -127,7 +92,7 @@ async function userAuthAndGetTheKey() {
       console.log("config is -->", config.BACKEND_URL);
     } catch (error) {
       console.log("error in printing the config-->", error);
-      return "";
+      return ["", error];
     }
 
     const response = await fetch(config.BACKEND_URL + "/signup", {
@@ -139,16 +104,16 @@ async function userAuthAndGetTheKey() {
     });
 
     if (!response.ok && response.status !== 200) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      return ["", new Error(`HTTP error! Status: ${response.status}`)];
     }
 
     /** @type {AuthResponse} */
     const data = await response.json();
     console.log("Success:", data);
-    return data.encrypted_key;
+    return [data.encrypted_key, null];
   } catch (error) {
     console.error("Error:", error);
-    return "";
+    return ["", error];
   }
 }
 // break down the function in 3 parts, 1) that get the key form the backend, 2) that sets it in the localstorage,
@@ -205,4 +170,37 @@ function getValueFromTheStorage(key, functionToRun) {
       resolve([null, error]);
     }
   });
+}
+
+/**
+ * returns the key, will try the storage, if not there then will fetch it, it can also return string and error if the key is fetched and not able to stored in the storage
+ * @returns {Promise<[string,Error|null]>}
+ */
+async function getKeyFromStorageOrBackend() {
+  try {
+    let [valueFromStorage, error] = await getValueFromTheStorage(
+      "key",
+      () => {},
+    );
+    if (error) {
+      return ["", error];
+    }
+    if (valueFromStorage != "") {
+      return [valueFromStorage, null];
+    }
+    let [encryptedKey, errorFromKey] = await userAuthAndGetTheKey();
+    if (errorFromKey || encryptedKey === "") {
+      return ["", errorFromKey];
+    }
+    error = saveValueToTheStorage("key", encryptedKey, () => {
+      console.log("storing the key +");
+    });
+    if (error) {
+      return [encryptedKey, error];
+    } else {
+      return [encryptedKey, null];
+    }
+  } catch (error) {
+    return ["", error];
+  }
 }
