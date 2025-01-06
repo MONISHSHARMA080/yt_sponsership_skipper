@@ -17,13 +17,15 @@
   },
   "content_scripts": [
     {
-      "js": ["helper.js", "contentScript.js"],
-      "matches": ["https://*/*"]
+      "js": ["dist/helper.js", "dist/contentScript.js"],
+      "matches": ["https://*/*"], 
+      "type": "module"
+
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["helper.js", "contentScript.js"],
+      "resources": ["dist/helper.js", "dist/contentScript.js"],
       "matches": ["<all_urls>"]
     }
   ],

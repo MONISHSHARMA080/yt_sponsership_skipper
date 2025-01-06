@@ -1,4 +1,6 @@
-console.log("hi form the contentScript :)");
+import { getKeyFromStorageOrBackend } from "./helper";
+
+console.log("hi from the contentscript in ts");
 
 async function main() {
   console.log("in the main");
@@ -12,6 +14,13 @@ async function main() {
     );
     return;
   }
-  console.log("the key is  -->", key, "from the  content script");
+  console.log(
+    "the key is  -->",
+    key,
+    "from the  content script and the error is->",
+    error,
+  );
 }
 main();
+
+
