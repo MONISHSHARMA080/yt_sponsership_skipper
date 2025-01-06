@@ -107,7 +107,7 @@ function saveValueToTheStorage(key, value, functionToRun) {
     return new Error("value can't be empty");
   }
   try {
-    chrome.storage.sync.set({ [key]: value }, () => {
+    chrome.storage.local.set({ [key]: value }, () => {
       functionToRun();
     });
     return null;
@@ -125,7 +125,7 @@ function saveValueToTheStorage(key, value, functionToRun) {
 function getValueFromTheStorage(key, functionToRun) {
   return new Promise((resolve) => {
     try {
-      chrome.storage.sync.get([key], (item) => {
+      chrome.storage.local.get([key], (item) => {
         // Handle runtime errors
         if (chrome.runtime.lastError) {
           console.error(
@@ -155,17 +155,22 @@ function getValueFromTheStorage(key, functionToRun) {
  * @returns {Promise<[string,Error|null]>}
  */
 async function getKeyFromStorageOrBackend() {
+  console.log("in getKeyFromStorageOrBackend");
   try {
     let [valueFromStorage, error] = await getValueFromTheStorage(
       "key",
       () => {},
     );
+    console.log(" after the value")
     if (error) {
+      console.log("there is  a error and that is -->" , error);
       return ["", error];
     }
-    if (valueFromStorage != "") {
+    console.log("didn't find error in the ")
+    if (valueFromStorage !== "") {// the value is blank so lets fetch
       return [valueFromStorage, null];
     }
+    console.log("fetching from storage");
     let [encryptedKey, errorFromKey] = await userAuthAndGetTheKey();
     if (errorFromKey || encryptedKey === "") {
       return ["", errorFromKey];

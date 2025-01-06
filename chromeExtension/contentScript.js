@@ -1,5 +1,6 @@
 console.log("hi form the contentScript :)");
 
+
 async function main() {
   console.log("in the main");
   let [key, error] = await getKeyFromStorageOrBackend();
@@ -12,6 +13,6 @@ async function main() {
     );
     return;
   }
-  console.log("the key is  -->", key, "from the  content script");
+  console.log("the key is  -->", key, "from the  content script, error is -->", error);
 }
 main();
