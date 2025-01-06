@@ -5,3 +5,4 @@ pass.txt
 manifest.json
 *.zip
 *.env
+node_module/
