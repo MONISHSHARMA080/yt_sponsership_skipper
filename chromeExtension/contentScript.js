@@ -1,9 +1,10 @@
 console.log("hi form the contentScript :)");
 
-
 async function main() {
   console.log("in the main");
-  let [key, error] = await getKeyFromStorageOrBackend();
+  let [key, error] = await chrome.runtime.sendMessage({type: "getKeyFromStorageOrBackend"});
+  // let [key, error] = await getKeyFromStorageOrBackend();
+  console.log("lets see what we got ")
   if (error) {
     console.log(
       "error is there in getting the key and it is -->",

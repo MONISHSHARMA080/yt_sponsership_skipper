@@ -16,7 +16,7 @@
   },
   "content_scripts": [
     {
-      "js": ["helper.js", "contentScript.js"],
+      "js": [ "contentScript.js"],
       "matches": ["https://*/*"]
     }
   ],
@@ -27,7 +27,8 @@
     }
   ],
   "background": {
-    "service_worker": "src/service_worker.js"
+    "type": "module",
+    "service_worker":"src/service_worker.js"
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqKxHN5iE8PcROPxifJgIwLyOSK0oaEaw7vIZExWaMbB74xzHZU6aMeUvERmAcwa+IkympbUFj1cO6RXhsqjUh95tFH4CuIUq1918wyb/x4xxX5iI7wi9iC33IX1LeEBOQG+ykbOa81i5XD5aO7iL43MpCtl3mn9cYqaxvkOxqNBDzSBl4RPaU3FwzXARHJPg21CoW3KFjJWSJ+RCZ1l8ssgJxGhDf4TZgKkISX/nBzR5Tk9C0pQN7nuLIApMglRnqapX00FuW3BSoGnpDCEP8er/5nm3ikW4d9zE6MVwwVKg8Y3vaoV7M+QC91hEj2YSWgCWqvnjWICiEn9me6F47wIDAQAB",
   "oauth2": {

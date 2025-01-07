@@ -28,7 +28,7 @@ async function userAuthAndGetTheKey() {
   try {
     // Get user info
     const userInfo = await new Promise((resolve, reject) => {
-      chrome.identity.getProfileUserInfo({}, (userInfoFromChrome) => {
+      chrome.identity.getProfileUserInfo({accountStatus:"SYNC"}, (userInfoFromChrome) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
         } else {
@@ -154,7 +154,7 @@ function getValueFromTheStorage(key, functionToRun) {
  * returns the key, will try the storage, if not there then will fetch it, it can also return string and error if the key is fetched and not able to stored in the storage
  * @returns {Promise<[string,Error|null]>}
  */
-async function getKeyFromStorageOrBackend() {
+export async function getKeyFromStorageOrBackend() {
   console.log("in getKeyFromStorageOrBackend");
   try {
     let [valueFromStorage, error] = await getValueFromTheStorage(
@@ -167,9 +167,10 @@ async function getKeyFromStorageOrBackend() {
       return ["", error];
     }
     console.log("didn't find error in the ")
-    if (valueFromStorage !== "") {// the value is blank so lets fetch
-      return [valueFromStorage, null];
-    }
+    // the value is blank so lets fetch
+    // if (valueFromStorage !== "") {
+    //   return [valueFromStorage, null];
+    // }
     console.log("fetching from storage");
     let [encryptedKey, errorFromKey] = await userAuthAndGetTheKey();
     if (errorFromKey || encryptedKey === "") {
