@@ -1,5 +1,7 @@
 
 import { getKeyFromStorageOrBackend } from './helper';
+
+console.log("Hi form the ")
 /**
  * @typedef {Object} GetKeyMessage
  * @property {'getKeyFromStorageOrBackend'} type - Message type identifier

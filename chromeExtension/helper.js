@@ -188,3 +188,7 @@ export async function getKeyFromStorageOrBackend() {
     return ["", error];
   }
 }
+
+export function sayHi(){
+  console.log("hi form the helper file --++:)")
+}
