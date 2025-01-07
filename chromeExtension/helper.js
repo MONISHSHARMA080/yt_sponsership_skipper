@@ -1,5 +1,5 @@
 // @ts-check
-/// <reference types="chrome" />
+/// <reference types="chrome-types" />
 const config = {
   BACKEND_URL: "http://localhost:8080",
 };
@@ -205,4 +205,61 @@ export async function getKeyFromStorageOrBackend(config) {
 
 export function sayHi(){
   console.log("hi form the helper file --++:)")
+}
+
+/**
+ * @param {string} pathWithoutBackSlash - url path of the function
+ * @param {"POST"|"GET"} method - request method
+ * @param {Object} header - request header
+ * @param {Object} bodyOBJ - request body
+ *
+ * @returns {() => Promise<Response>}
+ */
+
+export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bodyOBJ) {
+  return ()=>{
+    return  fetch(config.BACKEND_URL+"/"+pathWithoutBackSlash, {
+      method: method,
+      headers: header,
+      body: JSON.stringify(bodyOBJ),
+    })
+  }
+}
+
+/**
+ * @typedef {Object} bodyOfTheRequest
+ * @property {string} youtube_Video_Id -- video ID
+ * @property {string} encrypted_string -- video ID
+ *
+ * @typedef {Object} responseObject
+ * @property {number} status - The status code of the response.
+ * @property {string} message - A message providing additional information about the response.
+ * @property {number} startTime - The start time in milliseconds for where the skip should begin.
+ * @property {number} endTime - The end time in milliseconds for where the skip should end.
+ * @property {boolean} containSponserSubtitle- does the video has sponsorship subtitle
+ * @property {string} [error] - An optional error message if something goes wrong.
+ *
+ * @param {string} key -- key form the backend
+ * @param {string} videoID -- key form the backend
+ *
+ * @returns {Promise<[responseObject|null, Error|null]>}
+ */
+export async  function getWhereToSkipInYtVideo(key, videoID) {
+  /** @type bodyOfTheRequest */
+  let  requestBody ={youtube_Video_Id:videoID, encrypted_string:key};
+ let fetchRequestToBackend = fetchFunctionBuilder("youtubeVideo", "POST", {'Content-Type': 'application/json'}, requestBody )
+  try {
+    let response = await fetchRequestToBackend()
+    console.log("the response form the yt video api is -->", response)
+    /** @type responseObject */
+    let responseOBJ = await response.json();
+    if (responseOBJ.status !== 200) {
+      console.log("there is a error in the yt api -->", responseOBJ);
+      return [null, new Error(response.statusText)];
+    }
+    return [responseOBJ, null];
+  }catch (e) {
+    console.log("error in getWhereToSkipInYtVideo -->",e);
+    return [null, e];
+  }
 }

@@ -161,11 +161,12 @@ type request_for_youtubeVideo_struct struct {
 }
 
 type responseForWhereToSkipVideo struct {
-	Status_code int    `json:"status"`
-	Message     string `json:"message"`
-	StartTime   int64  `json:"startTime"`
-	EndTime     int64  `json:"endTime"`
-	Error       string `json:"error,omitempty"`
+	Status_code            int    `json:"status"`
+	Message                string `json:"message"`
+	StartTime              int64  `json:"startTime"`
+	EndTime                int64  `json:"endTime"`
+	ContainSponserSubtitle bool   `json:"containSponserSubtitle"`
+	Error                  string `json:"error,omitempty"`
 }
 
 func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client) http.HandlerFunc {
@@ -180,13 +181,13 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method", http.StatusBadRequest)
 			// this cpuld return in error , if there is a error decoding json then I am sending the same error in the request code
-			_ = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: "Invalid request method", Status_code: http.StatusBadRequest})
+			_ = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: "Invalid request method", Status_code: http.StatusBadRequest, ContainSponserSubtitle: false})
 			// if err != nil {
 			// 	// idk
 			// }
 			return
 		}
-
+		println("body is ")
 		var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
 		err := json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
 
@@ -195,11 +196,11 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			_, errorInUserResponse := err.(*json.UnmarshalTypeError)
 			if errorInUserResponse {
 				http.Error(w, "request json object does not match the expected result", http.StatusBadRequest)
-				json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result"})
+				json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result", ContainSponserSubtitle: false})
 				return
 			}
 			http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side"})
+			json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side", ContainSponserSubtitle: false})
 			return
 		}
 
@@ -284,7 +285,11 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			go GetTimeAndDurInTheSubtitles(result_for_subtitles.transcript, &groq_response.SponsorshipContent.SponsorshipSubtitle, &result_for_subtitles.string_value, ChanForResponseForGettingSubtitlesTiming)
 		} else {
 			// return no to the user as either the video does not have subtitles or the groq did not return it
-			method_to_write_http_and_json_to_respond(w, "subtitles not found in the video", http.StatusNotFound)
+			w.WriteHeader(http.StatusOK)
+			err := json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: "sponsership subtitles not found in the video", Status_code: http.StatusOK, ContainSponserSubtitle: false})
+			if err != nil {
+				println("error in the method  encoding the json in the struct 123-->", err.Error())
+			}
 			return
 		}
 		SubtitlesTimming := <-ChanForResponseForGettingSubtitlesTiming
@@ -297,7 +302,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			println("error in result_for_subtitles.err --> ", SubtitlesTimming.err.Error())
 			return
 		}
-		err = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusOK, Error: "", Message: "subtitles found", StartTime: int64(SubtitlesTimming.startTime), EndTime: int64(SubtitlesTimming.endTime)})
+		err = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusOK, Error: "", Message: "subtitles found", StartTime: int64(SubtitlesTimming.startTime), EndTime: int64(SubtitlesTimming.endTime), ContainSponserSubtitle: true})
 		if err != nil {
 			println("error decoding json", SubtitlesTimming.err.Error(), SubtitlesTimming.endTime, SubtitlesTimming.startTime)
 			method_to_write_http_and_json_to_respond(w, "Subtitles found but not able to provide json response", http.StatusInternalServerError)

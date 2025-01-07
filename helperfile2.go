@@ -87,7 +87,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		}
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: &sponsorshipContent}
 	} else {
-		println("No choices in response")
+		println("No choices in the groq response")
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: fmt.Errorf("no choices presesnt in the gorq response"), groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 	}
 
@@ -295,11 +295,20 @@ func formatGroqJson(JSONBYGroq string) string {
 	}
 
 	trimmedJSON := JSONBYGroq[firstBrace : lastBrace+1]
+	println("the json before removing is -->", trimmedJSON)
+	// strings.Contains(trimmedJSON, `"false"`)
+	formattedJSON := trimmedJSON
 
-	// Replace "true" with true, but only the first occurrence
-	formattedJSON := strings.Replace(trimmedJSON, `"true"`, "true", 1)
+	// Handle both "true" and "false" cases
+	if strings.Contains(formattedJSON, `"true"`) {
+		formattedJSON = strings.Replace(formattedJSON, `"true"`, "true", -1)
+	}
+	if strings.Contains(formattedJSON, `"false"`) {
+		formattedJSON = strings.Replace(formattedJSON, `"false"`, "false", -1)
+	}
 
 	return formattedJSON
+	// Replace "true" with true, but only the first occurrence
 }
 
 func getIndexOfSponserSubtitleFromAdjacentIndex2(transcript Transcripts, currentIndex int, subtitleCaptionByGroq *string, returnFirst bool) int {
