@@ -1,6 +1,8 @@
 // @ts-check
 /// <reference types="chrome" />
-
+const config = {
+  BACKEND_URL: "http://localhost:8080",
+};
 /**
  * Authenticates user and retrieves a key; will return empty string on the error
  * @typedef {Object} AuthResponse
@@ -13,12 +15,14 @@
  * @property {string} account_id - The account ID of the user that is unique for every account.
  * @property {string} user_token - The authentication token for the user.
  *
+ * @param {Config} config - Configuration object containing backend URL
+ *
  * @throws {Error} If there's an error getting the token
  *
  * @returns {Promise<[string, Error|null]>} key - The authentication key
  */
 
-async function userAuthAndGetTheKey() {
+async function userAuthAndGetTheKey(config) {
   /** @type {UserDetail} */
   const UserDetail = {
     account_id: "",
@@ -152,9 +156,15 @@ function getValueFromTheStorage(key, functionToRun) {
 
 /**
  * returns the key, will try the storage, if not there then will fetch it, it can also return string and error if the key is fetched and not able to stored in the storage
+ *
+ * @typedef {Object} Config
+ * @property {string} BACKEND_URL - The base URL for the backend API server
+ *
+ * @param {Config} config - Configuration object for the application
+ *
  * @returns {Promise<[string,Error|null]>}
  */
-export async function getKeyFromStorageOrBackend() {
+export async function getKeyFromStorageOrBackend(config) {
   console.log("in getKeyFromStorageOrBackend");
   try {
     let [valueFromStorage, error] = await getValueFromTheStorage(
@@ -162,9 +172,13 @@ export async function getKeyFromStorageOrBackend() {
       () => {},
     );
     console.log(" after the value")
-    if (error) {
-      console.log("there is  a error and that is -->" , error);
+    if (error !== null) {
+      console.log("there is  a error and that is -->" , error, "and the value is ->",valueFromStorage);
       return ["", error];
+    }
+    if (valueFromStorage !== null && valueFromStorage !== "") {
+      console.log("about to return the value and that is ->",valueFromStorage)
+      return [valueFromStorage, null]
     }
     console.log("didn't find error in the ")
     // the value is blank so lets fetch
@@ -172,7 +186,7 @@ export async function getKeyFromStorageOrBackend() {
     //   return [valueFromStorage, null];
     // }
     console.log("fetching from storage");
-    let [encryptedKey, errorFromKey] = await userAuthAndGetTheKey();
+    let [encryptedKey, errorFromKey] = await userAuthAndGetTheKey(config);
     if (errorFromKey || encryptedKey === "") {
       return ["", errorFromKey];
     }

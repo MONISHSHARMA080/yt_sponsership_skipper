@@ -22,7 +22,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["helper.js", "contentScript.js","service-worker.js"],
+      "resources": ["helper.js", "contentScript.js","service-worker.js","config.js"],
       "matches": ["<all_urls>"]
     }
   ],
