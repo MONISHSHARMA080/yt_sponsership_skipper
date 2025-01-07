@@ -226,23 +226,28 @@ export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bod
   }
 }
 
+
+/**
+ * @typedef {Object} ResponseObject
+ * @property {number} status - The status code of the response
+ * @property {string} message - A message providing additional information
+ * @property {number} startTime - The start time in milliseconds
+ * @property {number} endTime - The end time in milliseconds
+ * @property {boolean} containSponserSubtitle - Whether the video has sponsorship subtitle
+ * @property {string} [error] - Optional error message
+ */
+
+
 /**
  * @typedef {Object} bodyOfTheRequest
  * @property {string} youtube_Video_Id -- video ID
  * @property {string} encrypted_string -- video ID
  *
- * @typedef {Object} responseObject
- * @property {number} status - The status code of the response.
- * @property {string} message - A message providing additional information about the response.
- * @property {number} startTime - The start time in milliseconds for where the skip should begin.
- * @property {number} endTime - The end time in milliseconds for where the skip should end.
- * @property {boolean} containSponserSubtitle- does the video has sponsorship subtitle
- * @property {string} [error] - An optional error message if something goes wrong.
  *
  * @param {string} key -- key form the backend
  * @param {string} videoID -- key form the backend
  *
- * @returns {Promise<[responseObject|null, Error|null]>}
+ * @returns {Promise<[ResponseObject|null, Error|null]>}
  */
 export async  function getWhereToSkipInYtVideo(key, videoID) {
   /** @type bodyOfTheRequest */
@@ -251,7 +256,7 @@ export async  function getWhereToSkipInYtVideo(key, videoID) {
   try {
     let response = await fetchRequestToBackend()
     console.log("the response form the yt video api is -->", response)
-    /** @type responseObject */
+    /** @type ResponseObject */
     let responseOBJ = await response.json();
     if (responseOBJ.status !== 200) {
       console.log("there is a error in the yt api -->", responseOBJ);

@@ -23,7 +23,13 @@ async function main() {
     return
   }
   console.log("the response object is -->", responseObject)
-  if(responseObject){}
+  /** @type {ResponseObject} responseObject */
+  let responseOBjectFromYt = responseObject
+  if(responseOBjectFromYt.containSponserSubtitle === false){
+    console.log("the video does not have a sponsership subtitle")
+    return
+  }
+
 }
 try {
   main();

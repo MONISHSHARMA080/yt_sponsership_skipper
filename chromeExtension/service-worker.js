@@ -52,7 +52,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  * @callback MessageCallback
  * @param {MessageRequest} request - The message request object
  * @param {chrome.runtime.MessageSender} sender - The message sender
- * @param {(response: [responseObject|null, Error|null]) => void} sendResponse - Callback to send response
+ * @param {(response: [ResponseObject|null, Error|null]) => void} sendResponse - Callback to send response
  * @returns {boolean} - Return true to indicate async response
  */
 
