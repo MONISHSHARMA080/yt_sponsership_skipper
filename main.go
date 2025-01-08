@@ -76,11 +76,10 @@ func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Clie
 
 func fetchAndReturnTheBodyAsByte(youtubeVideoUrl string, httpClient *http.Client) ([]byte, error) {
 	response, err := httpClient.Get(youtubeVideoUrl)
-	defer response.Body.Close()
-
 	if err != nil {
 		return []byte{1}, err
 	}
+	defer response.Body.Close()
 	responseBodyByte, err := io.ReadAll(response.Body)
 	if err != nil {
 		return []byte{1}, err
