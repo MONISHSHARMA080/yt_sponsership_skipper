@@ -47,8 +47,10 @@ async function main() {
 
   videoPlayer.addEventListener("timeupdate", (event) => {
       console.log("\n Current time :-->", videoPlayer.currentTime); // working
-    if(videoPlayer.currentTime >= responseOBjectFromYt.startTime){
+    if(videoPlayer.currentTime >= responseOBjectFromYt.startTime && videoPlayer.currentTime <= responseOBjectFromYt.endTime){
       console.log(`the video player time is greater that or = the start time of from the backend -->time in the videoplayer ${videoPlayer.currentTime} ----start time is  ${responseOBjectFromYt.startTime} --  `);
+      console.log("\n now going to skip in the video to ", responseOBjectFromYt.endTime)
+      videoPlayer.currentTime = responseOBjectFromYt.endTime;
     }
     });
 
