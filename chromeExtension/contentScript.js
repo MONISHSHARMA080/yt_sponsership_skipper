@@ -44,13 +44,15 @@ async function main() {
 //     "endTime": 554,
 //     "containSponserSubtitle": true
 // }
-
+let videoSponserSkipped = false
   videoPlayer.addEventListener("timeupdate", (event) => {
       console.log("\n Current time :-->", videoPlayer.currentTime); // working
-    if(videoPlayer.currentTime >= responseOBjectFromYt.startTime && videoPlayer.currentTime <= responseOBjectFromYt.endTime){
+    // the end time is not <= and is < cause it will  not move forward if we did not do that, and jsut to be sure lets make a var too
+    if(videoPlayer.currentTime >= responseOBjectFromYt.startTime && videoPlayer.currentTime < responseOBjectFromYt.endTime && videoSponserSkipped === false ){
       console.log(`the video player time is greater that or = the start time of from the backend -->time in the videoplayer ${videoPlayer.currentTime} ----start time is  ${responseOBjectFromYt.startTime} --  `);
       console.log("\n now going to skip in the video to ", responseOBjectFromYt.endTime)
       videoPlayer.currentTime = responseOBjectFromYt.endTime;
+      videoSponserSkipper = true;
     }
     });
 
