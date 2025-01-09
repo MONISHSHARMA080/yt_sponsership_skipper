@@ -24,8 +24,6 @@ async function main() {
     console.log("video player is not there")
     return;
   }
-
-
   let [responseObject, errorFromYTApi]= await chrome.runtime.sendMessage({type: "getWhereToSkipInYtVideo", encKey:key, videoID:videoID});
   if (errorFromYTApi || responseObject === null ){
     console.log("there is a error in the yt api -->",errorFromYTApi)
@@ -39,11 +37,26 @@ async function main() {
     return
   }
 
-  // now control the YT player
+//   {
+//     "status": 200,
+//     "message": "subtitles found",
+//     "startTime": 447,
+//     "endTime": 554,
+//     "containSponserSubtitle": true
+// }
 
+  videoPlayer.addEventListener("timeupdate", (event) => {
+      console.log("\n Current time :-->", videoPlayer.currentTime); // working
+    if(videoPlayer.currentTime >= responseOBjectFromYt.startTime){
+      console.log(`the video player time is greater that or = the start time of from the backend -->time in the videoplayer ${videoPlayer.currentTime} ----start time is  ${responseOBjectFromYt.startTime} --  `);
+    }
+    });
+
+  // now control the YT player
 }
 try {
-  main();
+  main().then((result) => {
+    console.log("main finished -->",result);});
 }catch (e) {
   console.log("error in main script:", e);
 }
@@ -89,18 +102,17 @@ try {
 
 function getVideoPlayer() /** @return {Element|null}*/ {
   try{
-    console.log("ssvid ->",document.getElementById('ssvid'))
-    const video = document.querySelector("video");
-video.addEventListener("timeupdate", (event) => {
-  console.log("The currentTime attribute has been updated. Again.-->", event);
-});
+    // const video = document.querySelector("video");
+// video.addEventListener("timeupdate", (event) => {
+//   console.log("The currentTime attribute has been updated. Again.-->", event);
+// });
     const videoElement = document.querySelector('video.html5-main-video');
     if (videoElement === null || videoElement === undefined) {
       return null
     }
-     videoElement.addEventListener("timeupdate", (event) => {
-      console.log("\n Current time :-->", videoElement.currentTime); // working
-    });
+    //  videoElement.addEventListener("timeupdate", (event) => {
+    //   console.log("\n Current time :-->", videoElement.currentTime); // working
+    // });
     return videoElement;
   }catch (e) {
     console.log("error occurred in getting the current time form the player->", e);
