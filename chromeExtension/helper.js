@@ -74,7 +74,10 @@ async function userAuthAndGetTheKey(config) {
       console.log("config is -->", config.BACKEND_URL);
     } catch (error) {
       console.log("error in printing the config-->", error);
-      return ["", error];
+    if(error instanceof Error){
+      return ["", error]
+    }
+    return ["",new Error(String(error))]
     }
 
     const response = await fetch(config.BACKEND_URL + "/signup", {
@@ -95,7 +98,10 @@ async function userAuthAndGetTheKey(config) {
     return [data.encrypted_key, null];
   } catch (error) {
     console.error("Error:", error);
-    return ["", error];
+    if(error instanceof Error){
+      return ["", error]
+    }
+    return ["",new Error(String(error))]
   }
 }
 // break down the function in 3 parts, 1) that get the key form the backend, 2) that sets it in the localstorage,
@@ -116,7 +122,12 @@ function saveValueToTheStorage(key, value, functionToRun) {
     });
     return null;
   } catch (error) {
-    return error;
+    if (error instanceof Error) {
+      return error;
+    }
+    // If it's not an Error object, create a new Error
+    return  new Error(String(error));
+
   }
 }
 
@@ -143,13 +154,23 @@ function getValueFromTheStorage(key, functionToRun) {
         try {
           functionToRun();
         } catch (callbackError) {
-          resolve([null, callbackError]);
+        if (callbackError instanceof Error) {
+          resolve(["", new Error(String(callbackError))]);
+          return
+        }
+        // If it's not an Error object, create a new Error
+          resolve(["", new Error(String(callbackError))]);
           return;
         }
         resolve([value ?? null, null]);
       });
-    } catch (error) {
-      resolve([null, error]);
+    } catch (e) {
+    if (e instanceof Error) {
+      return ["", e];
+    }
+    // If it's not an Error object, create a new Error
+    return ["", new Error(String(e))];
+ 
     }
   });
 }
@@ -198,8 +219,12 @@ export async function getKeyFromStorageOrBackend(config) {
     } else {
       return [encryptedKey, null];
     }
-  } catch (error) {
-    return ["", error];
+  } catch (e) {
+    if (e instanceof Error) {
+      return ["", e];
+    }
+    // If it's not an Error object, create a new Error
+    return ["", new Error(String(e))];
   }
 }
 
@@ -220,6 +245,7 @@ export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bod
   return ()=>{
     return  fetch(config.BACKEND_URL+"/"+pathWithoutBackSlash, {
       method: method,
+      // @ts-ignore
       headers: header,
       body: JSON.stringify(bodyOBJ),
     })
@@ -265,6 +291,11 @@ export async  function getWhereToSkipInYtVideo(key, videoID) {
     return [responseOBJ, null];
   }catch (e) {
     console.log("error in getWhereToSkipInYtVideo -->",e);
-    return [null, e];
+    if (e instanceof Error) {
+      return [null, e];
+    }
+    // If it's not an Error object, create a new Error
+    return [null, new Error(String(e))];
+
   }
 }

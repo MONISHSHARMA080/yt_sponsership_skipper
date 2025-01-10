@@ -11,5 +11,8 @@
   "description": "",
   "dependencies": {
     "chrome-types": "^0.1.329"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.293"
   }
 }

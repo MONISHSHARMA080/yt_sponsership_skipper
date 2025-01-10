@@ -26,7 +26,9 @@ const config = {
  * @param {(response?: any) => void} sendResponse - Callback to send response
  * @returns {boolean} - Return true to indicate async response
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((
+    
+    request, sender, sendResponse) => {
     console.log("Received message in background script:", request);
 
     if (request.type === "getKeyFromStorageOrBackend") {
@@ -46,21 +48,58 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+// /**
+//  * @typedef {Object} MessageRequest
+//  * @property {string} type - The type of message being sent
+//  * @property {string} encKey - The encryptionkey
+//  * @property {string} videoID - The ID of the ytVideo
+//  *
+//  * @callback MessageCallback
+//  * @param {MessageRequest} request - The message request object
+//  * @param {chrome.runtime.MessageSender} sender - The message sender
+//  * @param {(response: [ResponseObject|null, Error|null]) => void} sendResponse - Callback to send response
+//  * @returns {boolean} - Return true to indicate async response
+//  */
+
+// /** @type {MessageCallback} */
+
+/**
+ * @typedef {Object} ResponseObject
+ * @property {number[]} [skipPoints] - Array of timestamps where to skip
+ * @property {string} [error] - Error message if something went wrong
+ */
+
 /**
  * @typedef {Object} MessageRequest
  * @property {string} type - The type of message being sent
- * @property {string} encKey - The encryptionkey
- * @property {string} videoID - The ID of the ytVideo
- *
+ * @property {string} encKey - The encryption key
+ * @property {string} videoID - The ID of the YouTube video
+ */
+
+/**
+ * @typedef {function([ResponseObject|null, Error|null]): void} sendResponse
+ */
+
+/**
  * @callback MessageCallback
  * @param {MessageRequest} request - The message request object
  * @param {chrome.runtime.MessageSender} sender - The message sender
- * @param {(response: [ResponseObject|null, Error|null]) => void} sendResponse - Callback to send response
+ * @param {function([ResponseObject|null, Error|null]): void} sendResponse - Callback to send response
  * @returns {boolean} - Return true to indicate async response
  */
 
-/** @type {MessageCallback} */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+/**
+ * Handles incoming messages in the Chrome extension background script
+ * @type {MessageCallback}
+ */
+
+chrome.runtime.onMessage.addListener((
+    /**@type {MessageRequest} request */ 
+    request, 
+        /** @type {chrome.runtime.MessageSender} sender */
+    sender,
+    /**@type {sendResponse} sendResponse*/
+    sendResponse) => {
     console.log("Received message in background script:", request);
 
     if (request.type === "getWhereToSkipInYtVideo") {
