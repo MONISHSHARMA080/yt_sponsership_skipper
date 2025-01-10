@@ -68,7 +68,7 @@ async function main() {
     responseOBjectFromYt.startTime - 10,
   );
   /** @type {skippedTheSponser} */
-  const SkippedVideoSponsorOBJ = { videoSponsorSkipper: false };
+  const SkippedVideoSponsorOBJ = { videoSponsorSkipper: false, callBackBeforeSomeTimeOfSponsor : false };
   videoPlayer.addEventListener("timeupdate", (event) => {
     console.log("\n Current time :-->", videoPlayer.currentTime); // working
     // the end time is not <= and is < because it will  not move forward if we did not do that, and just to be sure lets make a var too
@@ -85,7 +85,7 @@ async function main() {
 }
 try {
   main().then((result) => {
-    console.log("main finished -->", result);
+    console.log("main finished and the returned value is -->", result);
   });
 } catch (e) {
   console.log("error in main script:", e);
@@ -129,6 +129,7 @@ function getVideoPlayer() /** @return {Element|null}*/ {
 /**
  *@typedef {Object} skippedTheSponser - obj to see (pass by ref) if the video is skipped
  * @property {Boolean}videoSponsorSkipper
+ * @property {Boolean} callBackBeforeSomeTimeOfSponsor
  *
  * @argument {skippedTheSponser} SkippedVideoSponsorOBJ
  * @argument {ResponseObject}responseObjectFromYt
@@ -161,6 +162,7 @@ function skipTheVideo(
  * @argument {Number} timeToCallTheFunc - call the func at sponserShipStart - 10
  * @argument {Element} videoPlayer
  * @param {Function} callbackFunction
+ * @param {skippedTheSponser} skippedTheSponsorOBJ
  */
 // * // @argument {Number} callTheFuncBeforeThisTime - eg call the function before the
 // * @param {skippedTheSponser} SkippedVideoSponsorOBJ - pass by reference boolean value in a Object
@@ -168,10 +170,15 @@ function beforeSomeTimeExecuteSomething(
   timeToCallTheFunc,
   videoPlayer,
   callbackFunction,
+  skippedTheSponsorOBJ
 ) {
   // if the time of video is > than the time to call  and is lower than the time to to call before (eg before 10 sec) execute the function
-  if (videoPlayer.currentTime >= timeToCallTheFunc) {
-    console.log("executing the callback function");
-    callbackFunction();
+  if (videoPlayer.currentTime >= timeToCallTheFunc && skippedTheSponsorOBJ.videoSponsorSkipper === false ) {
+    skippedTheSponsorOBJ.videoSponsorSkipper = true; // first as if the func throw we would not be able to update the state
+    try{
+      callbackFunction()
+    } catch (e) {
+      console.log(`error in the callback function:-> ${e} `)
+    }
   }
 }
