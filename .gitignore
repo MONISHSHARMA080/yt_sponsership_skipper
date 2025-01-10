@@ -6,3 +6,4 @@ manifest.json
 *.zip
 *.env
 node_module/
+chromeExtension/node_module/
