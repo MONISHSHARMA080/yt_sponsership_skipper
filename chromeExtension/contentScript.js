@@ -6,7 +6,8 @@ async function main() {
   let [key, error] = await chrome.runtime.sendMessage({
     type: "getKeyFromStorageOrBackend",
   });
-  // let [key, error] = await getKeyFromStorageOrBackend();
+  document.body.appendChild(createSponsorShipModalToTellUserWeAreAboutToSkip())
+  console.log("the modal is inserted")
   console.log("lets see what we got ");
   if (error) {
     console.log(
@@ -103,7 +104,8 @@ function getVideoID() {
   return [url, null];
 }
 
-function getVideoPlayer() /** @return {Element|null}*/ {
+
+function getVideoPlayer() /** @return {HTMLVideoElement|null}*/ {
   try {
     // const video = document.querySelector("video");
     // video.addEventListener("timeupdate", (event) => {
@@ -181,4 +183,133 @@ function beforeSomeTimeExecuteSomething(
       console.log(`error in the callback function:-> ${e} `)
     }
   }
+}
+
+/**
+ * I should probably store some var
+ * @param {Function} onCloseFunction - func that will execute when the user closes or declines the modal
+ * @param {Function} onAcceptFunction - func that will execute when the user wants to not skip the sponsor on the video
+ * @param {Function} doNotShowThisModalAgainFunction - func that will execute when the user wants does not want to see this again (skip the sponsor everytime)
+ * @returns {HTMLDivElement}
+ * */
+function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onAcceptFunction, doNotShowThisModalAgainFunction) {
+    const modalContainer = document.createElement('div');
+    modalContainer.style.position = 'fixed';
+    modalContainer.style.top = '18px';
+    modalContainer.style.right = '24px';
+    modalContainer.style.width = '256px';
+    modalContainer.style.backgroundColor = '#01044a';
+    modalContainer.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    modalContainer.style.borderRadius = '28px';
+    modalContainer.style.overflow = 'hidden';
+    modalContainer.style.zIndex = '90000';
+    // Add animation properties
+    modalContainer.style.transition = 'opacity 0.3s, transform 0.3s';
+    modalContainer.style.opacity = '0';
+    modalContainer.style.transform = 'translateY(-20px)';
+
+    // Create the content wrapper
+    const contentWrapper = document.createElement('div');
+    contentWrapper.style.padding = '16px';
+    modalContainer.appendChild(contentWrapper);
+
+    // Create the header section
+    const header = document.createElement('div');
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.marginBottom = '8px';
+    contentWrapper.appendChild(header);
+
+    // Add the title
+    const title = document.createElement('h');
+    title.style.fontSize = '20px';
+    title.style.fontWeight = '730';
+    title.style.color = '#d9d9d9';
+    title.textContent = 'Sponsorship Alert';
+    header.appendChild(title);
+
+    // Add the close button
+    const closeButton = document.createElement('button');
+    closeButton.style.position = 'relative';
+    closeButton.style.color = '#d9d9d9';
+    closeButton.style.cursor = 'pointer';
+    closeButton.style.border = 'none';
+    closeButton.style.background = 'transparent';
+    closeButton.style.padding = '8px';
+    closeButton.style.borderRadius = '50%';
+    closeButton.style.transition = 'background-color 0.3s, transform 0.2s';
+    closeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>';
+
+    closeButton.addEventListener('mouseover', () => {
+        closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        closeButton.style.transform = 'scale(1.1)';
+    });
+
+    closeButton.addEventListener('mouseout', () => {
+        closeButton.style.backgroundColor = 'transparent';
+        closeButton.style.transform = 'scale(1)';
+    });
+
+    // Add click event to hide the modal with animation
+    closeButton.addEventListener('click', () => {
+        modalContainer.style.opacity = '0';
+        modalContainer.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            modalContainer.style.display = 'none';
+        }, 300); // Wait for animation to complete
+    });
+    header.appendChild(closeButton);
+
+    // Add the message
+    const message = document.createElement('p');
+    message.style.fontSize = '16px';
+    message.style.color = '#d9d9d9';
+    message.style.marginBottom = '12px';
+    message.textContent = "A sponsorship is coming up. We're about to skip it for you.";
+    contentWrapper.appendChild(message);
+
+    // Add the "Don't Skip" button
+    const dontSkipButton = document.createElement('button');
+    dontSkipButton.style.display = 'block';
+    dontSkipButton.style.width = '100%';
+    dontSkipButton.style.padding = '8px';
+    dontSkipButton.style.fontSize = '12px';
+    dontSkipButton.style.fontWeight = '500';
+    dontSkipButton.style.color = 'white';
+    dontSkipButton.style.backgroundColor = '#3904c9';
+    dontSkipButton.style.border = 'none';
+    dontSkipButton.style.borderRadius = '24px';
+    dontSkipButton.style.cursor = 'pointer';
+    dontSkipButton.style.transition = 'background-color 0.3s';
+
+    dontSkipButton.addEventListener('mouseover', () => {
+        dontSkipButton.style.backgroundColor = '#1e40af';
+    });
+
+    dontSkipButton.addEventListener('mouseout', () => {
+        dontSkipButton.style.backgroundColor = '#1d4ed8';
+    });
+
+    dontSkipButton.textContent = "Don't skip this sponsorship";
+    dontSkipButton.addEventListener('click', () => {
+        console.log("User chose not to skip the sponsorship");
+        modalContainer.style.opacity = '0';
+        modalContainer.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            modalContainer.style.display = 'none';
+        }, 300);
+    });
+    contentWrapper.appendChild(dontSkipButton);
+
+    // Add the modal to the document
+    document.body.appendChild(modalContainer);
+
+    // Trigger entrance animation after a brief delay
+    setTimeout(() => {
+        modalContainer.style.opacity = '1';
+        modalContainer.style.transform = 'translateY(0)';
+    }, 10);
+
+    return modalContainer;
 }
