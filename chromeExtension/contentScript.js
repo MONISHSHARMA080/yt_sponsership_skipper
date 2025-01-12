@@ -49,7 +49,7 @@ async function main() {
     responseOBjectFromYt.startTime - 10,
   );
   /** @type {skippedTheSponser} */
-  const SkippedVideoSponsorOBJ = { videoSponsorSkipper: false, callBackBeforeSomeTimeOfSponsor : false };
+  const SkippedVideoSponsorOBJ = { videoSponsorSkipper: false, callBackBeforeSomeTimeOfSponsor : false, alwaysSkipTheSponsorAndDoNotShowTheModal:false  };
   videoPlayer.addEventListener("timeupdate", (event) => {
     console.log("\n Current time :-->", videoPlayer.currentTime); // working
     // the end time is not <= and is < because it will  not move forward if we did not do that, and just to be sure lets make a var too
@@ -117,6 +117,7 @@ function getVideoPlayer() /** @return {HTMLVideoElement|null}*/ {
  *@typedef {Object} skippedTheSponser - obj to see (pass by ref) if the video is skipped
  * @property {Boolean}videoSponsorSkipper
  * @property {Boolean} callBackBeforeSomeTimeOfSponsor
+ * @property {Boolean} alwaysSkipTheSponsorAndDoNotShowTheModal
  *
  * @argument {skippedTheSponser} SkippedVideoSponsorOBJ
  * @argument {ResponseObject}responseObjectFromYt
