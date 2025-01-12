@@ -1,38 +1,18 @@
 // @ts-check
-console.log("hi form the contentScript :)");
-
 async function main() {
   console.log("in the main");
   let [key, error] = await chrome.runtime.sendMessage({
     type: "getKeyFromStorageOrBackend",
   });
-  document.body.appendChild(createSponsorShipModalToTellUserWeAreAboutToSkip())
   console.log("the modal is inserted")
   console.log("lets see what we got ");
   if (error) {
-    console.log(
-      "error is there in getting the key and it is -->",
-      error,
-      "\n\n the key is",
-      key,
-    );
-    return;
+    console.log("error is there in getting the key and it is -->", error, "\n\n the key is", key,);return;
   }
-
-  console.log(
-    "the key is  -->",
-    key,
-    "from the  content script, error is -->",
-    error,
-  );
+  console.log("the key is  -->", key, "from the  content script, error is -->", error);
   let [videoID, errorFormGettingVideoID] = getVideoID();
   if (errorFormGettingVideoID) {
-    console.log(
-      "videoID is  -->",
-      videoID,
-      "and the error getting it is -->",
-      errorFormGettingVideoID,
-    );
+    console.log( "videoID is  -->",  videoID, "and the error getting it is -->", errorFormGettingVideoID);
     return;
   }
   let videoPlayer = getVideoPlayer();
@@ -53,7 +33,7 @@ async function main() {
   /** @type {ResponseObject} responseObject */
   let responseOBjectFromYt = responseObject;
   if (responseOBjectFromYt.containSponserSubtitle === false) {
-    console.log("the video does not have a sponsership subtitle");
+    console.log("the video does not have a sponsorship subtitle");
     return;
   }
 
@@ -74,11 +54,16 @@ async function main() {
     console.log("\n Current time :-->", videoPlayer.currentTime); // working
     // the end time is not <= and is < because it will  not move forward if we did not do that, and just to be sure lets make a var too
     skipTheVideo(responseOBjectFromYt, videoPlayer, SkippedVideoSponsorOBJ);
-    beforeSomeTimeExecuteSomething(
-      responseOBjectFromYt.startTime - 10,
-      videoPlayer,
-      () => {console.log(" hi this func will execute before certain time (10 sec)  ",);
+    beforeSomeTimeExecuteSomething(responseOBjectFromYt.startTime - 10, videoPlayer, () => {console.log(" hi this func will execute before certain time (10 sec)  ",);
+          document.body.appendChild(createSponsorShipModalToTellUserWeAreAboutToSkip(()=>{
+              console.log("on close func, doing nothing as we want to skip the sponsor")
+              },()=>{
+                  SkippedVideoSponsorOBJ.videoSponsorSkipper = true
+              }, ()=>{}
+              ) )
+        // change  the cost obj and probably write it in the storage, so that it can persist
       },
+        SkippedVideoSponsorOBJ
     );
   });
   // now make 2 function to abstract the logic here, one is for skipping and one takes in  a callback that will execute, if the video is certain sec
@@ -161,19 +146,14 @@ function skipTheVideo(
 }
 
 /**
- * @argument {Number} timeToCallTheFunc - call the func at sponserShipStart - 10
- * @argument {Element} videoPlayer
+ * @argument {Number} timeToCallTheFunc - call the func at sponsorShipStart - 10
+ * @argument {HTMLVideoElement} videoPlayer
  * @param {Function} callbackFunction
  * @param {skippedTheSponser} skippedTheSponsorOBJ
  */
 // * // @argument {Number} callTheFuncBeforeThisTime - eg call the function before the
-// * @param {skippedTheSponser} SkippedVideoSponsorOBJ - pass by reference boolean value in a Object
-function beforeSomeTimeExecuteSomething(
-  timeToCallTheFunc,
-  videoPlayer,
-  callbackFunction,
-  skippedTheSponsorOBJ
-) {
+// * @param {skippedTheSponsor} SkippedVideoSponsorOBJ - pass by reference boolean value in a Object
+function beforeSomeTimeExecuteSomething(timeToCallTheFunc, videoPlayer, callbackFunction, skippedTheSponsorOBJ) {
   // if the time of video is > than the time to call  and is lower than the time to to call before (eg before 10 sec) execute the function
   if (videoPlayer.currentTime >= timeToCallTheFunc && skippedTheSponsorOBJ.videoSponsorSkipper === false ) {
     skippedTheSponsorOBJ.videoSponsorSkipper = true; // first as if the func throw we would not be able to update the state
@@ -188,11 +168,11 @@ function beforeSomeTimeExecuteSomething(
 /**
  * I should probably store some var
  * @param {Function} onCloseFunction - func that will execute when the user closes or declines the modal
- * @param {Function} onAcceptFunction - func that will execute when the user wants to not skip the sponsor on the video
- * @param {Function} doNotShowThisModalAgainFunction - func that will execute when the user wants does not want to see this again (skip the sponsor everytime)
+ * @param {Function} onUserClickDoNotSkipTheSponsorShipFunc - func that will execute when the user wants to not skip the sponsor on the video
+ * @param {Function} doNotShowThisModalAgainAlwaysSkipFunction - func that will execute when the user wants does not want to see this again (skip the sponsor everytime)
  * @returns {HTMLDivElement}
  * */
-function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onAcceptFunction, doNotShowThisModalAgainFunction) {
+function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUserClickDoNotSkipTheSponsorShipFunc, doNotShowThisModalAgainAlwaysSkipFunction) {
     const modalContainer = document.createElement('div');
     modalContainer.style.position = 'fixed';
     modalContainer.style.top = '18px';
@@ -255,6 +235,8 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onAcc
     closeButton.addEventListener('click', () => {
         modalContainer.style.opacity = '0';
         modalContainer.style.transform = 'translateY(-20px)';
+
+    onCloseFunction?onCloseFunction():null;
         setTimeout(() => {
             modalContainer.style.display = 'none';
         }, 300); // Wait for animation to complete
@@ -293,6 +275,7 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onAcc
 
     dontSkipButton.textContent = "Don't skip this sponsorship";
     dontSkipButton.addEventListener('click', () => {
+        onUserClickDoNotSkipTheSponsorShipFunc?onUserClickDoNotSkipTheSponsorShipFunc():null; // if I did not pass it then do not play it
         console.log("User chose not to skip the sponsorship");
         modalContainer.style.opacity = '0';
         modalContainer.style.transform = 'translateY(-20px)';
@@ -302,14 +285,47 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onAcc
     });
     contentWrapper.appendChild(dontSkipButton);
 
-    // Add the modal to the document
-    document.body.appendChild(modalContainer);
 
+
+    // Add the "Don't Skip" button
+    const alwaysSkipTheSponsorButton = document.createElement('button');
+    alwaysSkipTheSponsorButton.style.display = 'block';
+    alwaysSkipTheSponsorButton.style.width = '100%';
+    alwaysSkipTheSponsorButton.style.padding = '8px';
+    alwaysSkipTheSponsorButton.style.fontSize = '12px';
+    alwaysSkipTheSponsorButton.style.fontWeight = '500';
+    alwaysSkipTheSponsorButton.style.marginTop = '8px';
+    alwaysSkipTheSponsorButton.style.color = 'white';
+    alwaysSkipTheSponsorButton.style.backgroundColor = '#3904c9';
+    alwaysSkipTheSponsorButton.style.border = 'none';
+    alwaysSkipTheSponsorButton.style.borderRadius = '24px';
+    alwaysSkipTheSponsorButton.style.cursor = 'pointer';
+    alwaysSkipTheSponsorButton.style.transition = 'background-color 0.3s';
+
+    alwaysSkipTheSponsorButton.addEventListener('mouseover', () => {
+        alwaysSkipTheSponsorButton.style.backgroundColor = '#1e40af';
+    });
+
+    alwaysSkipTheSponsorButton.addEventListener('mouseout', () => {
+        alwaysSkipTheSponsorButton.style.backgroundColor = '#1d4ed8';
+    });
+
+    alwaysSkipTheSponsorButton.textContent = "Always skip the sponsorship";
+    alwaysSkipTheSponsorButton.addEventListener('click', () => {
+        doNotShowThisModalAgainAlwaysSkipFunction?doNotShowThisModalAgainAlwaysSkipFunction():null; // if I did not pass it then do not play it
+        console.log("User chose always to skip the sponsorship");
+        modalContainer.style.opacity = '0';
+        modalContainer.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            modalContainer.style.display = 'none';
+        }, 300);
+    });
+    contentWrapper.appendChild(alwaysSkipTheSponsorButton);
     // Trigger entrance animation after a brief delay
     setTimeout(() => {
         modalContainer.style.opacity = '1';
         modalContainer.style.transform = 'translateY(0)';
-    }, 10);
+    }, 100);
 
     return modalContainer;
 }
