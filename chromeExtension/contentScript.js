@@ -25,7 +25,6 @@ async function main() {
     console.log("there is a error in the yt api -->", errorFromYTApi);
     return;
   }
-
   console.log("the response object is -->", responseObject);
   /** @type {import("./helper").ResponseObject} responseObject */
   let responseOBjectFromYt = responseObject;
@@ -33,31 +32,41 @@ async function main() {
     console.log("the video does not have a sponsorship subtitle");
     return;
   }
-
-  //   {
-  //     "containSponserSubtitle": 200,
-  //     "containSponserSubtitle": "subtitles found",
-  //     "containSponserSubtitle": 447,
-  //     "containSponserSubtitle": 554,
-  //     "containSponserSubtitle": true
-  // }
   console.log("the func will be called on the time-> ", responseOBjectFromYt.startTime - 10,);
+  let [defalutValueToSkipTheModal, errorFormSkippingTheModal] = await chrome.runtime.sendMessage({type: "getKeyFromStorageOrBackend"});
+  if (errorFormSkippingTheModal) {
+    console.log("there is an error in getting the vlaue form the value of wether we should skip the modal or not -->",errorFormSkippingTheModal, "value of the modal is ");
+  }
+  if (typeof defalutValueToSkipTheModal !== "boolean") {
+    defalutValueToSkipTheModal = false
+  }
 
   /** @type {skippedTheSponser} */
-  const SkippedVideoSponsorOBJ = { videoSponsorSkipper:false, callBackBeforeSomeTimeOfSponsor:false, alwaysSkipTheSponsorAndDoNotShowTheModal:false};
+  const SkippedVideoSponsorOBJ = { videoSponsorSkipper:false, callBackBeforeSomeTimeOfSponsor:false, alwaysSkipTheSponsorAndDoNotShowTheModal:defalutValueToSkipTheModal};
+  // videoSponsorSkipper is to know if we have skipped the sponsor
+
   videoPlayer.addEventListener("timeupdate", (event) => {
     console.log("\n Current time :-->", videoPlayer.currentTime); // working
     // the end time is not <= and is < because it will  not move forward if we did not do that, and just to be sure lets make a var too
     skipTheVideo(responseOBjectFromYt, videoPlayer, SkippedVideoSponsorOBJ);
-    beforeSomeTimeExecuteSomething(responseOBjectFromYt.startTime - 10, videoPlayer, () => {console.log(" hi this func will execute before certain time (10 sec)  ",);
-          document.body.appendChild(createSponsorShipModalToTellUserWeAreAboutToSkip(()=>{
+    beforeSomeTimeExecuteSomething(responseOBjectFromYt.startTime - 10, videoPlayer, () => {
+      console.log(" hi this func will execute before certain time (10 sec)  ",);
+      // make the if statement check
+      if (SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false) {
+              document.body.appendChild(createSponsorShipModalToTellUserWeAreAboutToSkip(
+              ()=>{
               console.log("on close func, doing nothing as we want to skip the sponsor")
               },()=>{
                   SkippedVideoSponsorOBJ.videoSponsorSkipper = true
-              }, ()=>{}
+              },()=>{
+                // just raw dawg the storage update or do it in the backgroundScript for the clean code -->  key=alwaysSkipTheSponsorAndDoNotShowTheModal
+                chrome.runtime.sendMessage({type:"saveValueInStorage",key:"alwaysSkipTheSponsorAndDoNotShowTheModal", value:true})
+              }
               ) )
         // change  the cost obj and probably write it in the storage, so that it can persist
-      },
+ 
+      }
+     },
         SkippedVideoSponsorOBJ
     );
   });
@@ -122,17 +131,10 @@ function getVideoPlayer() /** @return {HTMLVideoElement|null}*/ {
 function skipTheVideo(responseObjectFromYt, videoPlayer, SkippedVideoSponsorOBJ) {
   console.log("in the Skip the video func\n\n")
   console.log(`the cureent time is ${videoPlayer.currentTime} and end time is ${responseObjectFromYt.endTime} and start Time is ${responseObjectFromYt.startTime} and video skipper is ${SkippedVideoSponsorOBJ.videoSponsorSkipper} `)
-  if (
-    videoPlayer.currentTime >= responseObjectFromYt.startTime &&
-    videoPlayer.currentTime < responseObjectFromYt.endTime &&
-    SkippedVideoSponsorOBJ.videoSponsorSkipper === false
-  ) {
+  if (videoPlayer.currentTime >= responseObjectFromYt.startTime && videoPlayer.currentTime < responseObjectFromYt.endTime && SkippedVideoSponsorOBJ.videoSponsorSkipper === false) {
     console.log(`the video player time is greater that or = the start time of from the backend -->time in the
        video player ${videoPlayer.currentTime} ----start time is  ${responseObjectFromYt.startTime} --  `);
-    console.log(
-      "\n now going to skip in the video to ",
-      responseObjectFromYt.endTime,
-    );
+    console.log("\n now going to skip in the video to ",responseObjectFromYt.endTime,);
     videoPlayer.currentTime = responseObjectFromYt.endTime;
     SkippedVideoSponsorOBJ.videoSponsorSkipper = true;
   }
@@ -277,9 +279,6 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
         }, 300);
     });
     contentWrapper.appendChild(dontSkipButton);
-
-
-
     // Add the "Don't Skip" button
     const alwaysSkipTheSponsorButton = document.createElement('button');
     alwaysSkipTheSponsorButton.style.display = 'block';
@@ -319,16 +318,11 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
         modalContainer.style.opacity = '1';
         modalContainer.style.transform = 'translateY(0)';
     }, 100);
-
+    // close the modal after 10 sec
+        setTimeout(() => {
+            modalContainer.style.display = 'none';
+        }, 10000); // Wait for animation to complete
     return modalContainer;
 }
 
-// /**
-//  * @typedef {Object} ResponseObject
-//  * @property {number} status - The status code of the response
-//  * @property {string} message - A message providing additional information
-//  * @property {number} startTime - The start time in milliseconds
-//  * @property {number} endTime - The end time in milliseconds
-//  * @property {boolean} containSponserSubtitle - Whether the video has sponsorship subtitle
-//  * @property {string} [error] - Optional error message
-//  */
+

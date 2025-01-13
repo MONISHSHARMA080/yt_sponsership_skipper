@@ -3,7 +3,8 @@
 import {
     getDefaultValueOfToSkipTheSponsorAndShowTheModal,
     getKeyFromStorageOrBackend,
-    getWhereToSkipInYtVideo
+    getWhereToSkipInYtVideo,
+saveValueToTheStorage
 } from './helper.js';
 
 
@@ -58,22 +59,6 @@ chrome.runtime.onMessage.addListener((
         return true;
     }
 });
-
-// /**
-//  * @typedef {Object} MessageRequest
-//  * @property {string} type - The type of message being sent
-//  * @property {string} encKey - The encryptionkey
-//  * @property {string} videoID - The ID of the ytVideo
-//  *
-//  * @callback MessageCallback
-//  * @param {MessageRequest} request - The message request object
-//  * @param {chrome.runtime.MessageSender} sender - The message sender
-//  * @param {(response: [ResponseObject|null, Error|null]) => void} sendResponse - Callback to send response
-//  * @returns {boolean} - Return true to indicate async response
-//  */
-
-// /** @type {MessageCallback} */
-
 /**
  * @typedef {Object} ResponseObject
  * @property {number[]} [skipPoints] - Array of timestamps where to skip
@@ -146,3 +131,27 @@ chrome.runtime.onMessage.addListener((
        })
     }
 })
+
+/**
+ * @typedef {Object} saveValueInStorage
+ * @property {'saveValueInStorage'} type - The type identifier for saving value to storage
+ * @property {string} key - The storage key to save the value under
+ * @property {any} value - The value to be saved in storage
+ * @export
+ */
+
+/**
+ * Example usage in the message listener:
+ */
+chrome.runtime.onMessage.addListener((
+    /** @type { saveValueInStorage} */ request,
+    /** @type {any} */ sender,
+    /** @type {(response: Error|null) => void} */ sendResponse
+) => {
+     if (request.type === "saveValueInStorage") {
+        const error = saveValueToTheStorage(request.key, request.value);
+        console.log("error in storing the value in the db is -->", error, "\n and the key ->", request.key, " and the value was ->",request.value);
+        return sendResponse(error);
+    }
+});
+

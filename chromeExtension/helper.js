@@ -110,16 +110,16 @@ async function userAuthAndGetTheKey(config) {
  * takes in a key,value and will store it in the storage
  * @param {string} key
  * @param {T} value
- * @param {Function} functionToRun
+ * @param {Function} [functionToRun]
  * @returns {Error|null} error
  */
-function saveValueToTheStorage(key, value, functionToRun) {
+export function saveValueToTheStorage(key, value, functionToRun) {
   if (value === "") {
     return new Error("value can't be empty");
   }
   try {
     chrome.storage.local.set({ [key]: value }, () => {
-      functionToRun();
+      functionToRun?functionToRun():null;
     });
     return null;
   } catch (error) {
@@ -128,7 +128,6 @@ function saveValueToTheStorage(key, value, functionToRun) {
     }
     // If it's not an Error object, create a new Error
     return  new Error(String(error));
-
   }
 }
 
