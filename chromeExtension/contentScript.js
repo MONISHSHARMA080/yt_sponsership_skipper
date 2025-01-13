@@ -20,11 +20,7 @@ async function main() {
     console.log("video player is not there");
     return;
   }
-  let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({
-    type: "getWhereToSkipInYtVideo",
-    encKey: key,
-    videoID: videoID,
-  });
+  let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID,});
   if (errorFromYTApi || responseObject === null) {
     console.log("there is a error in the yt api -->", errorFromYTApi);
     return;
@@ -38,18 +34,16 @@ async function main() {
   }
 
   //   {
-  //     "status": 200,
-  //     "message": "subtitles found",
-  //     "startTime": 447,
-  //     "endTime": 554,
+  //     "containSponserSubtitle": 200,
+  //     "containSponserSubtitle": "subtitles found",
+  //     "containSponserSubtitle": 447,
+  //     "containSponserSubtitle": 554,
   //     "containSponserSubtitle": true
   // }
-  console.log(
-    "the func will be called on the time-> ",
-    responseOBjectFromYt.startTime - 10,
-  );
+  console.log("the func will be called on the time-> ", responseOBjectFromYt.startTime - 10,);
+
   /** @type {skippedTheSponser} */
-  const SkippedVideoSponsorOBJ = { videoSponsorSkipper: false, callBackBeforeSomeTimeOfSponsor : false, alwaysSkipTheSponsorAndDoNotShowTheModal:false  };
+  const SkippedVideoSponsorOBJ = { videoSponsorSkipper:false, callBackBeforeSomeTimeOfSponsor:false, alwaysSkipTheSponsorAndDoNotShowTheModal:false};
   videoPlayer.addEventListener("timeupdate", (event) => {
     console.log("\n Current time :-->", videoPlayer.currentTime); // working
     // the end time is not <= and is < because it will  not move forward if we did not do that, and just to be sure lets make a var too

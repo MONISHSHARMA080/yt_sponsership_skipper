@@ -106,9 +106,10 @@ async function userAuthAndGetTheKey(config) {
 }
 // break down the function in 3 parts, 1) that get the key form the backend, 2) that sets it in the localstorage,
 /**
+ * @template T the type parameter name
  * takes in a key,value and will store it in the storage
  * @param {string} key
- * @param {string} value
+ * @param {T} value
  * @param {Function} functionToRun
  * @returns {Error|null} error
  */
@@ -143,10 +144,7 @@ function getValueFromTheStorage(key, functionToRun) {
       chrome.storage.local.get([key], (item) => {
         // Handle runtime errors
         if (chrome.runtime.lastError) {
-          console.error(
-            "Error retrieving data from storage:",
-            chrome.runtime.lastError,
-          );
+          console.error("Error retrieving data from storage:", chrome.runtime.lastError,);
           resolve([null, new Error(chrome.runtime.lastError.message)]);
           return;
         }
@@ -188,9 +186,7 @@ function getValueFromTheStorage(key, functionToRun) {
 export async function getKeyFromStorageOrBackend(config) {
   console.log("in getKeyFromStorageOrBackend");
   try {
-    let [valueFromStorage, error] = await getValueFromTheStorage(
-      "key",
-      () => {},
+    let [valueFromStorage, error] = await getValueFromTheStorage("key", () => {},
     );
     console.log(" after the value")
     if (error !== null) {
@@ -300,3 +296,20 @@ export async  function getWhereToSkipInYtVideo(key, videoID) {
   }
 }
 
+// alwaysSkipTheSponsorAndDoNotShowTheModal :false
+
+export  async  function getDefaultValueOfToSkipTheSponsorAndShowTheModal() /** @returns {Promise<[Boolean,Error|null]>} */{
+  let key ="alwaysSkipTheSponsorAndDoNotShowTheModal"
+  let [ valueFromStorage, error] = await getValueFromTheStorage(key, () => {})
+  if (error !== null || valueFromStorage === null || valueFromStorage === "" ||typeof valueFromStorage !== "boolean" ){
+    // return [false, error]
+    // going to set the value too
+  let error =saveValueToTheStorage(key, false, ()=>{console.log(" the value for the default ", key, " is not found so saving the default to be false")})
+  if (error){
+    console.log("there is a error in the default value for the default  in the ",key," -->", error)
+    return [false, new Error(String(error))];
+  }
+    return [false, null];
+  }
+  return [Boolean(valueFromStorage), null]
+}

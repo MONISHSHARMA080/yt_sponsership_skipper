@@ -1,6 +1,10 @@
 // @ts-check
 
-import {getKeyFromStorageOrBackend, getWhereToSkipInYtVideo} from './helper.js';
+import {
+    getDefaultValueOfToSkipTheSponsorAndShowTheModal,
+    getKeyFromStorageOrBackend,
+    getWhereToSkipInYtVideo
+} from './helper.js';
 
 
 console.log("hi from the service worker and will run say hi() now");
@@ -118,3 +122,20 @@ chrome.runtime.onMessage.addListener((
         return true;
     }
 });
+/**
+ * @typedef {Object} MessageRequest2
+ * @property {string} type - The type of message being sent
+ *
+ */
+chrome.runtime.onMessage.addListener((
+    /** @type {{ type: string; }} */ request, /** @type {any} */ sender, /** @type { ( response:[Boolean, Error|null] ) => void } */ sendResponse) => {
+    if (request.type === "getKeyFromStorageOrBackend") {
+        getDefaultValueOfToSkipTheSponsorAndShowTheModal().then(([value, error] )=>{
+        if (error) {
+            console.error("Error in background script while getting the default value of to skip modal or not:->", error);
+        }
+        return sendResponse([value, error])
+
+       })
+    }
+})
