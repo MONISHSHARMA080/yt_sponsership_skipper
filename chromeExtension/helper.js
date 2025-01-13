@@ -257,6 +257,7 @@ export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bod
  * @property {number} endTime - The end time in milliseconds
  * @property {boolean} containSponserSubtitle - Whether the video has sponsorship subtitle
  * @property {string} [error] - Optional error message
+ * @export
  */
 
 

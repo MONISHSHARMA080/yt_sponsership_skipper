@@ -31,7 +31,14 @@ const config = {
  * @returns {boolean} - Return true to indicate async response
  */
 chrome.runtime.onMessage.addListener((
-    
+/**
+ * Message handler for Chrome extension background script
+ * @type {GetKeyMessage} request - The message request object
+ * @param {chrome.runtime.MessageSender} sender - Message sender information
+ * @param {(response?: any) => void} sendResponse - Callback to send response
+ * @returns {boolean} - Return true to indicate async response
+ */
+    // @ts-ignore
     request, sender, sendResponse) => {
     console.log("Received message in background script:", request);
 
@@ -128,14 +135,14 @@ chrome.runtime.onMessage.addListener((
  *
  */
 chrome.runtime.onMessage.addListener((
-    /** @type {{ type: string; }} */ request, /** @type {any} */ sender, /** @type { ( response:[Boolean, Error|null] ) => void } */ sendResponse) => {
+    /** @type {{ type: string; }} */ request, /** @type {any} */ sender, /** @type {( response:[boolean, Error|null] ) => void } */ sendResponse) => {
     if (request.type === "getKeyFromStorageOrBackend") {
         getDefaultValueOfToSkipTheSponsorAndShowTheModal().then(([value, error] )=>{
-        if (error) {
-            console.error("Error in background script while getting the default value of to skip modal or not:->", error);
+        console.error("Error in background script while getting the default value of to skip modal or not:->", error,"  and the value is -->",value);
+        if (error !== null && error instanceof Error) {
+        return sendResponse([Boolean(value), error])
         }
-        return sendResponse([value, error])
-
+        return sendResponse([Boolean(value), null])
        })
     }
 })

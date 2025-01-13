@@ -25,8 +25,9 @@ async function main() {
     console.log("there is a error in the yt api -->", errorFromYTApi);
     return;
   }
+
   console.log("the response object is -->", responseObject);
-  /** @type {ResponseObject} responseObject */
+  /** @type {import("./helper").ResponseObject} responseObject */
   let responseOBjectFromYt = responseObject;
   if (responseOBjectFromYt.containSponserSubtitle === false) {
     console.log("the video does not have a sponsorship subtitle");
@@ -90,6 +91,7 @@ function getVideoPlayer() /** @return {HTMLVideoElement|null}*/ {
     // video.addEventListener("timeupdate", (event) => {
     //   console.log("The currentTime attribute has been updated. Again.-->", event);
     // });
+    /** @type {HTMLVideoElement |null} */
     const videoElement = document.querySelector("video.html5-main-video");
     if (videoElement === null || videoElement === undefined) {
       return null;
@@ -114,14 +116,10 @@ function getVideoPlayer() /** @return {HTMLVideoElement|null}*/ {
  * @property {Boolean} alwaysSkipTheSponsorAndDoNotShowTheModal
  *
  * @argument {skippedTheSponser} SkippedVideoSponsorOBJ
- * @argument {ResponseObject}responseObjectFromYt
- * @argument {Element} videoPlayer
+ * @argument {import("./helper").ResponseObject}responseObjectFromYt
+ * @argument {HTMLVideoElement} videoPlayer
  */
-function skipTheVideo(
-  responseObjectFromYt,
-  videoPlayer,
-  SkippedVideoSponsorOBJ,
-) {
+function skipTheVideo(responseObjectFromYt, videoPlayer, SkippedVideoSponsorOBJ) {
   console.log("in the Skip the video func\n\n")
   console.log(`the cureent time is ${videoPlayer.currentTime} and end time is ${responseObjectFromYt.endTime} and start Time is ${responseObjectFromYt.startTime} and video skipper is ${SkippedVideoSponsorOBJ.videoSponsorSkipper} `)
   if (
@@ -324,3 +322,13 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
 
     return modalContainer;
 }
+
+// /**
+//  * @typedef {Object} ResponseObject
+//  * @property {number} status - The status code of the response
+//  * @property {string} message - A message providing additional information
+//  * @property {number} startTime - The start time in milliseconds
+//  * @property {number} endTime - The end time in milliseconds
+//  * @property {boolean} containSponserSubtitle - Whether the video has sponsorship subtitle
+//  * @property {string} [error] - Optional error message
+//  */
