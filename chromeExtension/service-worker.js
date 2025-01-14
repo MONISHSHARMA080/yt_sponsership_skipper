@@ -41,9 +41,9 @@ chrome.runtime.onMessage.addListener((
  */
     // @ts-ignore
     request, sender, sendResponse) => {
-    console.log("Received message in background script:", request);
 
     if (request.type === "getKeyFromStorageOrBackend") {
+    console.log("Received message in background script:", request);
         // Execute the key fetch function and handle the response
         getKeyFromStorageOrBackend(config)
             .then(([key, error]) => {
@@ -96,10 +96,10 @@ chrome.runtime.onMessage.addListener((
     sender,
     /**@type {sendResponse} sendResponse*/
     sendResponse) => {
-    console.log("Received message in background script:", request);
 
     if (request.type === "getWhereToSkipInYtVideo") {
         // Execute the key fetch function and handle the response
+    console.log("Received message in background script:", request);
         getWhereToSkipInYtVideo(request.encKey, request.videoID)
             .then(([responseObject, error]) => {
                 console.log("Key fetch completed", { key: responseObject, error });
@@ -121,7 +121,9 @@ chrome.runtime.onMessage.addListener((
  */
 chrome.runtime.onMessage.addListener((
     /** @type {{ type: string; }} */ request, /** @type {any} */ sender, /** @type {( response:[boolean, Error|null] ) => void } */ sendResponse) => {
-    if (request.type === "getKeyFromStorageOrBackend") {
+    if (request.type === "alwaysSkipTheSponsorAndDoNotShowTheModal") {
+        console.log(`got the request in the  alwaysSkipTheSponsorAndDoNotShowTheModal`, request);
+        
         getDefaultValueOfToSkipTheSponsorAndShowTheModal().then(([value, error] )=>{
         console.log("Error in background script while getting the default value of to skip modal or not:->", error,"  and the value is -->",value);
         if (error !== null && error instanceof Error) {
@@ -129,7 +131,10 @@ chrome.runtime.onMessage.addListener((
         }
         return sendResponse([Boolean(value), null])
        })
+    return true;
     }
+    return false;
+
 })
 
 /**
