@@ -60,8 +60,9 @@ async function main() {
     // the end time is not <= and is < because it will  not move forward if we did not do that, and just to be sure lets make a var too
     skipTheVideo(responseOBjectFromYt, videoPlayer, SkippedVideoSponsorOBJ);
     beforeSomeTimeExecuteSomething(responseOBjectFromYt.startTime - 10, videoPlayer, () => {
-      console.log(" hi this func will execute before certain time (10 sec)  ",);
       // make the if statement check
+      console.log("condition of the modal -->",SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false && SkippedVideoSponsorOBJ.userOptedForSkippingTheModal === false  );
+      
       if (SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false && SkippedVideoSponsorOBJ.userOptedForSkippingTheModal === false ) {
         // to do: update the modal state form here on and when the modal is created then update the if conditon as I do not want to createmultiple of it or maybe do it in the modal func
           embeddTheModalInThePage(SkippedVideoSponsorOBJ) 
@@ -159,7 +160,7 @@ function beforeSomeTimeExecuteSomething(timeToCallTheFunc, videoPlayer, callback
   console.log("in the video player func ->");
   
   if (videoPlayer.currentTime >= timeToCallTheFunc && skippedTheSponsorOBJ.videoSponsorSkipper === false ) {
-    skippedTheSponsorOBJ.videoSponsorSkipper = true; // first as if the func throw we would not be able to update the state
+    // skippedTheSponsorOBJ.videoSponsorSkipper = false; // first as if the func throw we would not be able to update the state
     try{
       callbackFunction()
     } catch (e) {
@@ -186,7 +187,7 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
     modalContainer.style.borderRadius = '28px';
     modalContainer.style.overflow = 'hidden';
     modalContainer.style.zIndex = '90000';
-    modalContainer.style.display = 'none';
+    // modalContainer.style.display = 'none';
     // id
     modalContainer.id ="sponserShipModal"
     // Add animation properties
@@ -349,13 +350,20 @@ document.body.appendChild(
               console.log("on close func, doing nothing as we want to skip the sponsor")
               },()=>{
                 console.log("in the do not skip this sponsor function");
-                  SkippedVideoSponsorOBJ.videoSponsorSkipper =  true // meaning do not skip the sponsor
+                SkippedVideoSponsorOBJ.videoSponsorSkipper =  true // meaning do not skip the sponsor
                 SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal = false// doing this to make the modal dissappear after clicking on it 
               },()=>{
                 // just raw dawg the storage update or do it in the backgroundScript for the clean code -->  key=alwaysSkipTheSponsorAndDoNotShowTheModal
+                console.log("\n\n ++++++++++++");
+                
+                console.log("in the do not show this modal ever again function");
                 chrome.runtime.sendMessage({type:"saveValueInStorage",key:"alwaysSkipTheSponsorAndDoNotShowTheModal", value:true})
+                console.log("the video skipper is-->", SkippedVideoSponsorOBJ.videoSponsorSkipper);
+                
                 SkippedVideoSponsorOBJ.videoSponsorSkipper = false // meaning: bro just skip the video 
                 SkippedVideoSponsorOBJ.userOptedForSkippingTheModal = false// doing this to make the modal dissappear after clicking on it 
+                console.log("the video skipper is-->", SkippedVideoSponsorOBJ.videoSponsorSkipper);
+                console.log("++++++++++++\n\n");
               }
               ) )
 }
