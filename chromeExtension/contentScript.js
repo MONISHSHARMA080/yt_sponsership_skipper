@@ -7,7 +7,8 @@ async function main() {
   console.log("the modal is inserted")
   console.log("lets see what we got ");
   if (error) {
-    console.log("error is there in getting the key and it is -->", error, "\n\n the key is", key,);return;
+    console.log("error is there in getting the key and it is -->", error, "\n\n the key is", key,);
+    return;
   }
   console.log("the key is  -->", key, "from the  content script, error is -->", error);
   let [videoID, errorFormGettingVideoID] = getVideoID();
@@ -37,6 +38,7 @@ async function main() {
   if (errorFormSkippingTheModal) {
     console.log("there is an error in getting the vlaue form the value of wether we should skip the modal or not -->",errorFormSkippingTheModal, "value of the modal is ");
   }
+  console.log(`the value of the alwaysSkipTheSponsorAndDoNotShowTheModal form the storage is ${defalutValueToSkipTheModal} `);
   if (typeof defalutValueToSkipTheModal !== "boolean") {
     defalutValueToSkipTheModal = false
   }
@@ -57,7 +59,7 @@ async function main() {
               ()=>{
               console.log("on close func, doing nothing as we want to skip the sponsor")
               },()=>{
-                  SkippedVideoSponsorOBJ.videoSponsorSkipper = true
+                  SkippedVideoSponsorOBJ.videoSponsorSkipper =  true // meaning do not skip the sponsor
               },()=>{
                 // just raw dawg the storage update or do it in the backgroundScript for the clean code -->  key=alwaysSkipTheSponsorAndDoNotShowTheModal
                 chrome.runtime.sendMessage({type:"saveValueInStorage",key:"alwaysSkipTheSponsorAndDoNotShowTheModal", value:true})
@@ -65,6 +67,8 @@ async function main() {
               ) )
         // change  the cost obj and probably write it in the storage, so that it can persist
  
+      }else{
+        SkippedVideoSponsorOBJ.videoSponsorSkipper = false // meaning: bro just skip the video 
       }
      },
         SkippedVideoSponsorOBJ
@@ -150,6 +154,8 @@ function skipTheVideo(responseObjectFromYt, videoPlayer, SkippedVideoSponsorOBJ)
 // * @param {skippedTheSponsor} SkippedVideoSponsorOBJ - pass by reference boolean value in a Object
 function beforeSomeTimeExecuteSomething(timeToCallTheFunc, videoPlayer, callbackFunction, skippedTheSponsorOBJ) {
   // if the time of video is > than the time to call  and is lower than the time to to call before (eg before 10 sec) execute the function
+  console.log("in the video player func ->");
+  
   if (videoPlayer.currentTime >= timeToCallTheFunc && skippedTheSponsorOBJ.videoSponsorSkipper === false ) {
     skippedTheSponsorOBJ.videoSponsorSkipper = true; // first as if the func throw we would not be able to update the state
     try{
@@ -166,7 +172,7 @@ function beforeSomeTimeExecuteSomething(timeToCallTheFunc, videoPlayer, callback
  * @param {Function} onUserClickDoNotSkipTheSponsorShipFunc - func that will execute when the user wants to not skip the sponsor on the video
  * @param {Function} doNotShowThisModalAgainAlwaysSkipFunction - func that will execute when the user wants does not want to see this again (skip the sponsor everytime)
  * @returns {HTMLDivElement}
- * */
+ */
 function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUserClickDoNotSkipTheSponsorShipFunc, doNotShowThisModalAgainAlwaysSkipFunction) {
     const modalContainer = document.createElement('div');
     modalContainer.style.position = 'fixed';
@@ -324,5 +330,3 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
         }, 10000); // Wait for animation to complete
     return modalContainer;
 }
-
-

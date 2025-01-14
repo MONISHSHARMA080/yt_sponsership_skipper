@@ -123,7 +123,7 @@ chrome.runtime.onMessage.addListener((
     /** @type {{ type: string; }} */ request, /** @type {any} */ sender, /** @type {( response:[boolean, Error|null] ) => void } */ sendResponse) => {
     if (request.type === "getKeyFromStorageOrBackend") {
         getDefaultValueOfToSkipTheSponsorAndShowTheModal().then(([value, error] )=>{
-        console.error("Error in background script while getting the default value of to skip modal or not:->", error,"  and the value is -->",value);
+        console.log("Error in background script while getting the default value of to skip modal or not:->", error,"  and the value is -->",value);
         if (error !== null && error instanceof Error) {
         return sendResponse([Boolean(value), error])
         }
@@ -149,9 +149,40 @@ chrome.runtime.onMessage.addListener((
     /** @type {(response: Error|null) => void} */ sendResponse
 ) => {
      if (request.type === "saveValueInStorage") {
+        try {
         const error = saveValueToTheStorage(request.key, request.value);
         console.log("error in storing the value in the db is -->", error, "\n and the key ->", request.key, " and the value was ->",request.value);
         return sendResponse(error);
+        } catch (error) {
+            console.log("error in the try catch -->",error);
+            return error   
+        }
     }
 });
 
+/**
+ * @typedef {Object} InstallDetails
+ * @property {'install' | 'update' | 'chrome_update' | 'shared_module_update'} reason - The reason for the installation event
+ * @property {string} [previousVersion] - Previous version of the extension, if this is an update
+ * @property {string} [id] - ID of the shared module that was updated
+ */
+/**
+ * Handles the extension's installation or update events.
+ * Initializes storage with default values and shows welcome page on first install.
+ * @type {InstallDetails} detail - Details about the installation event
+ */
+
+chrome.runtime.onInstalled.addListener((
+    /** @type {InstallDetails} detail - Details about the installation event */
+    detail)=>{
+    if (detail.reason === 'install') {
+        getKeyFromStorageOrBackend(config)
+            .then(([key, error]) => {
+                console.log("Key fetch completed on the first run ", { key: key?.substring(0, 10), error });
+            })
+            .catch(error => {
+                console.error("Error in background script while getting the key on first run:", error);
+            });
+
+    }
+})
