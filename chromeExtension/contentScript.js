@@ -2,6 +2,7 @@
 
 // the problem seems to be that the value of videoSkipper just goes to be true when we execute the func that is executed 10 sec before
 // and when we click the do modal button the modal does not dissappears SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false
+// --> well the problem is that the eventlistenr is calling the func many times, so maybe add another state or jut make a way to create the modal once
 
 
 async function main() {
@@ -51,7 +52,7 @@ async function main() {
   }
 
   /** @type {skippedTheSponser} */
-  const SkippedVideoSponsorOBJ = { videoSponsorSkipper:false, callBackBeforeSomeTimeOfSponsor:false, alwaysSkipTheSponsorAndDoNotShowTheModal:defalutValueToSkipTheModal};
+  const SkippedVideoSponsorOBJ = { videoSponsorSkipper:false, callBackBeforeSomeTimeOfSponsor:false, alwaysSkipTheSponsorAndDoNotShowTheModal:defalutValueToSkipTheModal, userOptedForSkippingTheModal:false, nowShowingTheModal:false};
   // videoSponsorSkipper is to know if we have skipped the sponsor
 
   videoPlayer.addEventListener("timeupdate", (event) => {
@@ -61,24 +62,9 @@ async function main() {
     beforeSomeTimeExecuteSomething(responseOBjectFromYt.startTime - 10, videoPlayer, () => {
       console.log(" hi this func will execute before certain time (10 sec)  ",);
       // make the if statement check
-      if (SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false) {
-              document.body.appendChild(
-            createSponsorShipModalToTellUserWeAreAboutToSkip(
-              ()=>{
-              console.log("on close func, doing nothing as we want to skip the sponsor")
-              },()=>{
-                console.log("in the do not skip this sponsor function");
-                  SkippedVideoSponsorOBJ.videoSponsorSkipper =  true // meaning do not skip the sponsor
-                SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal = false// doing this to make the modal dissappear after clicking on it 
-              },()=>{
-                // just raw dawg the storage update or do it in the backgroundScript for the clean code -->  key=alwaysSkipTheSponsorAndDoNotShowTheModal
-                chrome.runtime.sendMessage({type:"saveValueInStorage",key:"alwaysSkipTheSponsorAndDoNotShowTheModal", value:true})
-                SkippedVideoSponsorOBJ.videoSponsorSkipper = false // meaning: bro just skip the video 
-                SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal = false// doing this to make the modal dissappear after clicking on it 
-              }
-              ) )
-        // change  the cost obj and probably write it in the storage, so that it can persist
- 
+      if (SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false && SkippedVideoSponsorOBJ.userOptedForSkippingTheModal === false ) {
+        // to do: update the modal state form here on and when the modal is created then update the if conditon as I do not want to createmultiple of it or maybe do it in the modal func
+          embeddTheModalInThePage(SkippedVideoSponsorOBJ) 
       }else{
         console.log("in the else block");
         
@@ -141,6 +127,8 @@ function getVideoPlayer() /** @return {HTMLVideoElement|null}*/ {
  * @property {Boolean}videoSponsorSkipper
  * @property {Boolean} callBackBeforeSomeTimeOfSponsor
  * @property {Boolean} alwaysSkipTheSponsorAndDoNotShowTheModal
+ * @property {Boolean} userOptedForSkippingTheModal
+ * @property {Boolean} nowShowingTheModal 
  *
  * @argument {skippedTheSponser} SkippedVideoSponsorOBJ
  * @argument {import("./helper").ResponseObject}responseObjectFromYt
@@ -198,6 +186,9 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
     modalContainer.style.borderRadius = '28px';
     modalContainer.style.overflow = 'hidden';
     modalContainer.style.zIndex = '90000';
+    modalContainer.style.display = 'none';
+    // id
+    modalContainer.id ="sponserShipModal"
     // Add animation properties
     modalContainer.style.transition = 'opacity 0.3s, transform 0.3s';
     modalContainer.style.opacity = '0';
@@ -343,4 +334,28 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
             modalContainer.style.display = 'none';
         }, 10000); // Wait for animation to complete
     return modalContainer;
+}
+/** @param {skippedTheSponser} SkippedVideoSponsorOBJ */
+function embeddTheModalInThePage(SkippedVideoSponsorOBJ){
+  let moadlElement =document.getElementById("sponserShipModal")
+  if(moadlElement !== null){
+    console.log("the modal is there and not goung to create a new one, returning");
+    
+    return
+  }
+document.body.appendChild(
+            createSponsorShipModalToTellUserWeAreAboutToSkip(
+              ()=>{
+              console.log("on close func, doing nothing as we want to skip the sponsor")
+              },()=>{
+                console.log("in the do not skip this sponsor function");
+                  SkippedVideoSponsorOBJ.videoSponsorSkipper =  true // meaning do not skip the sponsor
+                SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal = false// doing this to make the modal dissappear after clicking on it 
+              },()=>{
+                // just raw dawg the storage update or do it in the backgroundScript for the clean code -->  key=alwaysSkipTheSponsorAndDoNotShowTheModal
+                chrome.runtime.sendMessage({type:"saveValueInStorage",key:"alwaysSkipTheSponsorAndDoNotShowTheModal", value:true})
+                SkippedVideoSponsorOBJ.videoSponsorSkipper = false // meaning: bro just skip the video 
+                SkippedVideoSponsorOBJ.userOptedForSkippingTheModal = false// doing this to make the modal dissappear after clicking on it 
+              }
+              ) )
 }
