@@ -66,9 +66,10 @@ async function main() {
       if (SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === false && SkippedVideoSponsorOBJ.userOptedForSkippingTheModal === false ) {
         // to do: update the modal state form here on and when the modal is created then update the if conditon as I do not want to createmultiple of it or maybe do it in the modal func
           embeddTheModalInThePage(SkippedVideoSponsorOBJ) 
-      }else{
-        console.log("in the else block");
-        
+      }
+      if(SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal === true && SkippedVideoSponsorOBJ.userOptedForSkippingTheModal === true ){
+        // should make it more explicit (use it)
+        console.log("in the else/other block");
         SkippedVideoSponsorOBJ.videoSponsorSkipper = false // meaning: bro just skip the video 
       }
      },
@@ -361,7 +362,9 @@ document.body.appendChild(
                 console.log("the video skipper is-->", SkippedVideoSponsorOBJ.videoSponsorSkipper);
                 
                 SkippedVideoSponsorOBJ.videoSponsorSkipper = false // meaning: bro just skip the video 
-                SkippedVideoSponsorOBJ.userOptedForSkippingTheModal = false// doing this to make the modal dissappear after clicking on it 
+                // turning it to be true for the modal
+                SkippedVideoSponsorOBJ.userOptedForSkippingTheModal = true// doing this to make the modal dissappear after clicking on it 
+                SkippedVideoSponsorOBJ.alwaysSkipTheSponsorAndDoNotShowTheModal = true // we can do it cause user just said so
                 console.log("the video skipper is-->", SkippedVideoSponsorOBJ.videoSponsorSkipper);
                 console.log("++++++++++++\n\n");
               }
