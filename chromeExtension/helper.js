@@ -32,13 +32,16 @@ async function userAuthAndGetTheKey(config) {
   try {
     // Get user info
     const userInfo = await new Promise((resolve, reject) => {
-      chrome.identity.getProfileUserInfo({accountStatus:"SYNC"}, (userInfoFromChrome) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(userInfoFromChrome);
-        }
-      });
+      chrome.identity.getProfileUserInfo(
+        { accountStatus: "SYNC" },
+        (userInfoFromChrome) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(userInfoFromChrome);
+          }
+        },
+      );
     });
 
     // Set user info
@@ -74,10 +77,10 @@ async function userAuthAndGetTheKey(config) {
       console.log("config is -->", config.BACKEND_URL);
     } catch (error) {
       console.log("error in printing the config-->", error);
-    if(error instanceof Error){
-      return ["", error]
-    }
-    return ["",new Error(String(error))]
+      if (error instanceof Error) {
+        return ["", error];
+      }
+      return ["", new Error(String(error))];
     }
 
     const response = await fetch(config.BACKEND_URL + "/signup", {
@@ -98,10 +101,10 @@ async function userAuthAndGetTheKey(config) {
     return [data.encrypted_key, null];
   } catch (error) {
     console.error("Error:", error);
-    if(error instanceof Error){
-      return ["", error]
+    if (error instanceof Error) {
+      return ["", error];
     }
-    return ["",new Error(String(error))]
+    return ["", new Error(String(error))];
   }
 }
 // break down the function in 3 parts, 1) that get the key form the backend, 2) that sets it in the localstorage,
@@ -119,7 +122,7 @@ export function saveValueToTheStorage(key, value, functionToRun) {
   }
   try {
     chrome.storage.local.set({ [key]: value }, () => {
-      functionToRun?functionToRun():null;
+      functionToRun ? functionToRun() : null;
     });
     return null;
   } catch (error) {
@@ -127,7 +130,7 @@ export function saveValueToTheStorage(key, value, functionToRun) {
       return error;
     }
     // If it's not an Error object, create a new Error
-    return  new Error(String(error));
+    return new Error(String(error));
   }
 }
 
@@ -143,7 +146,10 @@ function getValueFromTheStorage(key, functionToRun) {
       chrome.storage.local.get([key], (item) => {
         // Handle runtime errors
         if (chrome.runtime.lastError) {
-          console.error("Error retrieving data from storage:", chrome.runtime.lastError,);
+          console.error(
+            "Error retrieving data from storage:",
+            chrome.runtime.lastError,
+          );
           resolve([null, new Error(chrome.runtime.lastError.message)]);
           return;
         }
@@ -151,23 +157,22 @@ function getValueFromTheStorage(key, functionToRun) {
         try {
           functionToRun();
         } catch (callbackError) {
-        if (callbackError instanceof Error) {
-          resolve(["", new Error(String(callbackError))]);
-          return
-        }
-        // If it's not an Error object, create a new Error
+          if (callbackError instanceof Error) {
+            resolve(["", new Error(String(callbackError))]);
+            return;
+          }
+          // If it's not an Error object, create a new Error
           resolve(["", new Error(String(callbackError))]);
           return;
         }
         resolve([value ?? null, null]);
       });
     } catch (e) {
-    if (e instanceof Error) {
-      return ["", e];
-    }
-    // If it's not an Error object, create a new Error
-    return ["", new Error(String(e))];
- 
+      if (e instanceof Error) {
+        return ["", e];
+      }
+      // If it's not an Error object, create a new Error
+      return ["", new Error(String(e))];
     }
   });
 }
@@ -185,18 +190,25 @@ function getValueFromTheStorage(key, functionToRun) {
 export async function getKeyFromStorageOrBackend(config) {
   console.log("in getKeyFromStorageOrBackend");
   try {
-    let [valueFromStorage, error] = await getValueFromTheStorage("key", () => {},
+    let [valueFromStorage, error] = await getValueFromTheStorage(
+      "key",
+      () => {},
     );
-    console.log(" after the value")
+    console.log(" after the value");
     if (error !== null) {
-      console.log("there is  a error and that is -->" , error, "and the value is ->",valueFromStorage);
+      console.log(
+        "there is  a error and that is -->",
+        error,
+        "and the value is ->",
+        valueFromStorage,
+      );
       return ["", error];
     }
     if (valueFromStorage !== null && valueFromStorage !== "") {
-      console.log("about to return the value and that is ->",valueFromStorage)
-      return [valueFromStorage, null]
+      console.log("about to return the value and that is ->", valueFromStorage);
+      return [valueFromStorage, null];
     }
-    console.log("didn't find error in the ")
+    console.log("didn't find error in the ");
     // the value is blank so lets fetch
     // if (valueFromStorage !== "") {
     //   return [valueFromStorage, null];
@@ -223,8 +235,8 @@ export async function getKeyFromStorageOrBackend(config) {
   }
 }
 
-export function sayHi(){
-  console.log("hi form the helper file --++:)")
+export function sayHi() {
+  console.log("hi form the helper file --++:)");
 }
 
 /**
@@ -236,17 +248,21 @@ export function sayHi(){
  * @returns {() => Promise<Response>}
  */
 
-export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bodyOBJ) {
-  return ()=>{
-    return  fetch(config.BACKEND_URL+"/"+pathWithoutBackSlash, {
+export function fetchFunctionBuilder(
+  pathWithoutBackSlash,
+  method,
+  header,
+  bodyOBJ,
+) {
+  return () => {
+    return fetch(config.BACKEND_URL + "/" + pathWithoutBackSlash, {
       method: method,
       // @ts-ignore
       headers: header,
       body: JSON.stringify(bodyOBJ),
-    })
-  }
+    });
+  };
 }
-
 
 /**
  * @typedef {Object} ResponseObject
@@ -259,7 +275,6 @@ export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bod
  * @export
  */
 
-
 /**
  * @typedef {Object} bodyOfTheRequest
  * @property {string} youtube_Video_Id -- video ID
@@ -271,13 +286,18 @@ export   function fetchFunctionBuilder(pathWithoutBackSlash, method, header, bod
  *
  * @returns {Promise<[ResponseObject|null, Error|null]>}
  */
-export async  function getWhereToSkipInYtVideo(key, videoID) {
+export async function getWhereToSkipInYtVideo(key, videoID) {
   /** @type bodyOfTheRequest */
-  let  requestBody ={youtube_Video_Id:videoID, encrypted_string:key};
- let fetchRequestToBackend = fetchFunctionBuilder("youtubeVideo", "POST", {'Content-Type': 'application/json'}, requestBody )
+  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key };
+  let fetchRequestToBackend = fetchFunctionBuilder(
+    "youtubeVideo",
+    "POST",
+    { "Content-Type": "application/json" },
+    requestBody,
+  );
   try {
-    let response = await fetchRequestToBackend()
-    console.log("the response form the yt video api is -->", response)
+    let response = await fetchRequestToBackend();
+    console.log("the response form the yt video api is -->", response);
     /** @type ResponseObject */
     let responseOBJ = await response.json();
     if (responseOBJ.status !== 200) {
@@ -285,31 +305,46 @@ export async  function getWhereToSkipInYtVideo(key, videoID) {
       return [null, new Error(response.statusText)];
     }
     return [responseOBJ, null];
-  }catch (e) {
-    console.log("error in getWhereToSkipInYtVideo -->",e);
+  } catch (e) {
+    console.log("error in getWhereToSkipInYtVideo -->", e);
     if (e instanceof Error) {
       return [null, e];
     }
     // If it's not an Error object, create a new Error
     return [null, new Error(String(e))];
-
   }
 }
 
 // alwaysSkipTheSponsorAndDoNotShowTheModal :false
 
-export  async  function getDefaultValueOfToSkipTheSponsorAndShowTheModal() /** @returns {Promise<[Boolean,Error|null]>} */{
-  let key ="alwaysSkipTheSponsorAndDoNotShowTheModal"
-  let [ valueFromStorage, error] = await getValueFromTheStorage(key, () => {})
-  if (error !== null || valueFromStorage === null || valueFromStorage === "" ||typeof valueFromStorage !== "boolean" ){
+export async function getDefaultValueOfToSkipTheSponsorAndShowTheModal() /** @returns {Promise<[Boolean,Error|null]>} */ {
+  let key = "alwaysSkipTheSponsorAndDoNotShowTheModal";
+  let [valueFromStorage, error] = await getValueFromTheStorage(key, () => {});
+  if (
+    error !== null ||
+    valueFromStorage === null ||
+    valueFromStorage === "" ||
+    typeof valueFromStorage !== "boolean"
+  ) {
     // return [false, error]
     // going to set the value too
-  let error =saveValueToTheStorage(key, false, ()=>{console.log(" the value for the default ", key, " is not found so saving the default to be false")})
-  if (error){
-    console.log("there is a error in the default value for the default  in the ",key," -->", error)
-    return [false, new Error(String(error))];
-  }
+    let error = saveValueToTheStorage(key, false, () => {
+      console.log(
+        " the value for the default ",
+        key,
+        " is not found so saving the default to be false",
+      );
+    });
+    if (error) {
+      console.log(
+        "there is a error in the default value for the default  in the ",
+        key,
+        " -->",
+        error,
+      );
+      return [false, new Error(String(error))];
+    }
     return [false, null];
   }
-  return [Boolean(valueFromStorage), null]
+  return [Boolean(valueFromStorage), null];
 }
