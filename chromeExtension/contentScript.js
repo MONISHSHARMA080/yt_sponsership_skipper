@@ -80,9 +80,18 @@ async function main() {
   // before , eg 10 sec before certain time do something
 }
 try {
-  main().then((result) => {
-    console.log("main finished and the returned value is -->", result);
-  });
+  let isEventListenerAdded = { isEventListenerAdded:false}
+  listenAndReplyToTheSvelteMessage(isEventListenerAdded)
+} catch (error) {
+ console.log("there is a error in listen and replyu to svelte function ->",error);
+}
+try {
+  Promise.all([
+    main(),
+    
+   ]).then(([mainResult])=>{
+    console.log("main finished and the returned value is -->", mainResult, "\n\n and the " );
+   })
 } catch (e) {
   console.log("error in main script:", e);
 }
@@ -337,6 +346,7 @@ function createSponsorShipModalToTellUserWeAreAboutToSkip(onCloseFunction, onUse
         }, 10000); // Wait for animation to complete
     return modalContainer;
 }
+
 /** @param {skippedTheSponser} SkippedVideoSponsorOBJ */
 function embeddTheModalInThePage(SkippedVideoSponsorOBJ){
   let moadlElement =document.getElementById("sponserShipModal")
@@ -370,3 +380,94 @@ document.body.appendChild(
               }
               ) )
 }
+
+/** 
+ * @typedef {Object} ObjToSeeIfEventListenerIsAdded 
+ * @property {boolean} isEventListenerAdded
+ * 
+ * @argument {ObjToSeeIfEventListenerIsAdded} ObjToSeeIfEventListenerIsAdded
+*/
+async function listenAndReplyToTheSvelteMessage(ObjToSeeIfEventListenerIsAdded) {
+    try {
+        const response = await chrome.runtime.sendMessage({ type: "getKeyFromStorage" });
+        const [key, error] = response;
+        
+        console.log("the response is ->", key, " error is -> ", error);
+        
+        if (error !== null || key === "") {
+            console.log("Error getting key:", error);
+            return;
+        }
+      if (ObjToSeeIfEventListenerIsAdded.isEventListenerAdded === true) return;
+        window.addEventListener('message', (event) => {
+            // Verify origin
+            if (event.origin !== window.location.origin) {
+                console.log("the event is from a different origin");
+                return;
+            }
+            console.log("event is ->", event);
+            
+            // Handle GET_KEY message
+            if (event.data.type === "GET_KEY") {
+                // Handle the message sending in a separate async function
+              window.postMessage(
+                { type: "GET_KEY", key: key },window.location.origin
+              );
+            }
+        }
+      );
+        return true;
+    } catch (error) {
+        console.error("Error in listenAndReplyToTheSvelteMessage:", error);
+        return false;
+    }
+}
+
+// Separate function to handle the async operations
+// @ts-ignore
+// async function sendTheKey(event) {
+//   console.log("the event in the handle key is ->",event);
+  
+//     try {
+//         // const response = await chrome.runtime.sendMessage({ type: "getKeyFromStorage" });
+//         // const [key, error] = response;
+        
+//         // console.log("the response is ->", key, " error is -> ", error);
+        
+//         // if (error !== null || key === "") {
+//         //     console.log("Error getting key:", error);
+//         //     return;
+//         // }
+        
+        
+//     } catch (error) {
+//         console.error("Message sending failed:", error);
+//     }
+// }
+
+// function to dispach the event where the svelte website is listenig  for the event to get the key
+async function createAndDispatchEvent(){
+  try {
+  let [key, error] = await chrome.runtime.sendMessage({
+    type: "getKeyFromStorage",
+  });
+  if (error!== null || key === "" ) {
+    console.log("there is a error in getting the key so not creating and dispatching the event ->", error);
+    return 
+  }
+  let event = new CustomEvent("getKeyForTheSvelteWebside",{
+    detail:{ key:key},
+    bubbles: true,
+  });
+  document.addEventListener('DOMContentLoaded',(event)=>{
+
+  })
+  let a = document.dispatchEvent(event)
+  console.log("dispatched the event ->",event, " \n\n --and ",a );
+  
+  } catch (error) {
+   console.log("there is a error in the try catch in  createAndDispatchEvent, the error is ->", error);
+   return
+  }
+}
+

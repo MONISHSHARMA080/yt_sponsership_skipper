@@ -140,7 +140,7 @@ export function saveValueToTheStorage(key, value, functionToRun) {
  * @param {Function} functionToRun -
  * @returns {Promise<[string|null, Error|null]>} A tuple containing [value, error]
  */
-function getValueFromTheStorage(key, functionToRun) {
+export function getValueFromTheStorage(key, functionToRun) {
   return new Promise((resolve) => {
     try {
       chrome.storage.local.get([key], (item) => {

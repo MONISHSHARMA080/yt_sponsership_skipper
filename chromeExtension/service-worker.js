@@ -3,9 +3,11 @@
 import {
     getDefaultValueOfToSkipTheSponsorAndShowTheModal,
     getKeyFromStorageOrBackend,
+    getValueFromTheStorage,
     getWhereToSkipInYtVideo,
 saveValueToTheStorage
 } from './helper.js';
+import { config } from './config.js';
 
 
 console.log("hi from the service worker and will run say hi() now");
@@ -14,9 +16,9 @@ console.log("hi from the service worker and will run say hi() now");
  * @typedef {Object} Config
  * @property {string} BACKEND_URL - Backend service URL
  */
-const config = {
-    BACKEND_URL: "http://localhost:8080",
-};
+// const config = {
+//     BACKEND_URL: "http://localhost:8080",
+// };
 
 // Initialize the config
 /**
@@ -59,6 +61,57 @@ chrome.runtime.onMessage.addListener((
         return true;
     }
 });
+
+
+
+
+/**
+ * @typedef {Object} GetKeyMessage2
+ * @property {'getKeyFromStorage'} type - Message type identifier
+ */
+
+/**
+ * Message handler for Chrome extension background script
+ * @param {GetKeyMessage} request - The message request object
+ * @param {chrome.runtime.MessageSender} sender - Message sender information
+ * @param {(response?: any) => void} sendResponse - Callback to send response
+ * @returns {boolean} - Return true to indicate async response
+ */
+chrome.runtime.onMessage.addListener((
+/**
+ * Message handler for Chrome extension background script
+ * @type {GetKeyMessage2} request - The message request object,
+ * @typedef {chrome.runtime.MessageSender} sender - Message sender information
+ * @typedef {(response?: any) => void} sendResponse - Callback to send response
+ * @returns {boolean} - Return true to indicate async response
+ */
+    // @ts-ignore
+    request, sender, sendResponse) => {
+
+    if (request.type === "getKeyFromStorage") {
+    console.log("Received message in background script:", request);
+        // Execute the key fetch function and handle the response
+        getValueFromTheStorage("key",()=>{})
+            .then(([key, error]) => {
+                console.log("Key fetch completed for the event ->", { key: key?.substring(0, 10), error });
+                sendResponse([key, error]);
+            })
+            .catch(error => {
+                console.error("Error in background script:", error);
+                sendResponse(["", error]);
+            });
+
+        // Return true to indicate we will send response asynchronously
+        return true;
+    }
+});
+
+
+
+// getValueFromTheStorage("key",()=>{})
+
+
+
 /**
  * @typedef {Object} ResponseObject
  * @property {number[]} [skipPoints] - Array of timestamps where to skip
@@ -191,3 +244,66 @@ chrome.runtime.onInstalled.addListener((
 
     }
 })
+
+
+/**
+ * @typedef {Object} MessageRequest3
+ * @property {string} action - The action to perform (e.g., 'getKey')
+ */
+
+/**
+ * @typedef {Object} MessageResponse
+ * @property {string} data - The sensitive key data
+ */
+
+/**
+ * @typedef {Object} StorageData
+ * @property {string} key - The sensitive key stored in extension storage
+ */
+
+/**
+ * Handles external messages from whitelisted domains
+ * @param {MessageRequest3} request - The request message from the website
+ * @param {chrome.runtime.MessageSender} sender - Information about the message sender
+ * @param {function(MessageResponse?): void} sendResponse - Callback to send response
+ * @returns {boolean} - Must return true if response is async
+ */
+chrome.runtime.onMessageExternal.addListener(
+  function(
+    /**@type {MessageRequest3} */ request,
+    /**@type {chrome.runtime.MessageSender} */ sender,
+    /**@type  {function(MessageResponse?): void}  */ sendResponse) {
+    // Validate sender origin
+    if (sender.origin !== config.websiteURL) {
+      console.error(`Unauthorized access attempt from ${sender.origin}`);
+      sendResponse(null);
+      return false;
+    }
+
+    // Validate request action
+    if (request.action !== "getKey") {
+      console.error(`Invalid action requested: ${request.action}`);
+      sendResponse(null);
+      return false;
+    }
+
+    /**
+     * Retrieve key from storage and send response
+     * @param {StorageData} result - The data retrieved from storage
+     */
+    function handleStorageData(result) {
+      if (chrome.runtime.lastError) {
+        console.error('Storage error:', chrome.runtime.lastError);
+        sendResponse(null);
+        return;
+      }
+
+      sendResponse({ data: result.key });
+    }
+
+    // Get data from storage
+    chrome.storage.local.get(['key'], handleStorageData);
+    return true; // Required for async response
+  }
+);
+

@@ -41,6 +41,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 		return
 	}
+	// println("the body is in the groq req ->", string(bodyBytes))
 
 	bodyBytes = []byte(string(bodyBytes))
 	// println("\n=== START OF RESPONSE BODY ===")
@@ -87,7 +88,8 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		}
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: &sponsorshipContent}
 	} else {
-		println("No choices in the groq response")
+		println("No choices in the groq response" )
+		printJson(groqApiResponse)
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: fmt.Errorf("no choices presesnt in the gorq response"), groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 	}
 

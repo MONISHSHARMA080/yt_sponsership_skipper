@@ -20,7 +20,21 @@ try {
     });
   }
 } catch (e) {
-  console.log("error ++--++", e);
+  console.log("error in the index.js ", e);
+}
+
+try {
+  let element = document.getElementById("websiteButton");
+  if (element === null) {
+    // @ts-ignore
+    return;
+  }
+  element.addEventListener("click", (event)=>{
+    chrome
+  })
+
+} catch (error) {
+  console.log("there is a error in the index.js in the website button ->", error);
 }
 
 // /**
