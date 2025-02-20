@@ -81,7 +81,8 @@ async function main() {
 }
 try {
   let isEventListenerAdded = { isEventListenerAdded:false}
-  listenAndReplyToTheSvelteMessage(isEventListenerAdded)
+  listenAndReplyToTheSvelteMessage(isEventListenerAdded).then((a)=>{console.log("the listen to svelte function is over ->",a)})
+  // addEventListenerForClosingAllEventListener(isEventListenerAdded)
 } catch (error) {
  console.log("there is a error in listen and replyu to svelte function ->",error);
 }
@@ -388,7 +389,7 @@ document.body.appendChild(
  * @argument {ObjToSeeIfEventListenerIsAdded} ObjToSeeIfEventListenerIsAdded
 */
 async function listenAndReplyToTheSvelteMessage(ObjToSeeIfEventListenerIsAdded) {
-    try {
+  try {
         const response = await chrome.runtime.sendMessage({ type: "getKeyFromStorage" });
         const [key, error] = response;
         
@@ -398,8 +399,12 @@ async function listenAndReplyToTheSvelteMessage(ObjToSeeIfEventListenerIsAdded) 
             console.log("Error getting key:", error);
             return;
         }
-      if (ObjToSeeIfEventListenerIsAdded.isEventListenerAdded === true) return;
-        window.addEventListener('message', (event) => {
+
+        if (ObjToSeeIfEventListenerIsAdded.isEventListenerAdded === true) return;
+
+        // Define message handler
+        // @ts-ignore
+        const messageHandler = (event) => {
             // Verify origin
             if (event.origin !== window.location.origin) {
                 console.log("the event is from a different origin");
@@ -409,65 +414,64 @@ async function listenAndReplyToTheSvelteMessage(ObjToSeeIfEventListenerIsAdded) 
             
             // Handle GET_KEY message
             if (event.data.type === "GET_KEY") {
-                // Handle the message sending in a separate async function
-              window.postMessage(
-                { type: "GET_KEY", key: key },window.location.origin
-              );
+                window.postMessage(
+                    { type: "GET_KEY", key: key },
+                    window.location.origin
+                );
+                // Remove the listener after sending the key
+                window.removeEventListener('message', messageHandler);
+                ObjToSeeIfEventListenerIsAdded.isEventListenerAdded = false;
             }
-        }
-      );
+        };
+
+        // Add the event listener
+        window.addEventListener('message', messageHandler);
+        ObjToSeeIfEventListenerIsAdded.isEventListenerAdded = true;
         return true;
     } catch (error) {
         console.error("Error in listenAndReplyToTheSvelteMessage:", error);
         return false;
     }
+
 }
 
-// Separate function to handle the async operations
-// @ts-ignore
-// async function sendTheKey(event) {
-//   console.log("the event in the handle key is ->",event);
-  
-//     try {
-//         // const response = await chrome.runtime.sendMessage({ type: "getKeyFromStorage" });
-//         // const [key, error] = response;
-        
-//         // console.log("the response is ->", key, " error is -> ", error);
-        
-//         // if (error !== null || key === "") {
-//         //     console.log("Error getting key:", error);
-//         //     return;
-//         // }
-        
-        
-//     } catch (error) {
-//         console.error("Message sending failed:", error);
-//     }
-// }
 
-// function to dispach the event where the svelte website is listenig  for the event to get the key
-async function createAndDispatchEvent(){
-  try {
-  let [key, error] = await chrome.runtime.sendMessage({
-    type: "getKeyFromStorage",
-  });
-  if (error!== null || key === "" ) {
-    console.log("there is a error in getting the key so not creating and dispatching the event ->", error);
-    return 
-  }
-  let event = new CustomEvent("getKeyForTheSvelteWebside",{
-    detail:{ key:key},
-    bubbles: true,
-  });
-  document.addEventListener('DOMContentLoaded',(event)=>{
+/**
+ * Removes the event listener
+ * @param {ObjToSeeIfEventListenerIsAdded} ObjToSeeIfEventListenerIsAdded
+ * @argument {any}  messagehandler
+ */
+function removeMessageListener(ObjToSeeIfEventListenerIsAdded, messagehandler) {
+    try {
+        if (!ObjToSeeIfEventListenerIsAdded.isEventListenerAdded) return;
+        window.removeEventListener('message', messagehandler);
+        ObjToSeeIfEventListenerIsAdded.isEventListenerAdded = false;
+        console.log("removing all the eventlistener from the contentScript");
+    } catch (error) {
+        console.error("Error removing event listener:", error);
+    }
 
-  })
-  let a = document.dispatchEvent(event)
-  console.log("dispatched the event ->",event, " \n\n --and ",a );
-  
-  } catch (error) {
-   console.log("there is a error in the try catch in  createAndDispatchEvent, the error is ->", error);
-   return
-  }
 }
 
+/**
+ * Removes the event listener
+ * @argument {ObjToSeeIfEventListenerIsAdded} ObjToSeeIfEventListenerIsAdded
+ * @argument {(Event)} messageHandler
+ */
+function addEventListenerForClosingAllEventListener(ObjToSeeIfEventListenerIsAdded, messageHandler) {
+    try {
+        // @ts-ignore
+        const cleanupHandler = (event) => {
+            if (event.data.type === 'removeAllEventListener') {
+                console.log("the message received for removing all the eventlistener in the contentscript");
+                removeMessageListener(ObjToSeeIfEventListenerIsAdded, messageHandler);
+                // Remove this cleanup handler as well
+                window.removeEventListener('message', cleanupHandler);
+            }
+        };
+        
+        window.addEventListener('message', cleanupHandler);
+    } catch (error) {
+        console.log("error in func that listens to the eventlistener and will remove all the eventlistener ->", error);
+    }
+}

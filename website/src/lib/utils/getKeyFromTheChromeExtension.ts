@@ -5,3 +5,6 @@ export function getTheKeyFromTheEvent(){
     console.log("the event received and it is ->",event);
  })
 }
+
+
+// class interactWithTheChromeExtension{}
