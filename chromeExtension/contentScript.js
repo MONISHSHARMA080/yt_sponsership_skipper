@@ -410,7 +410,7 @@ async function listenAndReplyToTheSvelteMessage(ObjToSeeIfEventListenerIsAdded) 
                 console.log("the event is from a different origin");
                 return;
             }
-            console.log("event is ->", event);
+            console.log("event is ->", event, "\n\n\n and the event event.data is ->", event.data);
             
             // Handle GET_KEY message
             if (event.data.type === "GET_KEY") {
