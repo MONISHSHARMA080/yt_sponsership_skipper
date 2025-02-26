@@ -1,0 +1,1 @@
+export const keyFromChromeExtensionState = $state<{key:string|null}>({key:null})

@@ -1,34 +1,20 @@
-import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.svelte";
+<script lang="ts">
 
-type funcToRunWhenWeGetTheKey = (key:string)=>void 
+	import { writable } from 'svelte/store';
 
-export class interactWithTheChromeExtensionAndStoreItInTheState{
+
+class interactWithTheChromeExtension{
+
 // -- now make a class in svelte that has a store variable for the key such that we can write it there
 // -- or make a svelte component and put the class in it and then add the store in it too or make the store in a new file
-   private callBackAfterKeyIsReceived :null|funcToRunWhenWeGetTheKey = null
 
-   constructor() {
-      this.messageHandler = this.messageHandler.bind(this);
-   }
 
    private  messageHandler(event: MessageEvent) {
 		if (event.origin !== window.location.origin){
          return
       }
 		if (event.data.type === "GET_KEY") {
-         console.log("the key is  ->", event.data.key);
-         // doing both as I want to keep the fufute extensibility too and why not it is the same thing 
-         keyFromChromeExtensionState.key = event.data.key 
-
-         if (this.callBackAfterKeyIsReceived !== null) {
-            try {
-               this.callBackAfterKeyIsReceived(event.data.key);
-            } catch (error) {
-               console.log("the error is in the callback after the key fucntion ->", error);   
-            }
-         }else{
-            console.log(" the key uodate function is not there");
-         }
+			console.log("the key is  ->", event.data.key);
 			if (!event.data.key) return;
 			// Send message to remove listeners and remove our own listener
 			console.log("closing all the event listeners as the key is received");
@@ -42,13 +28,12 @@ export class interactWithTheChromeExtensionAndStoreItInTheState{
 		}
 	}
 
-   public  cleanup(){
+   public cleanup(){
       window.removeEventListener('message', this.messageHandler);
    }
 
-   public start(funcToRunWhenWeGetTheKey:funcToRunWhenWeGetTheKey) : Error|null {
+   public start():Error|null{
       try {
-         this.callBackAfterKeyIsReceived = funcToRunWhenWeGetTheKey;
          window.addEventListener('message', this.messageHandler);
          window.postMessage({ type: 'GET_KEY' }, window.location.origin);
          // maybe do a settimeout where we clean after 3 min of sleep 
@@ -61,4 +46,9 @@ export class interactWithTheChromeExtensionAndStoreItInTheState{
          }
       }
    }
+
+   private putTheKeyInStateAndLocalStorage() {
+    
+   }
 }
+</script>
