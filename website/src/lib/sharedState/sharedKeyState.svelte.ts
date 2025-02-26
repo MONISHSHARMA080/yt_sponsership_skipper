@@ -1,1 +1,3 @@
-export const keyFromChromeExtensionState = $state<{key:string|null}>({key:null})
+type keyStateObject = {key:string|null, isValidatedThroughBackend:boolean}
+
+export const keyFromChromeExtensionState = $state<keyStateObject>({key:null, isValidatedThroughBackend:false})

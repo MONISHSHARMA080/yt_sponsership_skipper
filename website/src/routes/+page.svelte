@@ -14,8 +14,6 @@
 			interactWithExtensionClass.cleanup()
 		})
 		console.log("error in interacting with the chrome extension is -> ",error );
-		
-
 	});
 	
 </script>
