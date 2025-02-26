@@ -3,8 +3,6 @@ import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.sve
 type funcToRunWhenWeGetTheKey = (key:string)=>void 
 
 export class interactWithTheChromeExtensionAndStoreItInTheState{
-// -- now make a class in svelte that has a store variable for the key such that we can write it there
-// -- or make a svelte component and put the class in it and then add the store in it too or make the store in a new file
    private callBackAfterKeyIsReceived :null|funcToRunWhenWeGetTheKey = null
 
    constructor() {
@@ -43,6 +41,7 @@ export class interactWithTheChromeExtensionAndStoreItInTheState{
 	}
 
    public  cleanup(){
+      console.log("cleaning the internact with chrome extension class");
       window.removeEventListener('message', this.messageHandler);
    }
 

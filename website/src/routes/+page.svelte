@@ -11,6 +11,7 @@
 		let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreItInTheState
 		let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
 			keyFromChromeExtensionState.key = key
+			interactWithExtensionClass.cleanup()
 		})
 		console.log("error in interacting with the chrome extension is -> ",error );
 		
