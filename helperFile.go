@@ -271,7 +271,7 @@ func write_to_json_a_error_message() {
 	// if encoding json for  the message
 }
 
-func decrypt_and_write_to_channel(ciphertextAsString string, key []byte, channErr chan<- string_and_error_channel) {
+func decrypt_and_write_to_channel(ciphertextAsString string, EnvKey []byte, channErr chan<- string_and_error_channel) {
 	// First, decode the base64 encoded string
 	println("in the decrypt_and_write_to_channel ")
 	ciphertextAsByte, err := base64.StdEncoding.DecodeString(ciphertextAsString)
@@ -281,7 +281,7 @@ func decrypt_and_write_to_channel(ciphertextAsString string, key []byte, channEr
 	}
 
 	// Now decrypt the actual ciphertext
-	stringAsByte, err := decrypt(ciphertextAsByte, key)
+	stringAsByte, err := decrypt(ciphertextAsByte, EnvKey)
 	if err != nil {
 		channErr <- string_and_error_channel{err: fmt.Errorf("failed to decrypt: %v", err), string_value: ""}
 		return
