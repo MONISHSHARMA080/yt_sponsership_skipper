@@ -14,7 +14,7 @@ export class interactWithTheChromeExtensionAndStoreItInTheState{
          return
       }
 		if (event.data.type === "GET_KEY") {
-         console.log(event.data,"---the key is  ->", event.data.key);
+         console.log(event.data.type,"---the key is  ->", event.data.key);
          if (event.data.key === undefined || event.data.key === null || event.data.key === "") {
             console.log("the key is not there (or undefined or null) and the event.data is ->",event.data);
             // possibly throw an error form here

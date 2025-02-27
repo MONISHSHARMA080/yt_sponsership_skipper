@@ -53,7 +53,7 @@ func CheckIfKeyIsValid(os_env_key []byte) http.HandlerFunc {
 			return
 		}
 		email, name := getEmailAndNameFormKey(resultFormChannel.string_value)
-		response := responseStruct{Message: "success", Status_code: http.StatusOK, Success: true, Email: email, Name: name}
+		response := responseStruct{Message: "success", Status_code: http.StatusOK, Success: true, Email: email, Name: name, EncryptedKey: request.Key}
 		println("the email and the name is ->", email, name)
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
