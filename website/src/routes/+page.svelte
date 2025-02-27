@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { keyFromChromeExtensionState } from '$lib/sharedState/sharedKeyState.svelte';
-	import { interactWithTheChromeExtensionAndStoreItInTheState } from '$lib/utils/getKeyFromTheChromeExtension';
+	import { interactWithTheChromeExtensionAndStoreIt } from '$lib/utils/getKeyFromTheChromeExtension';
 	import { checkIfKeyIsValidAndUpdateTheState } from '$lib/utils/seeIfTheKeyIsValidByBackend';
 	import { onMount } from 'svelte';
 	
@@ -9,12 +9,12 @@
 	onMount(() => {
 		console.log("the event is running ->");
 		
-		let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreItInTheState
+		let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
 		let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
-			keyFromChromeExtensionState.key = key
+			// keyFromChromeExtensionState.key = key
 			interactWithExtensionClass.cleanup()
-		let checkKeyAndnew = new checkIfKeyIsValidAndUpdateTheState()
-		 checkKeyAndnew.seeIfKeyIsValid(key).then
+		// let checkKeyAndnew = new checkIfKeyIsValidAndUpdateTheState()
+		//  checkKeyAndnew.seeIfKeyIsValid(key)
 		})
 		console.log("error in interacting with the chrome extension is -> ",error );
 	});
