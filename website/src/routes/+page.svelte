@@ -2,6 +2,7 @@
 	import { keyFromChromeExtensionState } from '$lib/sharedState/sharedKeyState.svelte';
 	import { interactWithTheChromeExtensionAndStoreIt } from '$lib/utils/getKeyFromTheChromeExtension';
 	import { checkIfKeyIsValidAndUpdateTheState } from '$lib/utils/seeIfTheKeyIsValidByBackend';
+	import { json } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 	
 	
@@ -31,3 +32,6 @@
 {#if keyFromChromeExtensionState.isValidatedThroughBackend}
 	<h1> Hello {keyFromChromeExtensionState.name} and your email is {keyFromChromeExtensionState.email}</h1>
 {/if}
+<p>
+	the key value it {JSON.stringify(keyFromChromeExtensionState)}
+</p>

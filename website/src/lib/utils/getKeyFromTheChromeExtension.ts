@@ -45,11 +45,6 @@ export class interactWithTheChromeExtensionAndStoreIt{
                this.checkIfKeyIsValid.seeIfKeyIsValid(event.data.key)
            } 
 
-
-
-
-
-
          if (this.callBackAfterKeyIsReceived !== null) {
             try {
                this.callBackAfterKeyIsReceived(event.data.key);
@@ -89,15 +84,10 @@ export class interactWithTheChromeExtensionAndStoreIt{
          this.keyStateFromStorage = keyObj
          // if the keyObj is not null then set it as the global export state
          // now when  we get the keys form the chrome extension check the key is same or not, if not then 
-         // this.saveKeyObjFromLocalStorageToState(keyObj)
+         this.saveKeyObjFromLocalStorageToState(keyObj)
 
 
          // wait and get the key form the chrome extension if it is same then quit and if diff. then do the whole thing and deleate the key
-
-
-
-
-
 
 
 
