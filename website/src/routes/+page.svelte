@@ -32,6 +32,7 @@
 {#if keyFromChromeExtensionState.isValidatedThroughBackend}
 	<h1> Hello {keyFromChromeExtensionState.name} and your email is {keyFromChromeExtensionState.email}</h1>
 {/if}
-<p>
+<!-- copilot make it small  -->
+<p style="height:min-content;">
 	the key value it {JSON.stringify(keyFromChromeExtensionState)}
 </p>

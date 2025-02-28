@@ -28,12 +28,13 @@ export class interactWithTheChromeExtensionAndStoreIt{
          // doing both as I want to keep the fufute extensibility too and why not it is the same thing 
          // keyFromChromeExtensionState.key = event.data.key 
 
-
          // --- new code ----
          if (this.keyStateFromStorage !== null) {
            if (this.keyStateFromStorage.key === event.data.key) {
                // the key is same and we don't need to do anything
                console.log("the key is same and we don't need to do anything, the key is ->", event.data.key, "and the key state from storage is ->", this.keyStateFromStorage.key);
+               // update the global state 
+               this.saveKeyObjFromLocalStorageToGlobalState(this.keyStateFromStorage)
                return
            }
          }else{
@@ -84,12 +85,10 @@ export class interactWithTheChromeExtensionAndStoreIt{
          this.keyStateFromStorage = keyObj
          // if the keyObj is not null then set it as the global export state
          // now when  we get the keys form the chrome extension check the key is same or not, if not then 
-         this.saveKeyObjFromLocalStorageToState(keyObj)
+         // this.saveKeyObjFromLocalStorageToState(keyObj)
 
 
          // wait and get the key form the chrome extension if it is same then quit and if diff. then do the whole thing and deleate the key
-
-
 
          this.callBackAfterKeyIsReceived = funcToRunWhenWeGetTheKey;
          window.addEventListener('message', this.messageHandler);
@@ -126,7 +125,7 @@ export class interactWithTheChromeExtensionAndStoreIt{
      }
    }
 
-   private saveKeyObjFromLocalStorageToState(keyObj:keyStateObject|null){
+   private saveKeyObjFromLocalStorageToGlobalState(keyObj:keyStateObject|null){
       if( keyObj !== null){
          keyFromChromeExtensionState.key = keyObj.key
          keyFromChromeExtensionState.isValidatedThroughBackend = keyObj.isValidatedThroughBackend
