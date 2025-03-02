@@ -83,6 +83,7 @@ try {
   let isEventListenerAdded = { isEventListenerAdded:false}
   listenAndReplyToTheSvelteMessage(isEventListenerAdded).then((a)=>{console.log("the listen to svelte function is over ->",a)})
   // addEventListenerForClosingAllEventListener(isEventListenerAdded)
+addEventListenerForChangingTheKeyFromSvelte()
 } catch (error) {
  console.log("there is a error in listen and replyu to svelte function ->",error);
 }
@@ -474,4 +475,57 @@ function addEventListenerForClosingAllEventListener(ObjToSeeIfEventListenerIsAdd
     } catch (error) {
         console.log("error in func that listens to the eventlistener and will remove all the eventlistener ->", error);
     }
+}
+
+
+/**
+ * function add event listener such that svelte one will send us a event to change the key when the user updates the teir (makes a payment) and will send us 
+ * a key for that
+ */
+function addEventListenerForChangingTheKeyFromSvelte() {
+  // how do I make sure that only extension receives this message and not any other extension
+  try {
+    // @ts-ignore
+    const messageHandler = (event) => {
+        // Verify origin
+        if (event.origin !== window.location.origin) {
+            console.log("the event is from a different origin");
+            return;
+        }
+        // Handle GET_KEY message
+        if (event.data.type === "paymentReceivedChangeTheKey") {
+            // @ts-ignore
+            console.log("event is ->", event, "\n\n\n and the event event.data is ->", event.data);
+            const newKey = event.data.key;
+            if (newKey === "" || newKey === null || newKey === undefined) {
+                console.log("the new key is empty");
+                return;
+            }
+            console.log("the new key is ->", newKey);
+            // Save the new key to storage
+             chrome.runtime.sendMessage({ type: "paymentReceivedChangeTheKey", key: newKey }).then(
+              /**@param {import("./service-worker").responseFromChangingKeyOnPayment} response */
+              (response) => { 
+              // toDo: add some logic in the service worker to update the key in the storage
+              // close the event listener here 
+              // send a message to the svelte that the key has been updated or not
+              console.log("response from the service worker on changing the key on payment received ->", response);
+              console.log("about to send this this the svelte -> ",{ type: "keyChangedOnPaymentReceived", key: newKey, success:response.success },);
+              
+              // event that sends a message to the svelte that the key has been updated or not, there make/register the event listener after sending the message
+              window.postMessage(
+                { type: "keyChangedOnPaymentReceived", key: newKey, success:response.success },
+                window.location.origin
+              ); 
+              window.removeEventListener('message', messageHandler);
+
+            })
+    };
+  }
+    // Add the event listener
+    window.addEventListener('message', messageHandler);
+    return true;     // async support  
+  } catch (error) {
+    
+  }  
 }

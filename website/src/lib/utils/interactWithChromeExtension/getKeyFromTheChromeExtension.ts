@@ -1,6 +1,6 @@
 import { keyFromChromeExtensionState, type keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
-import { accessLocalStorage } from "./localStorage";
-import { checkIfKeyIsValidAndUpdateTheState } from "./seeIfTheKeyIsValidByBackend";
+import { accessLocalStorage } from "../localStorage";
+import { checkIfKeyIsValidAndUpdateTheState } from "../seeIfTheKeyIsValidByBackend";
 
 type funcToRunWhenWeGetTheKey = (key:string)=>void 
 
@@ -35,6 +35,7 @@ export class interactWithTheChromeExtensionAndStoreIt{
                console.log("the key is same and we don't need to do anything, the key is ->", event.data.key, "and the key state from storage is ->", this.keyStateFromStorage.key);
                // update the global state 
                this.saveKeyObjFromLocalStorageToGlobalState(this.keyStateFromStorage)
+               this.removeAndCloseEventListeners()
                return
            }
          }else{
@@ -58,13 +59,14 @@ export class interactWithTheChromeExtensionAndStoreIt{
 			if (!event.data.key) return;
 			// Send message to remove listeners and remove our own listener
 			console.log("closing all the event listeners as the key is received");
-			window.postMessage({
-				type: "removeAllEventListener"
-			}, window.location.origin);
-			// Remove this event listener since we got the key
-			if (typeof window !== 'undefined') {
-				window.removeEventListener('message', this.messageHandler);
-			}
+			// window.postMessage({
+			// 	type: "removeAllEventListener"
+			// }, window.location.origin);
+			// // Remove this event listener since we got the key
+			// if (typeof window !== 'undefined') {
+			// 	window.removeEventListener('message', this.messageHandler);
+			// }
+         this.removeAndCloseEventListeners()
 		}
 	}
 
@@ -132,5 +134,17 @@ export class interactWithTheChromeExtensionAndStoreIt{
          keyFromChromeExtensionState.name = keyObj.name
          keyFromChromeExtensionState.email = keyObj.email
       }
+   }
+
+
+   private removeAndCloseEventListeners(){  
+      // also send the message to the chrome extension 
+         window.postMessage({
+				type: "removeAllEventListener"
+			}, window.location.origin);
+			// Remove this event listener since we got the key
+			if (typeof window !== 'undefined') {
+				window.removeEventListener('message', this.messageHandler);
+			}
    }
 }
