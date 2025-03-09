@@ -1,4 +1,3 @@
-<!-- src/routes/+page.svelte -->
 <script>
   import { onMount } from 'svelte';
   import { fade, scale } from 'svelte/transition';
@@ -15,6 +14,8 @@
     const handleScroll = () => {
       scrollY = window.scrollY;
     };
+
+ 
 
     window.addEventListener("scroll", handleScroll);
     
@@ -42,9 +43,11 @@
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+     
     };
   });
 </script>
+
 
 <svelte:head>
   <title>SkipIt - Skip the boring parts</title>
@@ -86,7 +89,7 @@
         >
           <FastForward class="text-white w-5 h-5" />
         </div>
-        <span class="font-black text-2xl tracking-tight">
+        <span class="font-black text-2xl text-black tracking-tight">
           SKIP<span class="text-red-500">IT</span>
         </span>
       </div>
@@ -190,41 +193,43 @@
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-20 border-b-4 border-black relative">
-    <div class="container mx-auto px-4">
-      <div class="text-center mb-16" in:fade={{ duration: 500 }}>
-        <h2 class="text-5xl font-black mb-4">
-          AWESOME <span class="text-blue-500">FEATURES</span>
-        </h2>
-        <p class="text-xl max-w-2xl mx-auto">
-          Our extension is packed with powerful features to enhance your YouTube experience.
-        </p>
-      </div>
+   <div class="bg-white">
+    <section id="features" class="py-20 border-b-4  border-black relative">
 
-      <div class="grid md:grid-cols-3 gap-8">
-        {#each [
-          {
-            icon: FastForward,
-            title: "Auto-Skip Sponsorships",
-            description:
-              "Automatically detects and skips sponsored segments in videos so you don't have to manually skip them.",
-            color: "bg-red-500",
-          },
-          {
-            icon: Zap,
-            title: "Lightning Fast",
-            description:
-              "Minimal impact on performance. Works silently in the background without slowing down your browsing.",
-            color: "bg-yellow-400",
-          },
-          {
-            icon: Clock,
-            title: "Time Saved Tracker",
-            description:
-              "See exactly how much time you've saved by skipping sponsorships across all your watched videos.",
-            color: "bg-blue-500",
-          },
-        ] as feature, index}
+      <div class="container mx-auto bg-white px-4">
+        <div class="text-center mb-16" in:fade={{ duration: 500 }}>
+          <h2 class="text-5xl font-black text-black mb-4">
+            AWESOME <span class="text-blue-500">FEATURES</span>
+          </h2>
+          <p class="text-xl max-w-2xl mx-auto">
+            Our extension is packed with powerful features to enhance your YouTube experience.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          {#each [
+            {
+              icon: FastForward,
+              title: "Auto-Skip Sponsorships",
+              description:
+                "Automatically detects and skips sponsored segments in videos so you don't have to manually skip them.",
+              color: "bg-red-500",
+            },
+            {
+              icon: Zap,
+              title: "Lightning Fast",
+              description:
+                "Minimal impact on performance. Works silently in the background without slowing down your browsing.",
+              color: "bg-yellow-400",
+            },
+            {
+              icon: Clock,
+              title: "Time Saved Tracker",
+              description:
+                "See exactly how much time you've saved by skipping sponsorships across all your watched videos.",
+              color: "bg-blue-500",
+            },
+          ] as feature, index}
           <div 
             class="border-4 border-black bg-white p-6 relative overflow-hidden group"
             in:fade={{ duration: 500, delay: index * 100 }}
@@ -232,68 +237,66 @@
             <div
               class="absolute top-0 right-0 w-20 h-20 {feature.color} border-l-4 border-b-4 border-black -mr-10 -mt-10 transition-all duration-300 group-hover:mr-0 group-hover:mt-0"
             ></div>
-            <div class="relative z-10">
+            <div class="relative z-20">
               <div class="{feature.color} text-black p-4 inline-block border-2 border-black mb-4">
                 <svelte:component this={feature.icon} class="w-10 h-10" />
               </div>
-              <h3 class="text-2xl font-bold mb-2">{feature.title}</h3>
-              <p>{feature.description}</p>
+              <h3 class="text-2xl font-bold mb-2 text-black">{feature.title}</h3>
+              <p class="text-black">{feature.description}</p>
             </div>
           </div>
-        {/each}
-      </div>
+          {/each}
+        </div>
 
-      <div 
-        class="mt-16 p-8 border-4 border-black bg-purple-100 relative"
-        in:fade={{ duration: 500 }}
-      >
-        <div class="absolute -top-5 -left-5 w-10 h-10 bg-yellow-300 border-4 border-black"></div>
-        <div class="absolute -bottom-5 -right-5 w-10 h-10 bg-blue-400 border-4 border-black rounded-full"></div>
+        <div 
+          class="mt-16 p-8 border-4 border-black bg-purple-100 relative"
+          in:fade={{ duration: 500 }}
+        >
+          <div class="absolute -top-5 -left-5 w-10 h-10 bg-yellow-300 border-4 border-black"></div>
+          <div class="absolute -bottom-5 -right-5 w-10 h-10 bg-blue-400 border-4 border-black rounded-full"></div>
 
-        <div class="grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <h3 class="text-3xl font-bold mb-4">Smart Detection Technology</h3>
-            <p class="mb-4">
-              Our advanced algorithm recognizes sponsorship segments with incredible accuracy, even when creators
-              try to disguise them.
-            </p>
-            <ul class="space-y-2">
-              {#each [
-                "Recognizes common sponsorship phrases",
-                "Detects visual sponsorship indicators",
-                "Learns from user feedback",
-                "Updates in real-time",
-              ] as item}
-                <li class="flex items-start">
-                  <div class="bg-green-500 text-white p-1 mr-2 mt-1">
-                    <ChevronRight class="w-4 h-4" />
-                  </div>
-                  {item}
-                </li>
-              {/each}
-            </ul>
-          </div>
-          <div class="relative">
-            <div class="border-4 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <img
-                src="/placeholder.svg?height=300&width=400"
-                alt="Smart detection visualization"
-                class="w-full border-2 border-black"
-              />
+          <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h3 class="text-3xl font-bold mb-4">Smart Detection Technology</h3>
+              <p class="mb-4">
+                Our advanced algorithm recognizes sponsorship segments with incredible accuracy, even when creators
+                try to disguise them.
+              </p>
+              <ul class="space-y-2">
+                {#each [
+                  "Recognizes common sponsorship phrases",
+                  "Detects visual sponsorship indicators",
+                  "Learns from user feedback",
+                  "Updates in real-time",
+                ] as item}
+                  <li class="flex items-start">
+                    <div class="bg-green-500 text-white p-1 mr-2 mt-1">
+                      <ChevronRight class="w-4 h-4" />
+                    </div>
+                    {item}
+                  </li>
+                {/each}
+              </ul>
             </div>
-            <div class="absolute -bottom-4 -left-4 w-full h-full border-4 border-black bg-red-200 -z-10"></div>
+            <div class="relative">
+              <div class="border-4 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <img alt="Smart detection visualization" class="w-full border-2 border-black" src="/placeholder.svg?height=300&amp;width=400">
+              </div>
+              <div class="absolute -bottom-4 -left-4 w-full h-full border-4 border-black bg-red-200 -z-10"></div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Memphis design elements -->
-    <div class="absolute top-20 right-10 w-16 h-16 bg-yellow-300 border-4 border-black transform rotate-45 hidden lg:block"></div>
-    <div class="absolute bottom-40 left-10 w-10 h-10 bg-blue-400 border-4 border-black rounded-full hidden lg:block"></div>
-  </section>
+      <!-- Memphis design elements -->
+      <div class="absolute top-20 right-10 w-16 h-16 bg-yellow-300 border-4 border-black transform rotate-45 hidden lg:block"></div>
+      <div class="absolute bottom-40 left-10 w-10 h-10 bg-blue-400 border-4 border-black rounded-full hidden lg:block"></div>
+    </section>
+
+   </div>
 
   <!-- Pricing Section -->
-  <section id="pricing" class="py-20 border-b-4 border-black relative bg-gradient-to-b from-white to-gray-100">
+  <section id="pricing" class="py-20 border-b-4 border-black text-black relative bg-gradient-to-b from-white to-gray-100">
     <div class="container mx-auto px-4">
       <div 
         class="text-center mb-16"
@@ -396,8 +399,8 @@
   </section>
 
   <!-- Testimonials -->
-  <section class="py-20 border-b-4 border-black relative">
-    <div class="container mx-auto px-4">
+  <section id="testimonials" class="py-20 border-b-4 border-black bg-white relative">
+    <div class=" container mx-auto px-4">
       <div 
         class="text-center mb-16"
         in:fade={{ duration: 500 }}
@@ -475,7 +478,7 @@
   </section>
 
   <!-- FAQ Section -->
-  <section id="faq" class="py-20 border-b-4 border-black">
+  <section id="faq" class="py-20 text-black border-b-4 border-black">
     <div class="container mx-auto px-4">
       <div 
         class="text-center mb-16"
@@ -533,8 +536,8 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="py-20 relative overflow-hidden">
-    <div class="container mx-auto px-4 relative z-10">
+<section  id="cta" class="py-20 relative overflow-hidden bg-white">
+    <div class=" container mx-auto px-4 relative z-10">
       <div 
         class="max-w-4xl mx-auto text-center bg-white border-4 border-black p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
         in:scale={{ duration: 500, start: 0.9 }}
@@ -616,3 +619,36 @@
     </div>
   </footer>
 </div>
+
+<style>
+  .body {
+    font-family: 'Inter', sans-serif;
+    background-color: white;
+  }
+  
+  .section {
+    background-color: white;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes rotate-blob {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Your existing styles */
+  /* #features {
+    background-color: #ffffff;
+  }
+  #testimonials {
+    background-color: #ffffff;
+  }
+  #cta {
+    background-color: #ffffff;
+  }
+    */
+</style> 
