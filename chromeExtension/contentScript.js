@@ -489,7 +489,7 @@ function addEventListenerForChangingTheKeyFromSvelte() {
     const messageHandler = (event) => {
         // Verify origin
         if (event.origin !== window.location.origin) {
-            console.log("the event is from a different origin");
+            console.log("the event is from a different origin and it is ", event.origin);
             return;
         }
         // Handle GET_KEY message
