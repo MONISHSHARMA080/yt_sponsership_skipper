@@ -344,7 +344,7 @@
           },
         ] as plan, index}
           <div
-            class="border-4 border-black bg-white p-8 relative {plan.popular ? 'transform md:-translate-y-4' : ''}"
+            class="border-4 border-black bg-white p-8 relative "
             in:fade={{ duration: 500, delay: index * 100 }}
           >
             {#if plan.popular}
