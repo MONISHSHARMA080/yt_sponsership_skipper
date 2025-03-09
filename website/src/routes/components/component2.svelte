@@ -118,9 +118,9 @@
             <span class="inline-block bg-yellow-300 text-black font-bold px-4 py-1 border-2 border-black mb-4">
               CHROME EXTENSION
             </span>
-            <h1 class="text-6xl md:text-7xl font-black leading-none mb-4">
-              SKIP THE <span class="text-red-500">BORING</span> PARTS
-            </h1>
+            <h1 class="text-6xl md:text-7xl font-black text-black leading-none mb-4">
+                  SKIP THE <span class="text-red-500">BORING</span> PARTS
+                </h1>
             <p class="text-xl mb-8">
               Automatically skip sponsorships, intros, and outros in YouTube videos. Save time and enjoy
               uninterrupted content.

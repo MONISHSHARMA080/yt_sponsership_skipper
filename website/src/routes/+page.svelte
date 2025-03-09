@@ -14,6 +14,9 @@
 	import Component9 from './components/component9.svelte';
 	import OriginalComponent1 from './components/originalComponent1.svelte';
 	import { onMount } from 'svelte';
+	import Component10 from './components/component10.svelte';
+	import Component11 from './components/component11.svelte';
+	import Component12 from './components/component12.svelte';
 	
 	let change = $state(false);
 	let component = $state(0);
@@ -96,7 +99,8 @@
 {#if change}
  
 
-<Component2 />
+<!-- <Component2 /> -->
+ <Component2 />
    
 {:else}
     <h1>Welcome to SvelteKit</h1>
