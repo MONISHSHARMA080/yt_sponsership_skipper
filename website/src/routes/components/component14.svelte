@@ -375,81 +375,74 @@
 	</div>
 
 	<!-- Pricing Section -->
-	<section
-		id="pricing"
-		class="relative border-b-4 border-black bg-gradient-to-b from-white to-gray-100 py-20 text-black"
-	>
-		<div class="container mx-auto px-4">
-			<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
-				<h2 class="mb-4 text-5xl font-black">
-					CHOOSE YOUR <span class="text-purple-600">PLAN</span>
-				</h2>
-				<p class="mx-auto max-w-2xl text-xl">
-					Upgrade to Premium for unlimited skips and advanced features.
-				</p>
-			</div>
-
-			<div class="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
-				{#each [{ title: 'Free', price: '$0', period: 'forever', description: 'Basic sponsorship skipping for casual YouTube viewers', features: ['Skip up to 50 sponsorships per month', 'Basic sponsorship detection', 'Time saved tracker', 'Works on all YouTube videos'], buttonText: 'Install Now', buttonColor: 'bg-black', popular: false }, { title: 'Premium', price: '$4.99', period: 'per month', description: 'Unlimited skipping and advanced features for power users', features: ['Unlimited sponsorship skipping', 'Advanced detection algorithm', 'Custom skip rules and preferences', 'Skip intros, outros & reminders', 'Detailed analytics dashboard', 'Priority support'], buttonText: 'Go Premium', buttonColor: 'bg-purple-600', popular: true }] as plan, index}
-					<div
-						class="relative border-4  {plan.popular? "border-red-500":"border-black"} bg-white p-8"
-						in:fade={{ duration: 500, delay: index * 100 }}
-					>
-					
-						{#if plan.popular}
-							<div
-								class="absolute -top-4 -right-4 border-4 border-black bg-yellow-400 px-4 py-1 font-bold text-black"
-							>
-								POPULAR
-							</div>
-						{/if}
-
-						<h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
-						<div class="mb-4 flex items-end">
-							<span class="text-4xl font-black">{plan.price}</span>
-							<span class="ml-1 text-gray-600">/{plan.period}</span>
-						</div>
-						<p class="mb-6 text-gray-600">{plan.description}</p>
-
-						<ul class="mb-8 space-y-3">
-							{#each plan.features as feature}
-								<li class="flex items-start">
-									<div class="mr-2 bg-green-500 p-1 text-white">
-										<ChevronRight class="h-4 w-4" />
-									</div>
-									{feature}
-								</li>
-							{/each}
-						</ul>
-
-						<button
-							class="{plan.buttonColor} w-full transform border-2 border-black px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
-						>
-							{plan.buttonText}
-						</button>
-					</div>
-				{/each}
-			</div>
-
-			<div class="mt-16 text-center" in:fade={{ duration: 500 }}>
-				<p class="mb-6 text-xl">Not convinced yet? Try Premium free for 7 days!</p>
-				<button
-					class="transform border-2 border-black bg-gradient-to-r from-purple-600 to-blue-500 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
-				>
-					Start Free
-				</button>
-			</div>
+<section
+	id="pricing"
+	class="relative border-b-4 border-black bg-gradient-to-b from-white to-gray-100 py-20 text-black"
+>
+	<div class="container mx-auto px-4">
+		<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
+			<h2 class="mb-4 text-5xl font-black">
+				CHOOSE YOUR <span class="text-purple-600">PLAN</span>
+			</h2>
+			<p class="mx-auto max-w-2xl text-xl">
+				Upgrade to Premium for unlimited skips and advanced features.
+			</p>
 		</div>
-
-		<!-- Memphis design elements -->
-		<div
-			class="absolute top-40 left-10 hidden h-4 w-20 border-4 border-black bg-red-500 lg:block"
-		></div>
-		<div
-			class="absolute right-20 bottom-20 hidden h-12 w-12 rounded-full border-4 border-black bg-blue-400 lg:block"
-		></div>
-	</section>
-
+		<div class="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
+			{#each [{ title: 'Free', price: '$0', period: 'forever', description: 'Basic sponsorship skipping for casual YouTube viewers', features: ['Skip up to 50 sponsorships per month', 'Basic sponsorship detection', 'Time saved tracker', 'Works on all YouTube videos'], buttonText: 'Install Now', buttonColor: 'bg-black', popular: false }, { title: 'Premium', price: '$4.99', period: 'per month', description: 'Unlimited skipping and advanced features for power users', features: ['Unlimited sponsorship skipping', 'Advanced detection algorithm', 'Custom skip rules and preferences', 'Skip intros, outros & reminders', 'Detailed analytics dashboard', 'Priority support'], buttonText: 'Go Premium', buttonColor: 'bg-purple-600', popular: true }] as plan, index}
+				<div
+					class="relative border-4 {plan.popular? 'border-red-500':'border-black'} bg-white p-8 flex flex-col"
+					in:fade={{ duration: 500, delay: index * 100 }}
+				>
+				
+					{#if plan.popular}
+						<div
+							class="absolute -top-4 -right-4 border-4 border-black bg-yellow-400 px-4 py-1 font-bold text-black"
+						>
+							POPULAR
+						</div>
+					{/if}
+					<h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
+					<div class="mb-4 flex items-end">
+						<span class="text-4xl font-black">{plan.price}</span>
+						<span class="ml-1 text-gray-600">/{plan.period}</span>
+					</div>
+					<p class="mb-6 text-gray-600">{plan.description}</p>
+					<ul class="mb-8 space-y-3 flex-grow">
+						{#each plan.features as feature}
+							<li class="flex items-start">
+								<div class="mr-2 bg-green-500 p-1 text-white">
+									<ChevronRight class="h-4 w-4" />
+								</div>
+								{feature}
+							</li>
+						{/each}
+					</ul>
+					<button
+						class="{plan.buttonColor} w-full transform border-2 border-black px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+					>
+						{plan.buttonText}
+					</button>
+				</div>
+			{/each}
+		</div>
+		<div class="mt-16 text-center" in:fade={{ duration: 500 }}>
+			<p class="mb-6 text-xl">Not convinced yet? Try Premium free for 7 days!</p>
+			<button
+				class="transform border-2 border-black bg-gradient-to-r from-purple-600 to-blue-500 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+			>
+				Start Free
+			</button>
+		</div>
+	</div>
+	<!-- Memphis design elements -->
+	<div
+		class="absolute top-40 left-10 hidden h-4 w-20 border-4 border-black bg-red-500 lg:block"
+	></div>
+	<div
+		class="absolute right-20 bottom-20 hidden h-12 w-12 rounded-full border-4 border-black bg-blue-400 lg:block"
+	></div>
+</section>
 	<!-- Testimonials -->
 	<section id="testimonials" class="relative border-b-4 border-black bg-white py-20">
 		<div class=" container mx-auto px-4">
