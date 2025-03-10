@@ -6,10 +6,6 @@
 
 	let scrollY = $state(0)
 
-	// Reactive animations
-	// const yellowCircle = spring({ x: 0, y: 0 });
-	// const blueCircle = spring({ x: 0, y: 0 });
-
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });
 
@@ -227,7 +223,7 @@
 							></div>
 							<div class="relative z-20">
 								<div class="{feature.color} mb-4 inline-block border-2 border-black p-4 text-black">
-									<svelte:component this={feature.icon} class="h-10 w-10" />
+									<feature.icon class="h-10 w-10" />
 								</div>
 								<h3 class="mb-2 text-2xl font-bold text-black">{feature.title}</h3>
 								<p class="text-black">{feature.description}</p>
@@ -309,9 +305,13 @@
 			<div class="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
 				{#each [{ title: 'Free', price: '$0', period: 'forever', description: 'Basic sponsorship skipping for casual YouTube viewers', features: ['Skip up to 50 sponsorships per month', 'Basic sponsorship detection', 'Time saved tracker', 'Works on all YouTube videos'], buttonText: 'Install Now', buttonColor: 'bg-black', popular: false }, { title: 'Premium', price: '$4.99', period: 'per month', description: 'Unlimited skipping and advanced features for power users', features: ['Unlimited sponsorship skipping', 'Advanced detection algorithm', 'Custom skip rules and preferences', 'Skip intros, outros & reminders', 'Detailed analytics dashboard', 'Priority support'], buttonText: 'Go Premium', buttonColor: 'bg-purple-600', popular: true }] as plan, index}
 					<div
-						class="relative border-4 border-black bg-white p-8"
+						class="relative border-4  {plan.popular? "border-red-500":"border-black"} bg-white p-8"
 						in:fade={{ duration: 500, delay: index * 100 }}
 					>
+					<!-- <div
+						class=` relative border-4 border-black bg-white p-8 `
+						in:fade={{ duration: 500, delay: index * 100 }}
+					> -->
 						{#if plan.popular}
 							<div
 								class="absolute -top-4 -right-4 border-4 border-black bg-yellow-400 px-4 py-1 font-bold text-black"
