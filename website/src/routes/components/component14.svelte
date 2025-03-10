@@ -1,647 +1,576 @@
 <script>
-  import { onMount } from 'svelte';
-  import { fade, scale } from 'svelte/transition';
-  import { spring } from 'svelte/motion';
-  import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
+	import { onMount } from 'svelte';
+	import { fade, scale } from 'svelte/transition';
+	import { Spring } from 'svelte/motion';
+	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
 
-  let scrollY = 0;
+	let scrollY = $state(0)
 
-  // Reactive animations
-  const yellowCircle = spring({ x: 0, y: 0 });
-  const blueCircle = spring({ x: 0, y: 0 });
-  
-  onMount(() => {
-    const handleScroll = () => {
-      scrollY = window.scrollY;
-    };
+	// Reactive animations
+	// const yellowCircle = spring({ x: 0, y: 0 });
+	// const blueCircle = spring({ x: 0, y: 0 });
 
- 
+	let yellowCircle = new Spring({ x: 0, y: 0 });
+	const blueCircle = new Spring({ x: 0, y: 0 });
 
-    window.addEventListener("scroll", handleScroll);
-    
-    // Animations
-    const animateShapes = () => {
-      const animateYellow = () => {
-        yellowCircle.set({ x: 0, y: 0 });
-        setTimeout(() => yellowCircle.set({ x: 50, y: 30 }), 100);
-        setTimeout(() => yellowCircle.set({ x: 0, y: 0 }), 10100);
-        setTimeout(animateYellow, 20000);
-      };
+	onMount(() => {
+		const handleScroll = () => {
+			scrollY = window.scrollY;
+		};
 
-      const animateBlue = () => {
-        blueCircle.set({ x: 0, y: 0 });
-        setTimeout(() => blueCircle.set({ x: -70, y: 50 }), 100);
-        setTimeout(() => blueCircle.set({ x: 0, y: 0 }), 12600);
-        setTimeout(animateBlue, 25000);
-      };
+		window.addEventListener('scroll', handleScroll);
 
-      animateYellow();
-      animateBlue();
-    };
+		// Animations
+		const animateShapes = () => {
+			const animateYellow = () => {
+				yellowCircle.target = { x: 0, y: 0 };
+				setTimeout(() => (yellowCircle.target = { x: 50, y: 30 }), 100);
+				setTimeout(() => (yellowCircle.target = { x: 0, y: 0 }), 10100);
+				setTimeout(animateYellow, 20000);
+			};
 
-    animateShapes();
+			const animateBlue = () => {
+				blueCircle.target = { x: 0, y: 0 };
+				setTimeout(() => (blueCircle.target = { x: -70, y: 50 }), 100);
+				setTimeout(() => (blueCircle.target = { x: 0, y: 0 }), 12600);
+				setTimeout(animateBlue, 25000);
+			};
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-     
-    };
-  });
+			animateYellow();
+			animateBlue();
+		};
+
+		animateShapes();
+
+		return () => {
+			window.removeEventListener('scroll', handleScroll);
+		};
+	});
 </script>
 
-
 <svelte:head>
-  <title>SkipIt - Skip the boring parts</title>
+	<title>SkipIt - Skip the boring parts</title>
 </svelte:head>
 
-<div class="min-h-screen bg-white text-black overflow-hidden">
-  <!-- Abstract geometric shapes in background -->
-  <div class="fixed inset-0 -z-10 overflow-hidden">
-    <div
-      class="absolute top-0 left-0 w-64 h-64 bg-yellow-400 rounded-full opacity-30"
-      style="transform: translate({$yellowCircle.x}px, {$yellowCircle.y}px);"
-    ></div>
-    <div
-      class="absolute top-40 right-20 w-96 h-96 bg-blue-500 rounded-full opacity-20"
-      style="transform: translate({$blueCircle.x}px, {$blueCircle.y}px);"
-    ></div>
-    <div
-      class="absolute bottom-20 left-40 w-80 h-80 bg-red-500 opacity-20"
-      style="border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; animation: rotate-blob 45s linear infinite;"
-    ></div>
-    <div class="absolute inset-0 grid grid-cols-12 grid-rows-12 opacity-10">
-      {#each Array(12) as _, rowIndex}
-        {#each Array(12) as _, colIndex}
-          <div
-            class="border border-black {(rowIndex + colIndex) % 3 === 0 ? 'bg-purple-500' : (rowIndex + colIndex) % 3 === 1 ? 'bg-teal-400' : 'bg-transparent'}"
-          ></div>
-        {/each}
-      {/each}
-    </div>
-  </div>
+<div class="min-h-screen overflow-hidden bg-white text-black">
+	<!-- Abstract geometric shapes in background -->
+	<div class="fixed inset-0 -z-10 overflow-hidden">
+		<div
+			class="absolute top-0 left-0 h-64 w-64 rounded-full bg-yellow-400 opacity-30"
+			style="transform: translate({yellowCircle.current.x}px, {yellowCircle.current.y}px);"
+		></div>
+		<div
+			class="absolute top-40 right-20 h-96 w-96 rounded-full bg-blue-500 opacity-20"
+			style="transform: translate({blueCircle.current.x}px, {blueCircle.current.y}px);"
+		></div>
+		<div
+			class="absolute bottom-20 left-40 h-80 w-80 bg-red-500 opacity-20"
+			style="border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; animation: rotate-blob 45s linear infinite;"
+		></div>
+		<div class="absolute inset-0 grid grid-cols-12 grid-rows-12 opacity-10">
+			{#each Array(12) as _, rowIndex}
+				{#each Array(12) as _, colIndex}
+					<div
+						class="border border-black {(rowIndex + colIndex) % 3 === 0
+							? 'bg-purple-500'
+							: (rowIndex + colIndex) % 3 === 1
+								? 'bg-teal-400'
+								: 'bg-transparent'}"
+					></div>
+				{/each}
+			{/each}
+		</div>
+	</div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 border-b-4 border-black bg-white">
-    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <div
-          class="bg-red-500 w-8 h-8 rounded-full flex items-center justify-center"
-          style="animation: spin 2s linear infinite;"
-        >
-          <FastForward class="text-white w-5 h-5" />
-        </div>
-        <span class="font-black text-2xl text-black tracking-tight">
-          SKIP<span class="text-red-500">IT</span>
-        </span>
-      </div>
-      <nav class="hidden md:flex gap-8 font-bold">
-        <a href="#features" class="hover:text-red-500 transition-colors">
-          Features
-        </a>
-        <a href="#pricing" class="hover:text-red-500 transition-colors">
-          Pricing
-        </a>
-        <a href="#faq" class="hover:text-red-500 transition-colors">
-          FAQ
-        </a>
-      </nav>
-      <button
-        class="bg-black text-white font-bold py-2 px-4 border-2 border-black hover:bg-white hover:text-black transition-colors transform hover:scale-105 active:scale-95"
-      >
-        Install Now
-      </button>
-    </div>
-  </header>
+	<!-- Header -->
+	<header class="sticky top-0 z-50 border-b-4 border-black bg-white">
+		<div class="container mx-auto flex items-center justify-between px-4 py-4">
+			<div class="flex items-center gap-2">
+				<div
+					class="flex h-8 w-8 items-center justify-center rounded-full bg-red-500"
+					style="animation: spin 2s linear infinite;"
+				>
+					<FastForward class="h-5 w-5 text-white" />
+				</div>
+				<span class="text-2xl font-black tracking-tight text-black">
+					SKIP<span class="text-red-500">IT</span>
+				</span>
+			</div>
+			<nav class="hidden gap-8 font-bold md:flex">
+				<a href="#features" class="transition-colors hover:text-red-500"> Features </a>
+				<a href="#pricing" class="transition-colors hover:text-red-500"> Pricing </a>
+				<a href="#faq" class="transition-colors hover:text-red-500"> FAQ </a>
+			</nav>
+			<button
+				class="transform border-2 border-black bg-black px-4 py-2 font-bold text-white transition-colors hover:scale-105 hover:bg-white hover:text-black active:scale-95"
+			>
+				Install Now
+			</button>
+		</div>
+	</header>
 
-  <!-- Hero Section -->
-  <section class="relative pt-20 pb-32 overflow-hidden border-b-4 border-black">
-    <div class="container mx-auto px-4">
-      <div class="grid md:grid-cols-2 gap-12 items-center">
-        <div in:fade={{ duration: 500, delay: 100 }}>
-          <div class="mb-6">
-            <span class="inline-block bg-yellow-300 text-black font-bold px-4 py-1 border-2 border-black mb-4">
-              CHROME EXTENSION
-            </span>
-            <h1 class="text-6xl md:text-7xl font-black text-black leading-none mb-4">
-                  SKIP THE <span class="text-red-500">BORING</span> PARTS
-                </h1>
-            <p class="text-xl mb-8">
-              Automatically skip sponsorships, intros, and outros in YouTube videos. Save time and enjoy
-              uninterrupted content.
-            </p>
-          </div>
+	<!-- Hero Section -->
+	<section class="relative overflow-hidden border-b-4 border-black pt-20 pb-32">
+		<div class="container mx-auto px-4">
+			<div class="grid items-center gap-12 md:grid-cols-2">
+				<div in:fade={{ duration: 500, delay: 100 }}>
+					<div class="mb-6">
+						<span
+							class="mb-4 inline-block border-2 border-black bg-yellow-300 px-4 py-1 font-bold text-black"
+						>
+							CHROME EXTENSION
+						</span>
+						<h1 class="mb-4 text-6xl leading-none font-black text-black md:text-7xl">
+							SKIP THE <span class="text-red-500">BORING</span> PARTS
+						</h1>
+						<p class="mb-8 text-xl">
+							Automatically skip sponsorships, intros, and outros in YouTube videos. Save time and
+							enjoy uninterrupted content.
+						</p>
+					</div>
 
-          <div class="flex flex-col sm:flex-row gap-4">
-            <button
-              class="bg-red-500 text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all transform hover:scale-105 active:scale-95"
-            >
-              Install Free
-            </button>
-            <a
-              href="#pricing"
-              class="bg-blue-500 text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center transform hover:scale-105 active:scale-95"
-            >
-              Go Premium <ChevronRight class="ml-1 w-5 h-5" />
-            </a>
-          </div>
-        </div>
+					<div class="flex flex-col gap-4 sm:flex-row">
+						<button
+							class="transform border-2 border-black bg-red-500 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+						>
+							Install Free
+						</button>
+						<a
+							href="#pricing"
+							class="flex transform items-center justify-center border-2 border-black bg-blue-500 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+						>
+							Go Premium <ChevronRight class="ml-1 h-5 w-5" />
+						</a>
+					</div>
+				</div>
 
-        <div class="relative" in:scale={{ duration: 500, delay: 200, start: 0.8 }}>
-          <div class="relative z-10">
-            <div class="bg-white p-2 border-4 border-black rounded-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-              <div class="bg-gray-100 rounded-md p-2 mb-2">
-                <div class="flex gap-2 mb-2">
-                  <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <div class="aspect-video bg-gray-800 rounded-md relative overflow-hidden">
-                  <img
-                    src="/placeholder.svg?height=400&width=600"
-                    alt="YouTube video with sponsorship section highlighted"
-                    class="w-full h-full object-cover"
-                  />
-                  <div
-                    class="absolute bottom-4 left-4 right-4 bg-red-500 text-white font-bold py-2 px-4 rounded flex items-center justify-center"
-                    style="animation: pulse 2s ease-in-out infinite;"
-                  >
-                    <FastForward class="mr-2" /> Sponsorship Detected - Skipping...
-                  </div>
-                </div>
-              </div>
-              <div class="flex justify-between items-center">
-                <div class="font-bold">SkipIt Extension</div>
-                <div class="text-green-600 font-bold flex items-center">
-                  <Clock class="w-4 h-4 mr-1" /> 47s saved
-                </div>
-              </div>
-            </div>
-          </div>
+				<div class="relative" in:scale={{ duration: 500, delay: 200, start: 0.8 }}>
+					<div class="relative z-10">
+						<div
+							class="rounded-lg border-4 border-black bg-white p-2 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+						>
+							<div class="mb-2 rounded-md bg-gray-100 p-2">
+								<div class="mb-2 flex gap-2">
+									<div class="h-3 w-3 rounded-full bg-red-500"></div>
+									<div class="h-3 w-3 rounded-full bg-yellow-500"></div>
+									<div class="h-3 w-3 rounded-full bg-green-500"></div>
+								</div>
+								<div class="relative aspect-video overflow-hidden rounded-md bg-gray-800">
+									<img
+										src="/placeholder.svg?height=400&width=600"
+										alt="YouTube video with sponsorship section highlighted"
+										class="h-full w-full object-cover"
+									/>
+									<div
+										class="absolute right-4 bottom-4 left-4 flex items-center justify-center rounded bg-red-500 px-4 py-2 font-bold text-white"
+										style="animation: pulse 2s ease-in-out infinite;"
+									>
+										<FastForward class="mr-2" /> Sponsorship Detected - Skipping...
+									</div>
+								</div>
+							</div>
+							<div class="flex items-center justify-between">
+								<div class="font-bold">SkipIt Extension</div>
+								<div class="flex items-center font-bold text-green-600">
+									<Clock class="mr-1 h-4 w-4" /> 47s saved
+								</div>
+							</div>
+						</div>
+					</div>
 
-          <!-- Decorative elements -->
-          <div class="absolute -top-10 -right-10 w-20 h-20 bg-yellow-300 border-4 border-black z-0"></div>
-          <div class="absolute -bottom-10 -left-10 w-16 h-16 bg-blue-400 border-4 border-black rounded-full z-0"></div>
-          <div class="absolute top-1/2 -right-5 transform -translate-y-1/2 w-10 h-40 bg-purple-400 border-4 border-black z-0"></div>
-        </div>
-      </div>
-    </div>
+					<!-- Decorative elements -->
+					<div
+						class="absolute -top-10 -right-10 z-0 h-20 w-20 border-4 border-black bg-yellow-300"
+					></div>
+					<div
+						class="absolute -bottom-10 -left-10 z-0 h-16 w-16 rounded-full border-4 border-black bg-blue-400"
+					></div>
+					<div
+						class="absolute top-1/2 -right-5 z-0 h-40 w-10 -translate-y-1/2 transform border-4 border-black bg-purple-400"
+					></div>
+				</div>
+			</div>
+		</div>
 
-    <!-- Memphis design elements -->
-    <div class="absolute bottom-0 left-0 w-full h-8 bg-black"></div>
-    <div class="absolute bottom-8 left-0 w-full h-4 bg-yellow-300"></div>
-    <div class="absolute -bottom-2 left-1/4 w-8 h-8 bg-blue-500 rounded-full border-4 border-black"></div>
-    <div class="absolute -bottom-2 left-2/3 w-12 h-12 bg-red-500 border-4 border-black transform rotate-45"></div>
-  </section>
+		<!-- Memphis design elements -->
+		<div class="absolute bottom-0 left-0 h-8 w-full bg-black"></div>
+		<div class="absolute bottom-8 left-0 h-4 w-full bg-yellow-300"></div>
+		<div
+			class="absolute -bottom-2 left-1/4 h-8 w-8 rounded-full border-4 border-black bg-blue-500"
+		></div>
+		<div
+			class="absolute -bottom-2 left-2/3 h-12 w-12 rotate-45 transform border-4 border-black bg-red-500"
+		></div>
+	</section>
 
-  <!-- Features Section -->
-   <div class="bg-white">
-    <section id="features" class="py-20 border-b-4  border-black relative">
+	<!-- Features Section -->
+	<div class="bg-white">
+		<section id="features" class="relative border-b-4 border-black py-20">
+			<div class="container mx-auto bg-white px-4">
+				<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
+					<h2 class="mb-4 text-5xl font-black text-black">
+						AWESOME <span class="text-blue-500">FEATURES</span>
+					</h2>
+					<p class="mx-auto max-w-2xl text-xl">
+						Our extension is packed with powerful features to enhance your YouTube experience.
+					</p>
+				</div>
 
-      <div class="container mx-auto bg-white px-4">
-        <div class="text-center mb-16" in:fade={{ duration: 500 }}>
-          <h2 class="text-5xl font-black text-black mb-4">
-            AWESOME <span class="text-blue-500">FEATURES</span>
-          </h2>
-          <p class="text-xl max-w-2xl mx-auto">
-            Our extension is packed with powerful features to enhance your YouTube experience.
-          </p>
-        </div>
+				<div class="grid gap-8 md:grid-cols-3">
+					{#each [{ icon: FastForward, title: 'Auto-Skip Sponsorships', description: "Automatically detects and skips sponsored segments in videos so you don't have to manually skip them.", color: 'bg-red-500' }, { icon: Zap, title: 'Lightning Fast', description: 'Minimal impact on performance. Works silently in the background without slowing down your browsing.', color: 'bg-yellow-400' }, { icon: Clock, title: 'Time Saved Tracker', description: "See exactly how much time you've saved by skipping sponsorships across all your watched videos.", color: 'bg-blue-500' }] as feature, index}
+						<div
+							class="group relative overflow-hidden border-4 border-black bg-white p-6"
+							in:fade={{ duration: 500, delay: index * 100 }}
+						>
+							<div
+								class="absolute top-0 right-0 h-20 w-20 {feature.color} -mt-10 -mr-10 border-b-4 border-l-4 border-black transition-all duration-300 group-hover:mt-0 group-hover:mr-0"
+							></div>
+							<div class="relative z-20">
+								<div class="{feature.color} mb-4 inline-block border-2 border-black p-4 text-black">
+									<svelte:component this={feature.icon} class="h-10 w-10" />
+								</div>
+								<h3 class="mb-2 text-2xl font-bold text-black">{feature.title}</h3>
+								<p class="text-black">{feature.description}</p>
+							</div>
+						</div>
+					{/each}
+				</div>
 
-        <div class="grid md:grid-cols-3 gap-8">
-          {#each [
-            {
-              icon: FastForward,
-              title: "Auto-Skip Sponsorships",
-              description:
-                "Automatically detects and skips sponsored segments in videos so you don't have to manually skip them.",
-              color: "bg-red-500",
-            },
-            {
-              icon: Zap,
-              title: "Lightning Fast",
-              description:
-                "Minimal impact on performance. Works silently in the background without slowing down your browsing.",
-              color: "bg-yellow-400",
-            },
-            {
-              icon: Clock,
-              title: "Time Saved Tracker",
-              description:
-                "See exactly how much time you've saved by skipping sponsorships across all your watched videos.",
-              color: "bg-blue-500",
-            },
-          ] as feature, index}
-          <div 
-            class="border-4 border-black bg-white p-6 relative overflow-hidden group"
-            in:fade={{ duration: 500, delay: index * 100 }}
-          >
-            <div
-              class="absolute top-0 right-0 w-20 h-20 {feature.color} border-l-4 border-b-4 border-black -mr-10 -mt-10 transition-all duration-300 group-hover:mr-0 group-hover:mt-0"
-            ></div>
-            <div class="relative z-20">
-              <div class="{feature.color} text-black p-4 inline-block border-2 border-black mb-4">
-                <svelte:component this={feature.icon} class="w-10 h-10" />
-              </div>
-              <h3 class="text-2xl font-bold mb-2 text-black">{feature.title}</h3>
-              <p class="text-black">{feature.description}</p>
-            </div>
-          </div>
-          {/each}
-        </div>
+				<div
+					class="relative mt-16 border-4 border-black bg-purple-100 p-8"
+					in:fade={{ duration: 500 }}
+				>
+					<div class="absolute -top-5 -left-5 h-10 w-10 border-4 border-black bg-yellow-300"></div>
+					<div
+						class="absolute -right-5 -bottom-5 h-10 w-10 rounded-full border-4 border-black bg-blue-400"
+					></div>
 
-        <div 
-          class="mt-16 p-8 border-4 border-black bg-purple-100 relative"
-          in:fade={{ duration: 500 }}
-        >
-          <div class="absolute -top-5 -left-5 w-10 h-10 bg-yellow-300 border-4 border-black"></div>
-          <div class="absolute -bottom-5 -right-5 w-10 h-10 bg-blue-400 border-4 border-black rounded-full"></div>
+					<div class="grid items-center gap-8 md:grid-cols-2">
+						<div>
+							<h3 class="mb-4 text-3xl font-bold">Smart Detection Technology</h3>
+							<p class="mb-4">
+								Our advanced algorithm recognizes sponsorship segments with incredible accuracy,
+								even when creators try to disguise them.
+							</p>
+							<ul class="space-y-2">
+								{#each ['Recognizes common sponsorship phrases', 'Detects visual sponsorship indicators', 'Learns from user feedback', 'Updates in real-time'] as item}
+									<li class="flex items-start">
+										<div class="mt-1 mr-2 bg-green-500 p-1 text-white">
+											<ChevronRight class="h-4 w-4" />
+										</div>
+										{item}
+									</li>
+								{/each}
+							</ul>
+						</div>
+						<div class="relative">
+							<div
+								class="border-4 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+							>
+								<img
+									alt="Smart detection visualization"
+									class="w-full border-2 border-black"
+									src="/placeholder.svg?height=300&amp;width=400"
+								/>
+							</div>
+							<div
+								class="absolute -bottom-4 -left-4 -z-10 h-full w-full border-4 border-black bg-red-200"
+							></div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-          <div class="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 class="text-3xl font-bold mb-4">Smart Detection Technology</h3>
-              <p class="mb-4">
-                Our advanced algorithm recognizes sponsorship segments with incredible accuracy, even when creators
-                try to disguise them.
-              </p>
-              <ul class="space-y-2">
-                {#each [
-                  "Recognizes common sponsorship phrases",
-                  "Detects visual sponsorship indicators",
-                  "Learns from user feedback",
-                  "Updates in real-time",
-                ] as item}
-                  <li class="flex items-start">
-                    <div class="bg-green-500 text-white p-1 mr-2 mt-1">
-                      <ChevronRight class="w-4 h-4" />
-                    </div>
-                    {item}
-                  </li>
-                {/each}
-              </ul>
-            </div>
-            <div class="relative">
-              <div class="border-4 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <img alt="Smart detection visualization" class="w-full border-2 border-black" src="/placeholder.svg?height=300&amp;width=400">
-              </div>
-              <div class="absolute -bottom-4 -left-4 w-full h-full border-4 border-black bg-red-200 -z-10"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+			<!-- Memphis design elements -->
+			<div
+				class="absolute top-20 right-10 hidden h-16 w-16 rotate-45 transform border-4 border-black bg-yellow-300 lg:block"
+			></div>
+			<div
+				class="absolute bottom-40 left-10 hidden h-10 w-10 rounded-full border-4 border-black bg-blue-400 lg:block"
+			></div>
+		</section>
+	</div>
 
-      <!-- Memphis design elements -->
-      <div class="absolute top-20 right-10 w-16 h-16 bg-yellow-300 border-4 border-black transform rotate-45 hidden lg:block"></div>
-      <div class="absolute bottom-40 left-10 w-10 h-10 bg-blue-400 border-4 border-black rounded-full hidden lg:block"></div>
-    </section>
+	<!-- Pricing Section -->
+	<section
+		id="pricing"
+		class="relative border-b-4 border-black bg-gradient-to-b from-white to-gray-100 py-20 text-black"
+	>
+		<div class="container mx-auto px-4">
+			<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
+				<h2 class="mb-4 text-5xl font-black">
+					CHOOSE YOUR <span class="text-purple-600">PLAN</span>
+				</h2>
+				<p class="mx-auto max-w-2xl text-xl">
+					Upgrade to Premium for unlimited skips and advanced features.
+				</p>
+			</div>
 
-   </div>
+			<div class="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
+				{#each [{ title: 'Free', price: '$0', period: 'forever', description: 'Basic sponsorship skipping for casual YouTube viewers', features: ['Skip up to 50 sponsorships per month', 'Basic sponsorship detection', 'Time saved tracker', 'Works on all YouTube videos'], buttonText: 'Install Now', buttonColor: 'bg-black', popular: false }, { title: 'Premium', price: '$4.99', period: 'per month', description: 'Unlimited skipping and advanced features for power users', features: ['Unlimited sponsorship skipping', 'Advanced detection algorithm', 'Custom skip rules and preferences', 'Skip intros, outros & reminders', 'Detailed analytics dashboard', 'Priority support'], buttonText: 'Go Premium', buttonColor: 'bg-purple-600', popular: true }] as plan, index}
+					<div
+						class="relative border-4 border-black bg-white p-8"
+						in:fade={{ duration: 500, delay: index * 100 }}
+					>
+						{#if plan.popular}
+							<div
+								class="absolute -top-4 -right-4 border-4 border-black bg-yellow-400 px-4 py-1 font-bold text-black"
+							>
+								POPULAR
+							</div>
+						{/if}
 
-  <!-- Pricing Section -->
-  <section id="pricing" class="py-20 border-b-4 border-black text-black relative bg-gradient-to-b from-white to-gray-100">
-    <div class="container mx-auto px-4">
-      <div 
-        class="text-center mb-16"
-        in:fade={{ duration: 500 }}
-      >
-        <h2 class="text-5xl font-black mb-4">
-          CHOOSE YOUR <span class="text-purple-600">PLAN</span>
-        </h2>
-        <p class="text-xl max-w-2xl mx-auto">Upgrade to Premium for unlimited skips and advanced features.</p>
-      </div>
+						<h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
+						<div class="mb-4 flex items-end">
+							<span class="text-4xl font-black">{plan.price}</span>
+							<span class="ml-1 text-gray-600">/{plan.period}</span>
+						</div>
+						<p class="mb-6 text-gray-600">{plan.description}</p>
 
-      <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {#each [
-          {
-            title: "Free",
-            price: "$0",
-            period: "forever",
-            description: "Basic sponsorship skipping for casual YouTube viewers",
-            features: [
-              "Skip up to 50 sponsorships per month",
-              "Basic sponsorship detection",
-              "Time saved tracker",
-              "Works on all YouTube videos",
-            ],
-            buttonText: "Install Now",
-            buttonColor: "bg-black",
-            popular: false,
-          },
-          {
-            title: "Premium",
-            price: "$4.99",
-            period: "per month",
-            description: "Unlimited skipping and advanced features for power users",
-            features: [
-              "Unlimited sponsorship skipping",
-              "Advanced detection algorithm",
-              "Custom skip rules and preferences",
-              "Skip intros, outros & reminders",
-              "Detailed analytics dashboard",
-              "Priority support",
-            ],
-            buttonText: "Go Premium",
-            buttonColor: "bg-purple-600",
-            popular: true,
-          },
-        ] as plan, index}
-          <div
-            class="border-4 border-black bg-white p-8 relative "
-            in:fade={{ duration: 500, delay: index * 100 }}
-          >
-            {#if plan.popular}
-              <div class="absolute -top-4 -right-4 bg-yellow-400 text-black font-bold py-1 px-4 border-4 border-black">
-                POPULAR
-              </div>
-            {/if}
+						<ul class="mb-8 space-y-3">
+							{#each plan.features as feature}
+								<li class="flex items-start">
+									<div class="mr-2 bg-green-500 p-1 text-white">
+										<ChevronRight class="h-4 w-4" />
+									</div>
+									{feature}
+								</li>
+							{/each}
+						</ul>
 
-            <h3 class="text-3xl font-bold mb-2">{plan.title}</h3>
-            <div class="flex items-end mb-4">
-              <span class="text-4xl font-black">{plan.price}</span>
-              <span class="text-gray-600 ml-1">/{plan.period}</span>
-            </div>
-            <p class="mb-6 text-gray-600">{plan.description}</p>
+						<button
+							class="{plan.buttonColor} w-full transform border-2 border-black px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+						>
+							{plan.buttonText}
+						</button>
+					</div>
+				{/each}
+			</div>
 
-            <ul class="space-y-3 mb-8">
-              {#each plan.features as feature}
-                <li class="flex items-start">
-                  <div class="bg-green-500 text-white p-1 mr-2">
-                    <ChevronRight class="w-4 h-4" />
-                  </div>
-                  {feature}
-                </li>
-              {/each}
-            </ul>
+			<div class="mt-16 text-center" in:fade={{ duration: 500 }}>
+				<p class="mb-6 text-xl">Not convinced yet? Try Premium free for 7 days!</p>
+				<button
+					class="transform border-2 border-black bg-gradient-to-r from-purple-600 to-blue-500 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+				>
+					Start Free
+				</button>
+			</div>
+		</div>
 
-            <button
-              class="{plan.buttonColor} text-white font-bold py-3 px-8 w-full border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all transform hover:scale-105 active:scale-95"
-            >
-              {plan.buttonText}
-            </button>
-          </div>
-        {/each}
-      </div>
+		<!-- Memphis design elements -->
+		<div
+			class="absolute top-40 left-10 hidden h-4 w-20 border-4 border-black bg-red-500 lg:block"
+		></div>
+		<div
+			class="absolute right-20 bottom-20 hidden h-12 w-12 rounded-full border-4 border-black bg-blue-400 lg:block"
+		></div>
+	</section>
 
-      <div 
-        class="mt-16 text-center"
-        in:fade={{ duration: 500 }}
-      >
-        <p class="text-xl mb-6">Not convinced yet? Try Premium free for 7 days!</p>
-        <button
-          class="bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all transform hover:scale-105 active:scale-95"
-        >
-          Start Free 
-        </button>
-      </div>
-    </div>
+	<!-- Testimonials -->
+	<section id="testimonials" class="relative border-b-4 border-black bg-white py-20">
+		<div class=" container mx-auto px-4">
+			<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
+				<h2 class="mb-4 text-5xl font-black">
+					WHAT PEOPLE <span class="text-green-500">SAY</span>
+				</h2>
+				<p class="mx-auto max-w-2xl text-xl">
+					Join thousands of happy users who save time every day.
+				</p>
+			</div>
 
-    <!-- Memphis design elements -->
-    <div class="absolute top-40 left-10 w-20 h-4 bg-red-500 border-4 border-black hidden lg:block"></div>
-    <div class="absolute bottom-20 right-20 w-12 h-12 bg-blue-400 border-4 border-black rounded-full hidden lg:block"></div>
-  </section>
+			<div class="grid gap-8 md:grid-cols-3">
+				{#each [{ name: 'Alex Johnson', role: 'Tech Enthusiast', quote: 'This extension has saved me hours of my life. No more sitting through boring sponsorships!', color: 'bg-red-100' }, { name: 'Sarah Miller', role: 'Daily YouTube User', quote: "The Premium version is worth every penny. I've saved over 3 hours this month alone.", color: 'bg-blue-100' }, { name: 'Michael Chen', role: 'Content Creator', quote: 'As someone who watches a lot of tutorials, this extension is a game-changer for productivity.', color: 'bg-yellow-100' }] as testimonial, index}
+					<div
+						class="border-4 border-black {testimonial.color} relative p-6"
+						in:fade={{ duration: 500, delay: index * 100 }}
+					>
+						<div
+							class="absolute -top-5 -left-5 flex h-10 w-10 items-center justify-center rounded-full border-4 border-black bg-white text-2xl font-bold"
+						>
+							"
+						</div>
+						<p class="mb-6 text-lg italic">{testimonial.quote}</p>
+						<div class="flex items-center">
+							<div class="mr-4 h-12 w-12 rounded-full border-2 border-black bg-gray-300"></div>
+							<div>
+								<div class="font-bold">{testimonial.name}</div>
+								<div class="text-sm text-gray-600">{testimonial.role}</div>
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
 
-  <!-- Testimonials -->
-  <section id="testimonials" class="py-20 border-b-4 border-black bg-white relative">
-    <div class=" container mx-auto px-4">
-      <div 
-        class="text-center mb-16"
-        in:fade={{ duration: 500 }}
-      >
-        <h2 class="text-5xl font-black mb-4">
-          WHAT PEOPLE <span class="text-green-500">SAY</span>
-        </h2>
-        <p class="text-xl max-w-2xl mx-auto">Join thousands of happy users who save time every day.</p>
-      </div>
+			<div class="mt-16 border-4 border-black bg-green-100 p-8" in:fade={{ duration: 500 }}>
+				<div class="flex flex-col items-center justify-between md:flex-row">
+					<div class="mb-6 md:mb-0">
+						<h3 class="mb-2 text-3xl font-bold">Ready to start skipping?</h3>
+						<p class="text-xl">Join over 100,000 users saving time every day.</p>
+					</div>
+					<div class="flex gap-4">
+						<button
+							class="transform border-2 border-black bg-black px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+						>
+							Install Free
+						</button>
+						<button
+							class="transform border-2 border-black bg-purple-600 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+						>
+							Go Premium
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
 
-      <div class="grid md:grid-cols-3 gap-8">
-        {#each [
-          {
-            name: "Alex Johnson",
-            role: "Tech Enthusiast",
-            quote: "This extension has saved me hours of my life. No more sitting through boring sponsorships!",
-            color: "bg-red-100",
-          },
-          {
-            name: "Sarah Miller",
-            role: "Daily YouTube User",
-            quote: "The Premium version is worth every penny. I've saved over 3 hours this month alone.",
-            color: "bg-blue-100",
-          },
-          {
-            name: "Michael Chen",
-            role: "Content Creator",
-            quote: "As someone who watches a lot of tutorials, this extension is a game-changer for productivity.",
-            color: "bg-yellow-100",
-          },
-        ] as testimonial, index}
-          <div
-            class="border-4 border-black {testimonial.color} p-6 relative"
-            in:fade={{ duration: 500, delay: index * 100 }}
-          >
-            <div class="absolute -top-5 -left-5 w-10 h-10 bg-white border-4 border-black rounded-full flex items-center justify-center text-2xl font-bold">
-              "
-            </div>
-            <p class="mb-6 text-lg italic">{testimonial.quote}</p>
-            <div class="flex items-center">
-              <div class="w-12 h-12 bg-gray-300 border-2 border-black rounded-full mr-4"></div>
-              <div>
-                <div class="font-bold">{testimonial.name}</div>
-                <div class="text-sm text-gray-600">{testimonial.role}</div>
-              </div>
-            </div>
-          </div>
-        {/each}
-      </div>
+	<!-- FAQ Section -->
+	<section id="faq" class="border-b-4 border-black py-20 text-black">
+		<div class="container mx-auto px-4">
+			<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
+				<h2 class="mb-4 text-5xl font-black">
+					FAQ<span class="text-orange-500">s</span>
+				</h2>
+				<p class="mx-auto max-w-2xl text-xl">Got questions? We've got answers.</p>
+			</div>
 
-      <div 
-        class="mt-16 p-8 border-4 border-black bg-green-100"
-        in:fade={{ duration: 500 }}
-      >
-        <div class="flex flex-col md:flex-row items-center justify-between">
-          <div class="mb-6 md:mb-0">
-            <h3 class="text-3xl font-bold mb-2">Ready to start skipping?</h3>
-            <p class="text-xl">Join over 100,000 users saving time every day.</p>
-          </div>
-          <div class="flex gap-4">
-            <button
-              class="bg-black text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all transform hover:scale-105 active:scale-95"
-            >
-              Install Free
-            </button>
-            <button
-              class="bg-purple-600 text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all transform hover:scale-105 active:scale-95"
-            >
-              Go Premium
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+			<div class="mx-auto max-w-3xl space-y-6">
+				{#each [{ question: 'How does the extension detect sponsorships?', answer: 'Our extension uses a combination of machine learning algorithms and community-reported data to identify sponsorship segments in videos. It recognizes patterns in speech, visual cues, and common sponsorship phrases.' }, { question: "What's the difference between Free and Premium?", answer: 'The Free version allows you to skip up to 50 sponsorships per month, while Premium offers unlimited skipping, advanced detection, custom skip rules, and additional features like intro/outro skipping and detailed analytics.' }, { question: 'Will this slow down my browser?', answer: 'No, our extension is designed to be lightweight and efficient. It runs in the background with minimal impact on your browsing experience or computer performance.' }, { question: 'Can I customize what gets skipped?', answer: 'Yes, Premium users can set custom rules for what types of segments to skip (sponsorships, intros, outros, etc.) and even create channel-specific settings.' }, { question: 'How do I cancel my Premium subscription?', answer: 'You can cancel your Premium subscription at any time from your account settings. Your Premium features will remain active until the end of your billing period.' }] as faq, index}
+					<div
+						class="overflow-hidden border-4 border-black bg-white"
+						in:fade={{ duration: 500, delay: index * 100 }}
+					>
+						<div
+							class="flex items-center justify-between border-b-4 border-black bg-gray-100 p-4 text-lg font-bold"
+						>
+							{faq.question}
+							<div class="flex h-6 w-6 items-center justify-center bg-black text-white">+</div>
+						</div>
+						<div class="p-4">
+							<p>{faq.answer}</p>
+						</div>
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
 
-  <!-- FAQ Section -->
-  <section id="faq" class="py-20 text-black border-b-4 border-black">
-    <div class="container mx-auto px-4">
-      <div 
-        class="text-center mb-16"
-        in:fade={{ duration: 500 }}
-      >
-        <h2 class="text-5xl font-black mb-4">
-          FAQ<span class="text-orange-500">s</span>
-        </h2>
-        <p class="text-xl max-w-2xl mx-auto">Got questions? We've got answers.</p>
-      </div>
+	<!-- CTA Section -->
+	<section id="cta" class="relative overflow-hidden bg-white py-20">
+		<div class=" relative z-10 container mx-auto px-4">
+			<div
+				class="mx-auto max-w-4xl border-4 border-black bg-white p-10 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+				in:scale={{ duration: 500, start: 0.9 }}
+			>
+				<h2 class="mb-6 text-5xl font-black">
+					STOP WASTING <span class="text-red-500">TIME</span>
+				</h2>
+				<p class="mb-8 text-xl">
+					The average YouTube user wastes over 5 hours per month watching sponsorships. Get that
+					time back with SkipIt!
+				</p>
 
-      <div class="max-w-3xl mx-auto space-y-6">
-        {#each [
-          {
-            question: "How does the extension detect sponsorships?",
-            answer:
-              "Our extension uses a combination of machine learning algorithms and community-reported data to identify sponsorship segments in videos. It recognizes patterns in speech, visual cues, and common sponsorship phrases.",
-          },
-          {
-            question: "What's the difference between Free and Premium?",
-            answer:
-              "The Free version allows you to skip up to 50 sponsorships per month, while Premium offers unlimited skipping, advanced detection, custom skip rules, and additional features like intro/outro skipping and detailed analytics.",
-          },
-          {
-            question: "Will this slow down my browser?",
-            answer:
-              "No, our extension is designed to be lightweight and efficient. It runs in the background with minimal impact on your browsing experience or computer performance.",
-          },
-          {
-            question: "Can I customize what gets skipped?",
-            answer:
-              "Yes, Premium users can set custom rules for what types of segments to skip (sponsorships, intros, outros, etc.) and even create channel-specific settings.",
-          },
-          {
-            question: "How do I cancel my Premium subscription?",
-            answer:
-              "You can cancel your Premium subscription at any time from your account settings. Your Premium features will remain active until the end of your billing period.",
-          },
-        ] as faq, index}
-          <div
-            class="border-4 border-black bg-white overflow-hidden"
-            in:fade={{ duration: 500, delay: index * 100 }}
-          >
-            <div class="bg-gray-100 border-b-4 border-black p-4 font-bold text-lg flex justify-between items-center">
-              {faq.question}
-              <div class="w-6 h-6 bg-black text-white flex items-center justify-center">+</div>
-            </div>
-            <div class="p-4">
-              <p>{faq.answer}</p>
-            </div>
-          </div>
-        {/each}
-      </div>
-    </div>
-  </section>
+				<div class="flex flex-col justify-center gap-4 sm:flex-row">
+					<button
+						class="transform border-2 border-black bg-black px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+					>
+						Install Free
+					</button>
+					<button
+						class="flex transform items-center justify-center border-2 border-black bg-purple-600 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+					>
+						Go Premium <CreditCard class="ml-2 h-5 w-5" />
+					</button>
+				</div>
 
-  <!-- CTA Section -->
-<section  id="cta" class="py-20 relative overflow-hidden bg-white">
-    <div class=" container mx-auto px-4 relative z-10">
-      <div 
-        class="max-w-4xl mx-auto text-center bg-white border-4 border-black p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-        in:scale={{ duration: 500, start: 0.9 }}
-      >
-        <h2 class="text-5xl font-black mb-6">
-          STOP WASTING <span class="text-red-500">TIME</span>
-        </h2>
-        <p class="text-xl mb-8">
-          The average YouTube user wastes over 5 hours per month watching sponsorships. Get that time back with
-          SkipIt!
-        </p>
+				<div class="mt-8 flex items-center justify-center gap-4">
+					<div class="flex">
+						{#each Array(5) as _}
+							<Award class="h-6 w-6 text-yellow-500" />
+						{/each}
+					</div>
+					<span class="font-bold">4.9/5 from 2,000+ reviews</span>
+				</div>
+			</div>
+		</div>
 
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            class="bg-black text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all transform hover:scale-105 active:scale-95"
-          >
-            Install Free
-          </button>
-          <button
-            class="bg-purple-600 text-white font-bold py-3 px-8 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center transform hover:scale-105 active:scale-95"
-          >
-            Go Premium <CreditCard class="ml-2 w-5 h-5" />
-          </button>
-        </div>
+		<!-- Memphis design background -->
+		<div class="absolute inset-0 -z-10">
+			<div
+				class="absolute top-10 left-10 h-20 w-20 rotate-45 transform border-4 border-black bg-yellow-300"
+			></div>
+			<div
+				class="absolute top-40 right-20 h-16 w-16 rounded-full border-4 border-black bg-blue-400"
+			></div>
+			<div class="absolute bottom-20 left-1/3 h-8 w-24 border-4 border-black bg-red-500"></div>
+			<div
+				class="absolute right-1/4 bottom-40 h-12 w-12 rotate-12 transform border-4 border-black bg-purple-400"
+			></div>
+		</div>
+	</section>
 
-        <div class="mt-8 flex items-center justify-center gap-4">
-          <div class="flex">
-            {#each Array(5) as _}
-              <Award class="w-6 h-6 text-yellow-500" />
-            {/each}
-          </div>
-          <span class="font-bold">4.9/5 from 2,000+ reviews</span>
-        </div>
-      </div>
-    </div>
+	<!-- Footer -->
+	<footer class="border-t-4 border-white bg-black py-12 text-white">
+		<div class="container mx-auto px-4">
+			<div class="grid gap-8 md:grid-cols-4">
+				<div>
+					<div class="mb-4 flex items-center gap-2">
+						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-500">
+							<FastForward class="h-5 w-5 text-white" />
+						</div>
+						<span class="text-2xl font-black tracking-tight">
+							SKIP<span class="text-red-500">IT</span>
+						</span>
+					</div>
+					<p class="text-gray-400">Save time and enjoy uninterrupted YouTube content.</p>
+				</div>
 
-    <!-- Memphis design background -->
-    <div class="absolute inset-0 -z-10">
-      <div class="absolute top-10 left-10 w-20 h-20 bg-yellow-300 border-4 border-black transform rotate-45"></div>
-      <div class="absolute top-40 right-20 w-16 h-16 bg-blue-400 border-4 border-black rounded-full"></div>
-      <div class="absolute bottom-20 left-1/3 w-24 h-8 bg-red-500 border-4 border-black"></div>
-      <div class="absolute bottom-40 right-1/4 w-12 h-12 bg-purple-400 border-4 border-black transform rotate-12"></div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="bg-black text-white py-12 border-t-4 border-white">
-    <div class="container mx-auto px-4">
-      <div class="grid md:grid-cols-4 gap-8">
-        <div>
-          <div class="flex items-center gap-2 mb-4">
-            <div class="bg-red-500 w-8 h-8 rounded-full flex items-center justify-center">
-              <FastForward class="text-white w-5 h-5" />
-            </div>
-            <span class="font-black text-2xl tracking-tight">
-              SKIP<span class="text-red-500">IT</span>
-            </span>
-          </div>
-          <p class="text-gray-400">Save time and enjoy uninterrupted YouTube content.</p>
-        </div>
-
-        <div>
-          <h4 class="font-bold text-lg mb-4">Product</h4>
-          <ul class="space-y-2">
-            <li>
-              <a href="#features" class="hover:text-red-500 transition-colors">
-                Features
-              </a>
-            </li>
-            <li>
-              <a href="#pricing" class="hover:text-red-500 transition-colors">
-                Pricing
-              </a>
-            </li>
-            
-          </ul>
-        </div>
-      </div>
-    </div>
-  </footer>
+				<div>
+					<h4 class="mb-4 text-lg font-bold">Product</h4>
+					<ul class="space-y-2">
+						<li>
+							<a href="#features" class="transition-colors hover:text-red-500"> Features </a>
+						</li>
+						<li>
+							<a href="#pricing" class="transition-colors hover:text-red-500"> Pricing </a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</footer>
 </div>
 
 <style>
-  .body {
-    font-family: 'Inter', sans-serif;
-    background-color: white;
-  }
-  
-  .section {
-    background-color: white;
-  }
-  
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  @keyframes rotate-blob {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  
-  /* Your existing styles */
-  /* #features {
+	.body {
+		font-family: 'Inter', sans-serif;
+		background-color: white;
+	}
+
+	.section {
+		background-color: white;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes rotate-blob {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Your existing styles */
+	/* #features {
     background-color: #ffffff;
   }
   #testimonials {
@@ -651,4 +580,4 @@
     background-color: #ffffff;
   }
     */
-</style> 
+</style>

@@ -8,9 +8,9 @@
 	let change = $state(false);
 	
 	onMount(() => {
-		console.log("the event is running ->");
 		setTimeout(() => {
 			change = true;
+		console.log("the event is running ->");
 		}, 100);
 		
 		// Commented extension code preserved as in original
