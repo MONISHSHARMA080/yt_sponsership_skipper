@@ -1,48 +1,135 @@
-<script>
+
+
+<script >
 	import { onMount } from 'svelte';
-	import { fade, scale } from 'svelte/transition';
-	import { Spring } from 'svelte/motion';
+	import { fade, scale, slide } from 'svelte/transition';
+	import { Spring, Tween } from 'svelte/motion';
 	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
+	import { cubicOut, sineIn, sineInOut } from 'svelte/easing';
 
-	let scrollY = $state(0)
+  let scrollY = $state(0);
+  let yellowCircle = new Spring({ x: 0, y: 0 });
+  const blueCircle = new Spring({ x: 0, y: 0 });
+  
+  let openFaq= $state(0)
+  
+  // Initialize element visibility states
+  let titleVisible = $state(false);
+  const faqItemsVisible = $state([false, false, false, false, false]);
+  
+  // Create tweens for Y position animations
+  const titleY = new Tween(20, { duration: 500, easing: cubicOut });
+  const faqItemsY = [
+    new Tween(20, { duration: 500, easing: cubicOut }),
+    new Tween(20, { duration: 500, easing: cubicOut }),
+    new Tween(20, { duration: 500, easing: cubicOut }),
+    new Tween(20, { duration: 500, easing: cubicOut }),
+    new Tween(20, { duration: 500, easing: cubicOut })
+  ];
+  
+  // Opacity tweens
+  const titleOpacity = new Tween(0, { duration: 500, easing: cubicOut });
+  const faqItemsOpacity = [
+    new Tween(0, { duration: 500, easing: cubicOut }),
+    new Tween(0, { duration: 500, easing: cubicOut }),
+    new Tween(0, { duration: 500, easing: cubicOut }),
+    new Tween(0, { duration: 500, easing: cubicOut }),
+    new Tween(0, { duration: 500, easing: cubicOut })
+  ];
+  
+    let facsArray = $state(
+[
+    { 
+      shouldWeKeepItOpen: true,
+      question: 'How does the extension detect sponsorships?', 
+      answer: "Our extension uses a combination of machine learning algorithms and community-reported data to identify sponsorship segments in videos. It recognizes patterns in speech, visual cues, and common sponsorship phrases.",
+    }, 
+    { 
+      question: "What's the difference between Free and Premium?", 
+      answer: 'The Free version allows you to skip up to 50 sponsorships per month, while Premium offers unlimited skipping, advanced detection, custom skip rules, and additional features like intro/outro skipping and detailed analytics.', 
+      shouldWeKeepItOpen: true,
+    }, 
+    { 
+      shouldWeKeepItOpen: true,
+      question: 'Will this slow down my browser?', 
+      answer: 'No, our extension is designed to be lightweight and efficient. It runs in the background with minimal impact on your browsing experience or computer performance.' 
+    }, 
+    { 
+      shouldWeKeepItOpen: true,
+      question: 'Can I customize what gets skipped?', 
+      answer: 'Yes, Premium users can set custom rules for what types of segments to skip (sponsorships, intros, outros, etc.) and even create channel-specific settings.' 
+    }, 
+    { 
+      shouldWeKeepItOpen: true,
+      question: 'How do I cancel my Premium subscription?', 
+      answer: 'You can cancel your Premium subscription at any time from your account settings. Your Premium features will remain active until the end of your billing period.' 
+    }
+  ]
+    )
+    
+  onMount(() => {
+    const handleScroll = () => {
+      scrollY = window.scrollY;
+      
+      // Check if elements are in viewport
+      const faqSection = document.getElementById('faq');
+      if (faqSection) {
+        const rect = faqSection.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight * 0.75 && rect.bottom > 0;
+        
+        if (isInViewport && !titleVisible) {
+          titleVisible = true;
+          titleOpacity.target = 1;
+          titleY.target = 0;
+          
+          // Animate FAQ items with delay
+          faqItemsVisible.forEach((_, index) => {
+            setTimeout(() => {
+              faqItemsVisible[index] = true;
+              faqItemsOpacity[index].target = 1;
+              faqItemsY[index].target = 0;
+            }, 100 * index);
+          });
+        }
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    // Initial check in case elements are already in viewport
+    handleScroll();
 
-	let yellowCircle = new Spring({ x: 0, y: 0 });
-	const blueCircle = new Spring({ x: 0, y: 0 });
 
-	onMount(() => {
-		const handleScroll = () => {
-			scrollY = window.scrollY;
-		};
 
-		window.addEventListener('scroll', handleScroll);
-
-		// Animations
-		const animateShapes = () => {
-			const animateYellow = () => {
-				yellowCircle.target = { x: 0, y: 0 };
-				setTimeout(() => (yellowCircle.target = { x: 50, y: 30 }), 100);
-				setTimeout(() => (yellowCircle.target = { x: 0, y: 0 }), 10100);
-				setTimeout(animateYellow, 20000);
-			};
-
-			const animateBlue = () => {
-				blueCircle.target = { x: 0, y: 0 };
-				setTimeout(() => (blueCircle.target = { x: -70, y: 50 }), 100);
-				setTimeout(() => (blueCircle.target = { x: 0, y: 0 }), 12600);
-				setTimeout(animateBlue, 25000);
-			};
-
-			animateYellow();
-			animateBlue();
-		};
-
-		animateShapes();
-
-		return () => {
-			window.removeEventListener('scroll', handleScroll);
-		};
-	});
+    
+    // Animations for the circles
+    const animateShapes = () => {
+      const animateYellow = () => {
+        yellowCircle.target = { x: 0, y: 0 };
+        setTimeout(() => (yellowCircle.target = { x: 50, y: 30 }), 100);
+        setTimeout(() => (yellowCircle.target = { x: 0, y: 0 }), 10100);
+        setTimeout(animateYellow, 20000);
+      };
+      
+      const animateBlue = () => {
+        blueCircle.target = { x: 0, y: 0 };
+        setTimeout(() => (blueCircle.target = { x: -70, y: 50 }), 100);
+        setTimeout(() => (blueCircle.target = { x: 0, y: 0 }), 12600);
+        setTimeout(animateBlue, 25000);
+      };
+      
+      animateYellow();
+      animateBlue();
+    };
+    
+    animateShapes();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  });
 </script>
+
+
 
 <svelte:head>
 	<title>SkipIt - Skip the boring parts</title>
@@ -308,10 +395,7 @@
 						class="relative border-4  {plan.popular? "border-red-500":"border-black"} bg-white p-8"
 						in:fade={{ duration: 500, delay: index * 100 }}
 					>
-					<!-- <div
-						class=` relative border-4 border-black bg-white p-8 `
-						in:fade={{ duration: 500, delay: index * 100 }}
-					> -->
+					
 						{#if plan.popular}
 							<div
 								class="absolute -top-4 -right-4 border-4 border-black bg-yellow-400 px-4 py-1 font-bold text-black"
@@ -425,37 +509,53 @@
 	</section>
 
 	<!-- FAQ Section -->
-	<section id="faq" class="border-b-4 border-black py-20 text-black">
-		<div class="container mx-auto px-4">
-			<div class="mb-16 text-center" in:fade={{ duration: 500 }}>
-				<h2 class="mb-4 text-5xl font-black">
-					FAQ<span class="text-orange-500">s</span>
-				</h2>
-				<p class="mx-auto max-w-2xl text-xl">Got questions? We've got answers.</p>
-			</div>
 
-			<div class="mx-auto max-w-3xl space-y-6">
-				{#each [{ question: 'How does the extension detect sponsorships?', answer: 'Our extension uses a combination of machine learning algorithms and community-reported data to identify sponsorship segments in videos. It recognizes patterns in speech, visual cues, and common sponsorship phrases.' }, { question: "What's the difference between Free and Premium?", answer: 'The Free version allows you to skip up to 50 sponsorships per month, while Premium offers unlimited skipping, advanced detection, custom skip rules, and additional features like intro/outro skipping and detailed analytics.' }, { question: 'Will this slow down my browser?', answer: 'No, our extension is designed to be lightweight and efficient. It runs in the background with minimal impact on your browsing experience or computer performance.' }, { question: 'Can I customize what gets skipped?', answer: 'Yes, Premium users can set custom rules for what types of segments to skip (sponsorships, intros, outros, etc.) and even create channel-specific settings.' }, { question: 'How do I cancel my Premium subscription?', answer: 'You can cancel your Premium subscription at any time from your account settings. Your Premium features will remain active until the end of your billing period.' }] as faq, index}
-					<div
-						class="overflow-hidden border-4 border-black bg-white"
-						in:fade={{ duration: 500, delay: index * 100 }}
-					>
-						<div
-							class="flex items-center justify-between border-b-4 border-black bg-gray-100 p-4 text-lg font-bold"
-						>
-							{faq.question}
-							<div class="flex h-6 w-6 items-center justify-center bg-black text-white">+</div>
-						</div>
-						<div class="p-4">
-							<p>{faq.answer}</p>
-						</div>
-					</div>
-				{/each}
-			</div>
-		</div>
-	</section>
+<section id="faq" class="border-b-4 border-black py-20 text-black">
+  <div class="container mx-auto px-4">
+    <div class="mb-16 text-center" 
+         style:opacity={titleOpacity.current} 
+         style:transform={`translateY(${titleY.current}px)`}>
+      <h2 class="mb-4 text-5xl font-black">
+        FAQ<span class="text-orange-500">s</span>
+      </h2>
+      <p class="mx-auto max-w-2xl text-xl">Got questions? We've got answers.</p>
+    </div>
+    
+    <div class="mx-auto max-w-3xl space-y-6">
+      {#each facsArray as faq, index}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div 
+          class="overflow-hidden border-4 border-black bg-white"
+          style:opacity={faqItemsOpacity[index].current}
+          style:transform={`translateY(${faqItemsY[index].current}px)`}
+          onclick={()=>{
+            // close the question in the array at that index
+            // console.log(`shouldWeKeepItOpen: ${faq.shouldWeKeepItOpen}`);
+            facsArray[index].shouldWeKeepItOpen = !facsArray[index].shouldWeKeepItOpen
+            // console.log(`shouldWeKeepItOpen: ${faq.shouldWeKeepItOpen}`);
+          }}
+        >
+          <div class="flex items-center justify-between border-b-4 border-black bg-gray-100 p-4 text-lg font-bold">
+            {faq.question}
+            <div class="flex h-6 w-6 items-center justify-center bg-black text-white">
+              {faq.shouldWeKeepItOpen ? '−' : '+'}
+            </div>
+          </div>
+          
+          {#if faq.shouldWeKeepItOpen}
+            <div transition:slide={{ duration: 198, easing: sineInOut }} class="p-4">
+              {faq.answer}
+            </div>
+          {/if}
+        </div>
+      {/each}
+    </div>
+  </div>
+</section>
 
 	<!-- CTA Section -->
+
 	<section id="cta" class="relative overflow-hidden bg-white py-20">
 		<div class=" relative z-10 container mx-auto px-4">
 			<div
@@ -510,35 +610,25 @@
 	</section>
 
 	<!-- Footer -->
-	<footer class="border-t-4 border-white bg-black py-12 text-white">
-		<div class="container mx-auto px-4">
-			<div class="grid gap-8 md:grid-cols-4">
-				<div>
-					<div class="mb-4 flex items-center gap-2">
-						<div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-500">
-							<FastForward class="h-5 w-5 text-white" />
-						</div>
-						<span class="text-2xl font-black tracking-tight">
-							SKIP<span class="text-red-500">IT</span>
-						</span>
-					</div>
-					<p class="text-gray-400">Save time and enjoy uninterrupted YouTube content.</p>
-				</div>
+<footer class="border-t-4 border-white bg-black py-12 text-white">
+  <div class="container mx-auto px-4">
+    <div class="flex flex-wrap items-center">
+      <div class="flex items-center gap-2 mr-auto">
+        <div class="flex h-8 w-9 items-center justify-center rounded-full bg-red-500">
+          <FastForward class="h-5 w-5 text-white" />
+        </div>
+        <span class="text-2xl font-black tracking-tight">
+          SKIP<span class="text-red-500">IT</span>
+        </span>
+      </div>
+      <div class="mt-4 md:mt-0 ml-8 md:ml-8">
+        <p class="text-gray-400">Save time and enjoy uninterrupted YouTube content. Don't waste time getting stuck on the youtube sponsership</p>
+      </div>
+    </div>
+  </div>
+</footer>
 
-				<div>
-					<h4 class="mb-4 text-lg font-bold">Product</h4>
-					<ul class="space-y-2">
-						<li>
-							<a href="#features" class="transition-colors hover:text-red-500"> Features </a>
-						</li>
-						<li>
-							<a href="#pricing" class="transition-colors hover:text-red-500"> Pricing </a>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</footer>
+
 </div>
 
 <style>
