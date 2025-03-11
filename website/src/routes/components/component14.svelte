@@ -127,6 +127,30 @@
       window.removeEventListener('scroll', handleScroll);
     };
   });
+  // after on sight 
+ /**
+ * Creates a YouTube-style progress bar as an HTML element.
+ * @param {string} baseColorForTailwindProgressBar - The Tailwind color for the filled progress bar.
+ * @param {string} baseColorForBarWhenNotUse - The Tailwind color for the unfilled part of the progress bar.
+ * @param {number} currentStateOfTheProgressBar - The progress percentage (0-100).
+ * @returns {HTMLDivElement} - The progress bar element.
+ */
+function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorForBarWhenNotUse, currentStateOfTheProgressBar) {
+    // Create the main progress bar container
+    const progressBar = document.createElement("div");
+    progressBar.className = `relative w-full h-4 ${baseColorForBarWhenNotUse} rounded overflow-hidden`;
+
+    // Create the filled part of the progress bar
+    const progressFill = document.createElement("div");
+    progressFill.className = `absolute top-0 left-0 h-full ${baseColorForTailwindProgressBar}`;
+    progressFill.style.width = `${currentStateOfTheProgressBar}%`;
+
+    // Append the fill to the main container
+    progressBar.appendChild(progressFill);
+
+    return progressBar;
+}
+
 </script>
 
 
@@ -244,12 +268,20 @@
 										alt="YouTube video with sponsorship section highlighted"
 										class="h-full w-full object-cover"
 									/>
-									<div
+									<!-- <div
 										class="absolute right-4 bottom-4 left-4 flex items-center justify-center rounded bg-red-500 px-4 py-2 font-bold text-white"
-										style="animation: pulse 2s ease-in-out infinite;"
+										style="animation: pulse 1s ease-in-out infinite;"
 									>
 										<FastForward class="mr-2" /> Sponsorship Detected - Skipping...
-									</div>
+									</div> -->
+                  <!-- the youtube video progress bar -->
+                  <div class="absolute bottom-0 left-0 h-4 rounded-3xl my w-full bg-blue-800" >
+                    <!-- the video progress bar  -->
+                  <div class="absolute bottom-0  h-4 rounded-3xl my  bg-red-600" style="left:20% ;width:70%" ></div>
+
+                  <div class="h-full bg-green-500" style="width: 50%"></div>
+                  <div>
+                  </div>
 								</div>
 							</div>
 							<div class="flex items-center justify-between">
@@ -285,6 +317,26 @@
 			class="absolute -bottom-2 left-2/3 h-12 w-12 rotate-45 transform border-4 border-black bg-red-500"
 		></div>
 	</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	<!-- Features Section -->
 	<div class="bg-white">
@@ -663,4 +715,39 @@
     background-color: #ffffff;
   }
     */
+
+		@keyframes rotate-blob {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(360deg);
+			}
+		}
+		
+		@keyframes spin {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(360deg);
+			}
+		}
+		
+		@keyframes pulse {
+			0% {
+				opacity: 0.8;
+				transform: scale(1);
+			}
+			50% {
+				opacity: 1;
+				transform: scale(1.05);
+			}
+			100% {
+				opacity: 0.8;
+				transform: scale(1);
+			}
+		}
+
+
 </style>
