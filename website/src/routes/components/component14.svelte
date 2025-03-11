@@ -6,12 +6,14 @@
 	import { Spring, Tween } from 'svelte/motion';
 	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
 	import { cubicOut, sineIn, sineInOut } from 'svelte/easing';
+	import ProgressBar from './youtubeProgressBar/progressBar.svelte';
 
   let scrollY = $state(0);
   let yellowCircle = new Spring({ x: 0, y: 0 });
   const blueCircle = new Spring({ x: 0, y: 0 });
   
-  let openFaq= $state(0)
+  let inSponsorSegment = $state(false)
+  let shouldWeStartRemovingSponsorSkippingMessage = $state(false)
   
   // Initialize element visibility states
   let titleVisible = $state(false);
@@ -19,6 +21,7 @@
   
   // Create tweens for Y position animations
   const titleY = new Tween(20, { duration: 500, easing: cubicOut });
+
   const faqItemsY = [
     new Tween(20, { duration: 500, easing: cubicOut }),
     new Tween(20, { duration: 500, easing: cubicOut }),
@@ -36,6 +39,17 @@
     new Tween(0, { duration: 500, easing: cubicOut }),
     new Tween(0, { duration: 500, easing: cubicOut })
   ];
+
+
+  // for the skipping notification on the screen 
+  const springForFastForwardInVideo = new Tween({x:0,y:0}, {
+	easing: t=>t*t ,
+	duration:400,
+	interpolate: (a, b) => (t) => ({
+			x: a.x + (b.x - a.x) * t,
+			y: a.y + (b.y - a.y) * t
+		})
+});
   
     let facsArray = $state(
 [
@@ -93,7 +107,13 @@
         }
       }
     };
-    
+	// animating the >> in the skipping the sponsor message
+	springForFastForwardInVideo.target = { x: springForFastForwardInVideo.target.x + 12, y: springForFastForwardInVideo.target.y };
+
+
+	// setTimeout(() => {
+	// 	springForFastForwardInVideo.set({x:0, y:0})
+	// }, 400)
     window.addEventListener('scroll', handleScroll);
     // Initial check in case elements are already in viewport
     handleScroll();
@@ -151,9 +171,16 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
     return progressBar;
 }
 
+  let isPlaying = $state(true);
+  let progress = $state(0);
+  
+  // Define the sponsor segment (in real app, this would come from an API or database)
+  let sponsorStart = $state(16);
+  let sponsorEnd = $state(33);
+  let videoLength = $state(50);
+
+
 </script>
-
-
 
 <svelte:head>
 	<title>SkipIt - Skip the boring parts</title>
@@ -274,12 +301,78 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 									>
 										<FastForward class="mr-2" /> Sponsorship Detected - Skipping...
 									</div> -->
-                  <!-- the youtube video progress bar -->
-                  <div class="absolute bottom-0 left-0 h-4 rounded-3xl my w-full bg-blue-800" >
-                    <!-- the video progress bar  -->
-                  <div class="absolute bottom-0  h-4 rounded-3xl my  bg-red-600" style="left:20% ;width:70%" ></div>
 
-                  <div class="h-full bg-green-500" style="width: 50%"></div>
+				{#if inSponsorSegment}
+					<div class="absolute bottom-4 left-4 right-4 z-50 animate-slide-up   ">
+						<div class="border-4 border-black bg-white p-2 flex items-center justify-between overflow-hidden rounded-sm shadow-lg">
+						<div class="flex items-center animate-fade-in">
+							<div class="bg-red-500 p-1 mr-2 rounded-sm">
+							<FastForward class="text-white w-4 h-4" />
+							</div>
+							<span class="font-bold text-black text-sm animate-delayed-fade">
+							SPONSORSHIP DETECTED
+							</span>
+						</div>
+						<div class="flex items-center animate-slide-in-right">
+							<span class="text-xs bg-yellow-400 px-2 py-0.5 border-2 border-black font-bold mr-2">
+							SKIPPING
+							</span>
+							<div class="back-forth">
+							<FastForward class="text-black w-4 h-4" />
+							</div>
+						</div>
+						</div>
+					</div>
+
+				{:else}
+
+				<!-- if the  inSponsorSegment is false then try to slide it down -->
+				<!-- When inSponsorSegment is false, apply slide-down animation -->
+					<div class="absolute bottom-4 left-4 right-4 z-50 animate-slide-down">
+					<div class="border-4 border-black bg-white p-2 flex items-center justify-between overflow-hidden rounded-sm shadow-lg">
+						<div class="flex items-center">
+						<div class="bg-red-500 p-1 mr-2 rounded-sm">
+							<FastForward class="text-white w-4 h-4" />
+						</div>
+						<span class="font-bold text-black text-sm">
+							SPONSORSHIP DETECTED
+						</span>
+						</div>
+						<div class="flex items-center">
+						<span class="text-xs bg-yellow-400 px-2 py-0.5 border-2 border-black font-bold mr-2">
+							SKIPPING
+						</span>
+						<div class="back-forth">
+							<FastForward class="text-black w-4 h-4" />
+						</div>
+						</div>
+					</div>
+					</div>
+				{/if}
+
+
+
+
+<ProgressBar
+  funcToRunWhenInTheSponSorSection={(areWeInSponsorSegment)=>{console.log("are we in the sponsor segment ->",areWeInSponsorSegment)
+	  inSponsorSegment = areWeInSponsorSegment
+  }}
+  sponsorStart={sponsorStart}
+  sponsorEnd={sponsorEnd}
+  videoLength={videoLength}
+  playVideo={isPlaying}
+  funcToRunAfterVideoCompletion={()=>{console.log("video ended and stopping it ")}}
+  funcToRunAfterTheSponsorSegment={()=>{console.log(" sponsor segment ended and stopping it ")
+//   isPlaying = true 
+	inSponsorSegment = false
+  }
+}
+/>
+                  <!-- the youtube video progress bar -->
+                  <!-- <div class="absolute bottom-0 left-0 h-4 rounded-3xl my w-full bg-blue-800" > -->
+                    <!-- the video progress bar  -->
+                  <!-- <div class="absolute bottom-0  h-4 rounded-3xl my  bg-red-600" style="left:20% ;width:70%" ></div> -->
+                  <!-- <div class="h-full bg-green-500" style="width: 50%"></div> -->
                   <div>
                   </div>
 								</div>
@@ -495,6 +588,7 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 		class="absolute right-20 bottom-20 hidden h-12 w-12 rounded-full border-4 border-black bg-blue-400 lg:block"
 	></div>
 </section>
+
 	<!-- Testimonials -->
 	<section id="testimonials" class="relative border-b-4 border-black bg-white py-20">
 		<div class=" container mx-auto px-4">
@@ -704,18 +798,6 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 		}
 	}
 
-	/* Your existing styles */
-	/* #features {
-    background-color: #ffffff;
-  }
-  #testimonials {
-    background-color: #ffffff;
-  }
-  #cta {
-    background-color: #ffffff;
-  }
-    */
-
 		@keyframes rotate-blob {
 			from {
 				transform: rotate(0deg);
@@ -749,5 +831,93 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 			}
 		}
 
+ @keyframes moveBackForth {
+    0%, 100% { transform: translateX(0px); }
+    50% { transform: translateX(9px); }
+  }
+  
+  .back-forth {
+    animation: moveBackForth 1s ease-in-out infinite;
+  }
+
+ /* Tailwind animations */
+  /* @keyframes slideUp {
+    from { transform: translateY(120px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+ @keyframes slideDown {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(50px); opacity: 0; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInRight {
+    from { transform: translateX(-100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes moveBackForth {
+    0%, 100% { transform: translateX(0px); }
+    50% { transform: translateX(10px); }
+  }
+   */
+
+
+
+
+  @keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes slideDown {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(50px); opacity: 0; }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInRight {
+    from { transform: translateX(-100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes moveBackForth {
+    0%, 100% { transform: translateX(0px); }
+    50% { transform: translateX(10px); }
+  }
+  
+  /* Animation classes */
+  .animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .animate-slide-down {
+    animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out 0.2s both;
+  }
+  
+  .animate-delayed-fade {
+    animation: fadeIn 0.3s ease-out 0.4s both;
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  }
+  
+  .back-forth {
+    animation: moveBackForth 1s ease-in-out infinite;
+  }
 
 </style>
