@@ -98,7 +98,7 @@
          if (sponsorShipDetectedFastForward && !skippedTheSponsorSegment) {
           // cause we want some time for the user to see and the animation to play
           skippedTheSponsorSegment = true
-          let a  = calcPercentageOfSomthing(0.3, sponsorEndPercent - sponsorStartPercent)
+          let a  = calcPercentageOfSomthing(0.25, sponsorEndPercent - sponsorStartPercent)
            progress = sponsorEnd -a ;
            console.log(`about to skip ${a} form the sponsor segment which is ${sponsorEndPercent - sponsorStartPercent} long and the sponsor end is ${sponsorEnd} and the progress is ${progress}`);
            // cause the animation is re-running
