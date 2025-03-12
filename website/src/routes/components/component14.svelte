@@ -391,7 +391,7 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 // here make a set timeout so that it goes in a slow fashion
    setTimeout(()=>{
 		inSponsorSegment = false
-   },800)
+   },1090)
    
   }
 }
