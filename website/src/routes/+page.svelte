@@ -75,7 +75,7 @@
   
 </script>
 
-{#if change}
+<!-- {#if change} -->
  
 <!-- <button onclick={togglePlay} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
 play the video
@@ -87,7 +87,7 @@ play the video
 
 
 
-   
+<!--    
 {:else}
     <h1>Welcome to SvelteKit</h1>
     {#if keyFromChromeExtensionState.key === null}
@@ -101,4 +101,4 @@ play the video
     <p >
         the key value it {JSON.stringify(keyFromChromeExtensionState)}
     </p>
-{/if}
+{/if} -->
