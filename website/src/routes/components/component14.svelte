@@ -176,8 +176,8 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
   
   // Define the sponsor segment (in real app, this would come from an API or database)
   let sponsorStart = $state(16);
-  let sponsorEnd = $state(33);
-  let videoLength = $state(50);
+  let sponsorEnd = $state(52);
+  let videoLength = $state(73);
 
 
 </script>
@@ -303,14 +303,14 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 									</div> -->
 
 				{#if inSponsorSegment}
-					<div class="absolute bottom-4 left-4 right-4 z-50 animate-slide-up   ">
+					<div class="absolute bottom-8 left-4 right-4 z-50 animate-slide-up   ">
 						<div class="border-4 border-black bg-white p-2 flex items-center justify-between overflow-hidden rounded-sm shadow-lg">
 						<div class="flex items-center animate-fade-in">
 							<div class="bg-red-500 p-1 mr-2 rounded-sm">
 							<FastForward class="text-white w-4 h-4" />
 							</div>
 							<span class="font-bold text-black text-sm animate-delayed-fade">
-							SPONSORSHIP DETECTED
+							Upcomming sponsership detected
 							</span>
 						</div>
 						<div class="flex items-center animate-slide-in-right">
@@ -328,7 +328,7 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 
 				<!-- if the  inSponsorSegment is false then try to slide it down -->
 				<!-- When inSponsorSegment is false, apply slide-down animation -->
-					<div class="absolute bottom-4 left-4 right-4 z-50 animate-slide-down">
+					<div class="absolute bottom-6 left-4 right-4 z-50 animate-slide-down">
 					<div class="border-4 border-black bg-white p-2 flex items-center justify-between overflow-hidden rounded-sm shadow-lg">
 						<div class="flex items-center">
 						<div class="bg-red-500 p-1 mr-2 rounded-sm">
@@ -353,9 +353,33 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <ProgressBar
-  funcToRunWhenInTheSponSorSection={(areWeInSponsorSegment)=>{console.log("are we in the sponsor segment ->",areWeInSponsorSegment)
-	  inSponsorSegment = areWeInSponsorSegment
+  funcToRunWhenInTheSponSorSection={(areWeInSponsorSegment)=>{
+  }} 
+  funToRunFewSecBeforeSponsorSegment={{time:4,func:()=>{
+	console.log("running the function before the sponsor segment")
+	  inSponsorSegment = true
+  }
   }}
   sponsorStart={sponsorStart}
   sponsorEnd={sponsorEnd}
@@ -364,10 +388,25 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
   funcToRunAfterVideoCompletion={()=>{console.log("video ended and stopping it ")}}
   funcToRunAfterTheSponsorSegment={()=>{console.log(" sponsor segment ended and stopping it ")
 //   isPlaying = true 
-	inSponsorSegment = false
+// here make a set timeout so that it goes in a slow fashion
+   setTimeout(()=>{
+		inSponsorSegment = false
+   },800)
+   
   }
 }
+sponsorShipDetectedFastForward= {true}
 />
+
+
+
+
+
+
+
+
+
+
                   <!-- the youtube video progress bar -->
                   <!-- <div class="absolute bottom-0 left-0 h-4 rounded-3xl my w-full bg-blue-800" > -->
                     <!-- the video progress bar  -->
@@ -840,35 +879,6 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
     animation: moveBackForth 1s ease-in-out infinite;
   }
 
- /* Tailwind animations */
-  /* @keyframes slideUp {
-    from { transform: translateY(120px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
- @keyframes slideDown {
-    from { transform: translateY(0); opacity: 1; }
-    to { transform: translateY(50px); opacity: 0; }
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slideInRight {
-    from { transform: translateX(-100px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  
-  @keyframes moveBackForth {
-    0%, 100% { transform: translateX(0px); }
-    50% { transform: translateX(10px); }
-  }
-   */
-
-
-
 
   @keyframes slideUp {
     from { transform: translateY(50px); opacity: 0; }
@@ -897,11 +907,11 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
   
   /* Animation classes */
   .animate-slide-up {
-    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUp 0.59s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   
   .animate-slide-down {
-    animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideDown 0.79s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   
   .animate-fade-in {
@@ -909,11 +919,11 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
   }
   
   .animate-delayed-fade {
-    animation: fadeIn 0.3s ease-out 0.4s both;
+    animation: fadeIn 0.38s ease-out 0.43s both;
   }
   
   .animate-slide-in-right {
-    animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
   }
   
   .back-forth {

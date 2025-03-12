@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { PowerOff } from "lucide-svelte";
+
      let {
         sponsorStart, 
         sponsorEnd, 
         videoLength = 100, // Default value should be independent of sponsorStart
-        baseTailwindBG = "bg-gray-500", 
+        baseTailwindBG = "bg-gray-400", 
         progressTailwindBG = "bg-red-500", 
         sponsorTailwindBG = "bg-yellow-400",
         funcToRunWhenInTheSponSorSection,
@@ -12,7 +12,9 @@
         funcToRunAfterTheSponsorSegment,
         loopEnabled = false, // Added loop functionality
         autoRestartAfterCompletion = true, // Added option to auto restart
-        funcToRunAfterVideoCompletion
+        funcToRunAfterVideoCompletion,
+        sponsorShipDetectedFastForward = false,
+        funToRunFewSecBeforeSponsorSegment
      }: { 
         sponsorStart: number, 
         sponsorEnd: number, 
@@ -25,7 +27,9 @@
         funcToRunAfterTheSponsorSegment?: () => void,
         loopEnabled?: boolean, // Added type definition
         autoRestartAfterCompletion?: boolean // Added type definition
-        funcToRunAfterVideoCompletion?: () => void
+        funcToRunAfterVideoCompletion?: () => void,
+        sponsorShipDetectedFastForward?:boolean,
+        funToRunFewSecBeforeSponsorSegment?: {func: () => void, time: number}
      } = $props();
      
      let progress = $state(0);
@@ -39,6 +43,7 @@
      // so that we only call it once
      let calledTheFuncToRunAfterSponsorBeofre = $state(false);
      let completionCount = $state(0); // Track number of complete playbacks
+     let skippedTheSponsorSegment = $state(false);
   
      function resetProgress() {
        progress = 0;
@@ -57,7 +62,7 @@
      $effect(() => {
        if (isPlaying) {
          progressInterval = setInterval(() => {
-           progress += 0.099;
+           progress += 0.074;
            
            if (progress >= videoLength) {
              completionCount++;
@@ -90,8 +95,33 @@
      $effect(() => {
        if(inSponsorSegment) {
          funcToRunWhenInTheSponSorSection(inSponsorSegment);
+         if (sponsorShipDetectedFastForward && !skippedTheSponsorSegment) {
+          // cause we want some time for the user to see and the animation to play
+          skippedTheSponsorSegment = true
+          let a  = calcPercentageOfSomthing(0.3, sponsorEndPercent - sponsorStartPercent)
+           progress = sponsorEnd -a ;
+           console.log(`about to skip ${a} form the sponsor segment which is ${sponsorEndPercent - sponsorStartPercent} long and the sponsor end is ${sponsorEnd} and the progress is ${progress}`);
+           // cause the animation is re-running
+           setTimeout(()=>{
+             skippedTheSponsorSegment = false
+           },500)
+         }
        }
+
      });
+
+     //for func to run before the sponsor segment
+     
+     if(funToRunFewSecBeforeSponsorSegment){
+       let beforeTheSponsorSegment = $derived(progress >= sponsorStart - funToRunFewSecBeforeSponsorSegment.time && progress <= sponsorStart);
+
+       $effect(() => {
+         if(beforeTheSponsorSegment) {
+           funToRunFewSecBeforeSponsorSegment.func();
+         }
+       });
+
+     }
   
      let afterTheSponsorSegment = $derived(progress > sponsorEnd && calledTheFuncToRunAfterSponsorBeofre === false);
      
@@ -113,18 +143,24 @@
         }
      })
 
+     function calcPercentageOfSomthing(percentToCalculate: number, total: number): number {
+       return ( total* percentToCalculate )/ 100;
+     }
 
 </script>
 
-<div class="absolute bottom-0 left-0 h-4 rounded my w-full">
+<div class="absolute bottom-0 left-0 h-3  my w-full">
   <!-- Progress bar -->
-  <div class="h-4 w-full {baseTailwindBG} rounded mb-4 overflow-hidden relative">
+  <div class="h-3 w-full {baseTailwindBG} rounded mb-4 overflow-hidden relative">
     <!-- Main progress -->
-    <div class="h-4 {progressTailwindBG} rounded" style="width: {progressPercentage}%"></div>
+    <div class="h-3 {progressTailwindBG} rounded" style="width: {progressPercentage}%"></div>
     
     <!-- Sponsorship marker - Using calculated percentages -->
-    <div class="absolute top-0 h-4 z-30 {sponsorTailwindBG} rounded"
+    <div class="absolute top-0 h-3 z-30 {sponsorTailwindBG} rounded"
          style="left: {sponsorStartPercent}%; width: {sponsorEndPercent - sponsorStartPercent}%;" 
+    ></div>
+  <div class="absolute top-0 z-40 w-4 h-4 rounded-full border-2 border-white bg-red-500 shadow-md transform -translate-y-1/4 translate-x-1/2"
+         style="left: calc({progressPercentage -3}% );"
     ></div>
   </div>
 </div>
