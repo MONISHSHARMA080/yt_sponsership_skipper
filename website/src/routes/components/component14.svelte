@@ -376,7 +376,7 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 <ProgressBar
   funcToRunWhenInTheSponSorSection={(areWeInSponsorSegment)=>{
   }} 
-  funToRunFewSecBeforeSponsorSegment={{time:4,func:()=>{
+  funToRunFewSecBeforeSponsorSegment={{time:6,func:()=>{
 	console.log("running the function before the sponsor segment")
 	  inSponsorSegment = true
   }

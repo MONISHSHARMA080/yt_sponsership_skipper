@@ -90,7 +90,7 @@
      });
   
      // - 1 so that we can start before and get the animation right
-     let inSponsorSegment = $derived(progress >= sponsorStart -1.6 && progress <= sponsorEnd);
+     let inSponsorSegment = $derived(progress >= sponsorStart -0.3 && progress <= sponsorEnd);
      
      $effect(() => {
        if(inSponsorSegment) {
@@ -98,13 +98,13 @@
          if (sponsorShipDetectedFastForward && !skippedTheSponsorSegment) {
           // cause we want some time for the user to see and the animation to play
           skippedTheSponsorSegment = true
-          let a  = calcPercentageOfSomthing(0.25, sponsorEndPercent - sponsorStartPercent)
+          let a  = calcPercentageOfSomthing(2, sponsorEndPercent - sponsorStartPercent)
            progress = sponsorEnd -a ;
            console.log(`about to skip ${a} form the sponsor segment which is ${sponsorEndPercent - sponsorStartPercent} long and the sponsor end is ${sponsorEnd} and the progress is ${progress}`);
            // cause the animation is re-running
            setTimeout(()=>{
              skippedTheSponsorSegment = false
-           },500)
+           },470)
          }
        }
 
@@ -113,7 +113,7 @@
      //for func to run before the sponsor segment
      
      if(funToRunFewSecBeforeSponsorSegment){
-       let beforeTheSponsorSegment = $derived(progress >= sponsorStart - funToRunFewSecBeforeSponsorSegment.time && progress <= sponsorStart);
+       let beforeTheSponsorSegment = $derived(progress >= sponsorStart - funToRunFewSecBeforeSponsorSegment.time )
 
        $effect(() => {
          if(beforeTheSponsorSegment) {
