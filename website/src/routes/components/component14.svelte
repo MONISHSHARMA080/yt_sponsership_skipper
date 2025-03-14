@@ -7,6 +7,8 @@
 	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
 	import { cubicOut, sineIn, sineInOut } from 'svelte/easing';
 	import ProgressBar from './youtubeProgressBar/progressBar.svelte';
+	import PremiumBenfitsSectionForPermiumUsers from './premiumBenfitsSectionForPermiumUsers/premiumBenfitsSectionForPermiumUsers.svelte';
+	import { keyFromChromeExtensionState } from '$lib/sharedState/sharedKeyState.svelte';
 
   let scrollY = $state(0);
   let yellowCircle = new Spring({ x: 0, y: 0 });
@@ -625,6 +627,10 @@ sponsorShipDetectedFastForward= {true}
 </div>
 
 
+{#if keyFromChromeExtensionState.isPaidUser}
+<PremiumBenfitsSectionForPermiumUsers />
+	
+{:else}
 	<!-- Pricing Section -->
 <section
 	id="pricing"
@@ -694,6 +700,9 @@ sponsorShipDetectedFastForward= {true}
 		class="absolute right-20 bottom-20 hidden h-12 w-12 rounded-full border-4 border-black bg-blue-400 lg:block"
 	></div>
 </section>
+
+
+{/if}
 
 	<!-- Testimonials -->
 	<section id="testimonials" class="relative border-b-4 border-black bg-white py-20">

@@ -5,6 +5,7 @@ go 1.23.1
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/markbates/goth v1.80.0
+	github.com/razorpay/razorpay-go v1.3.2
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
 )
 

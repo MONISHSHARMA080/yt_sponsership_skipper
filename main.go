@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	paymentbackendgo "youtubeAdsSkipper/paymentBackendGO"
 
 	"github.com/joho/godotenv"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
@@ -34,12 +35,18 @@ type Transcripts struct {
 // }
 
 func main() {
-
 	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
 		panic(err)
 	}
+
+	err22 := paymentbackendgo.TrialReq("rzp_test_q5ysHmDtj4wZsR", "HG0RPgFr0DoHNnX9SyKuflzE")
+	if err22 != nil {
+		println("there is a error in the request->", err22.Error())
+	}
+	println("exicting")
+	os.Exit(100)
 
 	encryption_key := os.Getenv("encryption_key")
 	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
@@ -255,7 +262,6 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 }
 
 func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan<- string) {
-
 	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
 
 	var result strings.Builder
@@ -272,7 +278,6 @@ func GenerateSubtitleWithTime(Subtitles []Subtitle, channel_for_subtitles chan<-
 }
 
 func GenerateSubtitleWithTimeWithoutChannels(Subtitles []Subtitle) string {
-
 	// probally need an array of some sort , like encoding it in the string is not a good idead how will I decode it later
 
 	var result strings.Builder
