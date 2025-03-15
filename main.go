@@ -41,13 +41,6 @@ func main() {
 		panic(err)
 	}
 
-	err22 := paymentbackendgo.TrialReq("rzp_test_q5ysHmDtj4wZsR", "HG0RPgFr0DoHNnX9SyKuflzE")
-	if err22 != nil {
-		println("there is a error in the request->", err22.Error())
-	}
-	println("exicting")
-	os.Exit(100)
-
 	encryption_key := os.Getenv("encryption_key")
 	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
 
@@ -60,6 +53,7 @@ func main() {
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
 	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient))
 	http.HandleFunc("/checkIfKeyIsValid", CheckIfKeyIsValid(encryption_key_as_byte))
+	http.HandleFunc("/makeAPayment", paymentbackendgo.CreateAndReturnOrderId( os.Getenv("RAZORPAY_KEY_ID") , os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte ))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())

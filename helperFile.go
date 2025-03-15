@@ -119,7 +119,6 @@ type UserInDb struct {
 // }
 
 func DbConnect() *sql.DB {
-
 	// println(os.Getenv("TURSO_DATABASE_URL"),os.Getenv("TURSO_AUTH_TOKEN"))
 	// url := "libsql://["+os.Getenv("TURSO_DATABASE_URL")+"].turso.io?authToken=["+os.Getenv("TURSO_AUTH_TOKEN")+"]"
 	// url := os.Getenv("TURSO_DATABASE_URL")+".?authToken="+os.Getenv("TURSO_AUTH_TOKEN")
@@ -142,7 +141,6 @@ func DbConnect() *sql.DB {
 }
 
 func InsertUserInDB(db *sql.DB, userStructToEnter UserInDb) error {
-
 	query := `
         INSERT OR IGNORE INTO UserAccount
         (accountid, email, userName, is_a_paid_user)
@@ -196,9 +194,7 @@ func CheckIfTheUserInDb(db *sql.DB, userInDBStruct UserInDb) error {
 }
 
 func encrypt(plaintext []byte, key []byte) ([]byte, error) {
-
 	block, err := aes.NewCipher(key)
-
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +245,6 @@ func return_string_based_on_user_details_for_encryption_text(user_detail UserInD
 }
 
 func returnUserInDbFormEncryptedString(decypted_string_of_user_in_db string) (UserInDb, error) {
-
 	parts := strings.Split(decypted_string_of_user_in_db, "-|-")
 	if len(parts) < 4 {
 		return UserInDb{}, fmt.Errorf("string has less than 4 parts")

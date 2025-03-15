@@ -20,3 +20,11 @@ curl -X POST http://localhost:8080/checkIfKeyIsValid \
      -d '{
          "key": "o+HsWfmJ48pU4Fr5agL3DQ2UupQKH2eqKlXsZrt0NJ+GzfxZQMGw6owRnn/dMbIRRGT9sOtZmL9qF8CgU1LvG9a6T1b3K3E="
          }'
+
+----------------
+
+curl -X POST http://localhost:8080/makeAPayment \
+     -H "Content-Type: application/json" \
+     -d '{
+         "plan_type": "dsicbdsic",
+         "user_key": "VqOvjITcxly8f9eSvXAPAOwt2kTkJAw6xjFFR/RbG943wYCBwLHz+8Gq/x1KsZjyTP5S0CbK5BcP0lvPsDR24TxlyhyJsAHjjxqvdTuTlL0=" }'

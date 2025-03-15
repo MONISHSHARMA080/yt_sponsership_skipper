@@ -10,13 +10,7 @@
 	import { fade } from 'svelte/transition';
 	import ProgressBar from './components/youtubeProgressBar/progressBar.svelte';
 	
-	let change = $state(false);
 	
-	onMount(() => {
-		setTimeout(() => {
-			change = true;
-		console.log("the event is running ->");
-		}, 100);
 		
 		// Commented extension code preserved as in original
 		// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
@@ -33,59 +27,9 @@
 		// 	console.log('\n\n\n\n');
 		// 	// sendNewKeyClass.clearEventListener()
 		// })
-	});
-	
-
-
-  
-  // // Interval for updating progress
-  // let progressInterval:any;
-  
-  // $effect(() => {
-  //   if (isPlaying) {
-		
-  //     progressInterval = setInterval(() => {
-  //       progress += 0.1;
-        
-  //       if (progress >= videoLength) {
-  //         isPlaying = false;
-  //         progress = 0;
-  //       }
-  //     }, 10);
-  //   } else if (progressInterval) {
-  //     clearInterval(progressInterval);
-  //   }
-    
-  //   return () => {
-  //     if (progressInterval) clearInterval(progressInterval);
-  //   };
-  // });
-  
-  // // Determine if we're currently in a sponsor segment
-  // let inSponsorSegment = $derived(progress >= sponsorStart && progress <= sponsorEnd)
-  
-  // function togglePlay() {
-	// isPlaying = !isPlaying;
-  // console.log(`is playing -> ${isPlaying}`);
-  
-  // }
-
-  // // Calculate progress as percentage of total video length
-  // let progressPercentage = $derived((progress / videoLength) * 100);
   
 </script>
-
-<!-- {#if change} -->
- 
-<!-- <button onclick={togglePlay} class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-play the video
-</button> -->
- 
-
-
    <Component14 /> 
-
-
 
 <!--    
 {:else}

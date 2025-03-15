@@ -16,3 +16,5 @@ add openAi integration for the paid users and also a way to add some sort way fo
 the code panics if my groq key is wrong -- use QXxeyOVpnCU in the ytvideo to reproduce
 
 verify the auth token form the forntend and then in the function when you send the video subtitle check the db for the user preety sure I have a way around this (they key would not be signed)
+
+in the future add the key in the db to make sure that they are removed fr fr and people can't use it

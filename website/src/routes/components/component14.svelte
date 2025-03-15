@@ -353,28 +353,6 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 				{/if}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <ProgressBar
   funcToRunWhenInTheSponSorSection={(areWeInSponsorSegment)=>{
   }} 
@@ -399,12 +377,6 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
 }
 sponsorShipDetectedFastForward= {true}
 />
-
-
-
-
-
-
 
 
 
@@ -451,25 +423,6 @@ sponsorShipDetectedFastForward= {true}
 			class="absolute -bottom-2 left-2/3 h-12 w-12 rotate-45 transform border-4 border-black bg-red-500"
 		></div>
 	</section>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	<!-- Features Section -->
