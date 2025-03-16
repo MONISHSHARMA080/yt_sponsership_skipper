@@ -10,31 +10,6 @@ import (
 	"github.com/razorpay/razorpay-go"
 )
 
-// func TrialReq(razorpayKeyID, razorpaySecretID string) error {
-// 	client := razorpay.NewClient(razorpayKeyID, razorpaySecretID)
-//
-// 	data := map[string]interface{}{
-// 		"amount":   50000, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-// 		"currency": "INR",
-// 		"receipt":  "some_receipt_id",
-// 	}
-// 	body, err := client.Order.Create(data, nil)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	println(body)
-//
-// 	var RazorpayOrderResponse structs.RazorpayOrderResponse
-// 	err = RazorpayOrderResponse.ConvertResponseToJSON(body)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	println(RazorpayOrderResponse.Amount, RazorpayOrderResponse.Attempts)
-//
-// 	return nil
-// }
-
 // handler function that will called by the user and give them the oder id
 func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +61,37 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		// as ID is the order ID
 		println(" the oder id is ->", responsePtr.ID)
 		responseFromTheServer.ReturnTheErrorInJsonResponse(w,r, responsePtr.ID, "success", http.StatusOK )
-		w.WriteHeader(http.StatusOK)
 	}
 }
+
+
+
+
+
+
+
+
+// func TrialReq(razorpayKeyID, razorpaySecretID string) error {
+// 	client := razorpay.NewClient(razorpayKeyID, razorpaySecretID)
+//
+// 	data := map[string]interface{}{
+// 		"amount":   50000, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+// 		"currency": "INR",
+// 		"receipt":  "some_receipt_id",
+// 	}
+// 	body, err := client.Order.Create(data, nil)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	println(body)
+//
+// 	var RazorpayOrderResponse structs.RazorpayOrderResponse
+// 	err = RazorpayOrderResponse.ConvertResponseToJSON(body)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	println(RazorpayOrderResponse.Amount, RazorpayOrderResponse.Attempts)
+//
+// 	return nil
+// }
