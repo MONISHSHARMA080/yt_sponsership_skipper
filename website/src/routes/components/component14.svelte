@@ -357,7 +357,7 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
   funcToRunWhenInTheSponSorSection={(areWeInSponsorSegment)=>{
   }} 
   funToRunFewSecBeforeSponsorSegment={{time:6,func:()=>{
-	console.log("running the function before the sponsor segment")
+	// console.log("running the function before the sponsor segment")
 	  inSponsorSegment = true
   }
   }}
@@ -365,8 +365,10 @@ function factoryYoutubeProgressBar(baseColorForTailwindProgressBar, baseColorFor
   sponsorEnd={sponsorEnd}
   videoLength={videoLength}
   playVideo={isPlaying}
-  funcToRunAfterVideoCompletion={()=>{console.log("video ended and stopping it ")}}
-  funcToRunAfterTheSponsorSegment={()=>{console.log(" sponsor segment ended and stopping it ")
+  funcToRunAfterVideoCompletion={()=>{ //console.log("video ended and stopping it ")
+  }}
+  funcToRunAfterTheSponsorSegment={()=>{
+	// console.log(" sponsor segment ended and stopping it ")
 //   isPlaying = true 
 // here make a set timeout so that it goes in a slow fashion
    setTimeout(()=>{

@@ -13,7 +13,8 @@ import (
 
 // paymentPlanType should be "onetime" or "recurring"
 func GetPaymentForThePlan(paymentPlanType string) (int64, error) {
-	if paymentPlanType == "OneTime" {
+	println("the payment type we got was ->", paymentPlanType)
+	if paymentPlanType == "onetime" {
 		price := os.Getenv("ONETIMEPAYMENTPRICE")
 		if price == "" {
 			return 0, fmt.Errorf("the price name for the one time payment price is not there in the env")
@@ -24,7 +25,7 @@ func GetPaymentForThePlan(paymentPlanType string) (int64, error) {
 		}
 		println("price will be ", intVal," for the payment plan ->", paymentPlanType)
 		return intVal, nil
-	} else if paymentPlanType == "RecurringPayment" {
+	} else if paymentPlanType == "recurringpayment" {
 		price := os.Getenv("RECURRINGPAYMENTPRICE")
 		if price == "" {
 			return 0, fmt.Errorf("the price for the one time payment price is not there in the env")
@@ -46,8 +47,8 @@ func DecryptAndWriteToChannel(ciphertextAsString string, EnvKey []byte, channErr
 		channErr <- common.ErrorAndResultStruct[string]{Error: fmt.Errorf("failed to decode base64: %v", err), Result: ""}
 		return
 	}
-	println("ciphertext as text is ->", ciphertextAsString)
-	println("decoded ciphertext length:", len(ciphertextAsByte))
+	// println("ciphertext as text is ->", ciphertextAsString)
+	// println("decoded ciphertext length:", len(ciphertextAsByte))
 
 	// Now decrypt the actual ciphertext
 	stringAsByte, err := decrypt(ciphertextAsByte, EnvKey)

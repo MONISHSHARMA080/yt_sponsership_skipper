@@ -1,0 +1,144 @@
+
+
+// export class askBackendForOrderId{
+
+import { razorpayOrderId } from "$lib/sharedState/razorPayKey.svelte";
+import type { keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
+import { AsyncRequestQueue } from "../newAsyncRequestQueue";
+
+    
+
+interface requestType {
+    plan_type:"onetime"|"recurringpayment",
+    user_key:string
+}
+interface responseType{
+    order_id:string,
+    message:string,
+    status_code:number
+    plan_type:"onetime"|"recurringpayment"
+}
+
+/** this func is designed to run when the state changes(derived/effect), run the function and ask the bakend for the order Id and store it in the global state 
+ * 
+*/
+export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
+    try {
+        if( !keyStateObj.isValidatedThroughBackend  || keyStateObj.key ===""  || keyStateObj.key === null){
+            return 
+        }
+        // if we are validated 
+        let reqBodyForRecurring:requestType = {plan_type:"recurringpayment", user_key:keyStateObj.key} 
+        let reqBodyForOneTime:requestType = {plan_type:"onetime", user_key:keyStateObj.key} 
+        let asyncReqQueue = new AsyncRequestQueue<Response,responseType>(10)
+        let promiseArray = [
+            fetch('/api/makeAPayment',{
+                headers:{'Content-Type': 'application/json'}
+                ,method:"POST",
+                body: JSON.stringify(reqBodyForOneTime)
+            }),
+            fetch('/api/makeAPayment',{
+                headers:{'Content-Type': 'application/json'}
+                ,method:"POST",
+                body: JSON.stringify(reqBodyForRecurring)
+            })
+        ]
+        let result = await asyncReqQueue.process(promiseArray,(promiseToProcess)=>processIndividualPromise<responseType>(promiseToProcess))
+        let keyForRecurring:string
+        let keyForOneTime:string
+        for (let index = 0; index < result.length; index++) {
+            let res = result[index]
+            if (res.error !== null) {
+                console.log(`there is a error in the result array at ${index} and is ->`,res.error, "\n and the message form the server is ->",res.result?.message);
+                continue
+            }
+           if (res.result?.plan_type===  "onetime" && res.result.order_id ){
+                razorpayOrderId.orderIdForOnetime = res.result.order_id
+           }else if (res.result?.plan_type===  "recurringpayment" && res.result.order_id ){
+                razorpayOrderId.orderIdForRecurring = res.result.order_id
+           }
+        }
+        console.log("\n\n\n\n\n result array is ->", result,"\n\n\n\n\n");
+        
+    } catch (error) {
+        console.log(`there is a error in asking backend for the order Id ->`,error);
+        return
+    }
+}
+
+// async function processIndividualPromise<T>(resp1:Promise<Response>):Promise<T>{
+//     let resp = await resp1
+//     return new Promise((resolve, reject)=>{
+//         if(!resp.ok){
+//             console.error("the response is not ok form the backend->", resp);
+//             throw "the response is not ok bruh"
+//         }
+//         resp.json().then((responseInJson)=>{
+//             console.log(`the json response is ->`,responseInJson);
+            
+//             if (validateResponseInJSONTOBeMyType(responseInJson)) {
+//                 // JSON is valid   
+//                 let respReceived:T = responseInJson
+//                 console.log("the valid JSON is ->", responseInJson);
+//                 resolve(respReceived)
+//             }else{
+//                 throw " the json is not even valid or of the same type in the response "
+//             }
+//         })
+//     })
+// }
+
+// throw insde the catch cause I want my error to be caught by the async req queue 
+async function processIndividualPromise<T>(resp1: Promise<Response>): Promise<T> {
+  try {
+    let resp = await resp1;
+    
+    if (!resp.ok) {
+      console.error("the response is not ok form the backend->", resp);
+      throw new Error("the response is not ok bruh");
+    }
+    
+    // Parse the JSON first
+    const responseInJson = await resp.json();
+    
+      console.log("the valid JSON is ->", responseInJson);
+    // Then validate it
+    if (validateResponseInJSONTOBeMyType(responseInJson)) {
+      // JSON is valid   
+      let respReceived: T = responseInJson;
+      return respReceived;
+    } else {
+      throw new Error("the json is not even valid or of the same type in the response");
+    }
+  } catch (error) {
+    // This will catch any errors in the above code, including the parsing and validation errors
+    throw error; // Re-throw to be caught by AsyncRequestQueue's error handler
+  }
+}
+
+
+
+function validateResponseInJSONTOBeMyType(data:any):boolean {
+        // For responseType interface specifically:
+        try {
+            if (typeof data !== 'object' || data === null) return false;
+            // Check if the data has all required fields with correct types
+            if (typeof data.order_id !== 'string') return false;
+            console.log("---++----+++0000",data.plan_type);
+            if (typeof data.message !== 'string') return false;
+            console.log("-----message is string------",data.plan_type);
+            
+            if (typeof data.status_code !== 'number') return false;
+            console.log("---++----+++0000----");
+            console.log(`the data plan type ->${data.plan_type}`);
+            
+            
+            if(data.plan_type !==  "onetime" &&  data.plan_type !== "recurringpayment") return false
+            console.log("\n\n we are returning true\n\n\n");
+            
+            return true;
+        } catch (error) {
+            console.log("error during checking json ->",error);
+            return false   
+        }
+    }

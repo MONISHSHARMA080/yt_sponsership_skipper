@@ -132,9 +132,8 @@ export class AsyncRequestQueue<T, R> {
       this.removeFromTheProcessingQueue(promiseToProcess, indexOfPromise);
     }
 
-    console.log(
-      ` what do we have at this destination -> ${this.resultArray[indexOfPromise].result} `,
-    );
+    console.log(` what do we have at this destination -> ${this.resultArray[indexOfPromise].result} `);
+
   }
 
   private removeFromTheProcessingQueue(promiseToProcess: Promise<T>,indexOfPromise: number) {

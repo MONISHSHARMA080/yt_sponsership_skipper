@@ -7,4 +7,5 @@ type InfoHolder struct{
 	Name string
 	Email string
 	IsPaidUser bool
+	PlanType string
 }

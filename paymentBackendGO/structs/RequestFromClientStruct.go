@@ -38,6 +38,8 @@ func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byt
        return false, nil, decryptedKey.Error
      }
      InfoHolder.DecryptedKey =  decryptedKey.Result
+     InfoHolder.PlanType = req.PlanType
+     println("the plan type is ->", InfoHolder.PlanType)
      println("decrypted key is ->", decryptedKey.Result, " and same in the infoHolder is ->", InfoHolder.DecryptedKey)
     email, name, isPaidUser, err :=  helperfuncs.GetEmailAndNameFormKey(InfoHolder.DecryptedKey)
     if err != nil {

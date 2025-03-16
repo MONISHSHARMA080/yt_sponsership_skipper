@@ -9,13 +9,15 @@
 	import { Play, FastForward, Pause } from 'lucide-svelte';
 	import { fade } from 'svelte/transition';
 	import ProgressBar from './components/youtubeProgressBar/progressBar.svelte';
+	import { checkIfKeyIsValidAndUpdateTheState } from '$lib/utils/seeIfTheKeyIsValidByBackend';
+	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 	
 		// Commented extension code preserved as in original
 		// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
 		// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
 		// 	// keyFromChromeExtensionState.key = key
 		// 	interactWithExtensionClass.cleanup()
-		// // let checkKeyAndnew = new checkIfKeyIsValidAndUpdateTheState()
+		// let checkKeyAndnew = new checkIfKeyIsValidAndUpdateTheState()
 		// //  checkKeyAndnew.seeIfKeyIsValid(key)
 		// }
 		// console.log("error in interacting with the chrome extension is -> ",error );
@@ -28,10 +30,21 @@
 
 
 		let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
-		interactWithExtensionClass.start(()=>{})
+		let error =interactWithExtensionClass.start(
+			// func that will run after we get the keys form the chrome extension and not form the local storage
+			(a)=>{console.log("the key we got in the func passed in the start() is", a);
+		})
 		// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
 
+		
+		let val = $derived(keyFromChromeExtensionState)
+		$effect(()=>{
 
+				 askBackendForOrderId(val).then((val)=>{
+				console.log(`the svelte effect returned and the value is ->`, val);
+			 })
+			
+		})
 
 
   

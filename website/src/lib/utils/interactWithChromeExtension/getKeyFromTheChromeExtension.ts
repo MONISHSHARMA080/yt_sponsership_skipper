@@ -8,7 +8,9 @@ type funcToRunWhenWeGetTheKey = (key:string)=>void
  * start() will not run when key is received by the local storage
  * 
  * the class will also on starting extract the user obj form the localstorage  in the start func 
- *   */
+ *   
+ * this class is meant to be used in a way where you execute it and see the change (or $derived/effect) in the  keyFromChromeExtensionState
+ */
 export class interactWithTheChromeExtensionAndStoreIt{
    private callBackAfterKeyIsReceived :null|funcToRunWhenWeGetTheKey = null
    private checkIfKeyIsValid = new checkIfKeyIsValidAndUpdateTheState()
