@@ -28,6 +28,7 @@ func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byt
     if err != nil{
       return false, nil , err
     }
+    println("the price is ", price, "  for the plan type ", req.PlanType)
     // now decrypting the struct
     var InfoHolder InfoHolder
     InfoHolder.Price = price

@@ -4,6 +4,11 @@ import { checkIfKeyIsValidAndUpdateTheState } from "../seeIfTheKeyIsValidByBacke
 
 type funcToRunWhenWeGetTheKey = (key:string)=>void 
 
+/** the clas is there so that you can call start() and get the new key form the chrome extensio, note that the function in 
+ * start() will not run when key is received by the local storage
+ * 
+ * the class will also on starting extract the user obj form the localstorage  in the start func 
+ *   */
 export class interactWithTheChromeExtensionAndStoreIt{
    private callBackAfterKeyIsReceived :null|funcToRunWhenWeGetTheKey = null
    private checkIfKeyIsValid = new checkIfKeyIsValidAndUpdateTheState()
@@ -58,7 +63,7 @@ export class interactWithTheChromeExtensionAndStoreIt{
          }
 			if (!event.data.key) return;
 			// Send message to remove listeners and remove our own listener
-			console.log("closing all the event listeners as the key is received");
+            console.log("closing all the event listeners as the key is received");
 			// window.postMessage({
 			// 	type: "removeAllEventListener"
 			// }, window.location.origin);
@@ -75,6 +80,10 @@ export class interactWithTheChromeExtensionAndStoreIt{
       window.removeEventListener('message', this.messageHandler);
    }
 
+   /** @param {(key:string)=>void} param - the function as a param will not run when the key is received by the local storage 
+    * 
+    * the function will also try to get the user obj form the local storage and put it in the global
+    */
    public start(funcToRunWhenWeGetTheKey:funcToRunWhenWeGetTheKey) : Error|null {
       try {
          let [keyObj, error] = this.getKeyObjFromLocalStorage()
@@ -85,17 +94,20 @@ export class interactWithTheChromeExtensionAndStoreIt{
          }
          console.log("the key object is ->", keyObj);
          this.keyStateFromStorage = keyObj
-         // if the keyObj is not null then set it as the global export state
-         // now when  we get the keys form the chrome extension check the key is same or not, if not then 
-         // this.saveKeyObjFromLocalStorageToState(keyObj)
+         // this.saveKeyObjFromLocalStorageToGlobalState(keyObj)
+            // if the keyObj is not null then set it as the global export state
+            // now when  we get the keys form the chrome extension check the key is same or not, if not then 
+            // this.saveKeyObjFromLocalStorageToState(keyObj)
 
-
-         // wait and get the key form the chrome extension if it is same then quit and if diff. then do the whole thing and deleate the key
+            // wait and get the key form the chrome extension if it is same then quit and if diff. then do the whole thing and deleate the key
 
          this.callBackAfterKeyIsReceived = funcToRunWhenWeGetTheKey;
          window.addEventListener('message', this.messageHandler);
          window.postMessage({ type: 'GET_KEY' }, window.location.origin);
          // maybe do a settimeout where we clean after 3 min of sleep 
+
+         // commentinng this as this works in the bg 
+         // setTimeout(()=>{this.saveKeyObjFromLocalStorageToGlobalState(keyObj);this.cleanup(); console.log("time passes and we are closing the evente listender with set timeout") ; return null }, 8000)
          return null
       } catch (error) {
          if( error instanceof Error){

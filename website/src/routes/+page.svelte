@@ -10,8 +10,6 @@
 	import { fade } from 'svelte/transition';
 	import ProgressBar from './components/youtubeProgressBar/progressBar.svelte';
 	
-	
-		
 		// Commented extension code preserved as in original
 		// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
 		// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
@@ -27,6 +25,15 @@
 		// 	console.log('\n\n\n\n');
 		// 	// sendNewKeyClass.clearEventListener()
 		// })
+
+
+		let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
+		interactWithExtensionClass.start(()=>{})
+		// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
+
+
+
+
   
 </script>
    <Component14 /> 

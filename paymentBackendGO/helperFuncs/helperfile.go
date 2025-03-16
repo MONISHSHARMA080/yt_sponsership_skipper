@@ -13,7 +13,7 @@ import (
 
 // paymentPlanType should be "onetime" or "recurring"
 func GetPaymentForThePlan(paymentPlanType string) (int64, error) {
-	if paymentPlanType != "OneTime" {
+	if paymentPlanType == "OneTime" {
 		price := os.Getenv("ONETIMEPAYMENTPRICE")
 		if price == "" {
 			return 0, fmt.Errorf("the price name for the one time payment price is not there in the env")
@@ -22,8 +22,9 @@ func GetPaymentForThePlan(paymentPlanType string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
+		println("price will be ", intVal," for the payment plan ->", paymentPlanType)
 		return intVal, nil
-	} else if paymentPlanType != "RecurringPayment" {
+	} else if paymentPlanType == "RecurringPayment" {
 		price := os.Getenv("RECURRINGPAYMENTPRICE")
 		if price == "" {
 			return 0, fmt.Errorf("the price for the one time payment price is not there in the env")

@@ -100,7 +100,7 @@
           skippedTheSponsorSegment = true
           let a  = calcPercentageOfSomthing(2, sponsorEndPercent - sponsorStartPercent)
            progress = sponsorEnd -a ;
-           console.log(`about to skip ${a} form the sponsor segment which is ${sponsorEndPercent - sponsorStartPercent} long and the sponsor end is ${sponsorEnd} and the progress is ${progress}`);
+          //  console.log(`about to skip ${a} form the sponsor segment which is ${sponsorEndPercent - sponsorStartPercent} long and the sponsor end is ${sponsorEnd} and the progress is ${progress}`);
            // cause the animation is re-running
            setTimeout(()=>{
              skippedTheSponsorSegment = false
@@ -131,7 +131,7 @@
          funcToRunAfterTheSponsorSegment();
          calledTheFuncToRunAfterSponsorBeofre = true;
          
-         console.log(`Progress: ${progress}, Video Length: ${videoLength}, Sponsor End: ${sponsorEnd}, Sponsor Start: ${sponsorStart}`);
+        //  console.log(`Progress: ${progress}, Video Length: ${videoLength}, Sponsor End: ${sponsorEnd}, Sponsor Start: ${sponsorStart}`);
        }
      });
 
