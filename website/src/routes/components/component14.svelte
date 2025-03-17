@@ -1,49 +1,23 @@
-<script>
+<script lang="ts">
 	// main faq section
 	import { onMount } from 'svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { Spring, Tween } from 'svelte/motion';
 	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
-	import { cubicOut, sineIn, sineInOut } from 'svelte/easing';
-	import ProgressBar from './youtubeProgressBar/progressBar.svelte';
 	import PremiumBenfitsSectionForPermiumUsers from './premiumBenfitsSectionForPermiumUsers/premiumBenfitsSectionForPermiumUsers.svelte';
 	import { keyFromChromeExtensionState } from '$lib/sharedState/sharedKeyState.svelte';
 	import HeroSection from '$lib/components/homepage/HeroSection.svelte';
 	import FeatureSection from '$lib/components/homepage/FeatureSection.svelte';
 	import CtaAndFooter from '$lib/components/homepage/CTAAndFooter.svelte';
 	import TestimonialsAndFaqs from '$lib/components/homepage/TestimonialsAndFaqs.svelte';
+	import type { RazorpayOptions } from '$lib/utils/razorpayIntegration/types/razorpayOption';
+	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
+	import { PUBLIC_ONETIMEPAYMENTPRICE, PUBLIC_RAZORPAY_KEY_ID, PUBLIC_RECURRINGPAYMENTPRICE } from '$env/static/public';
 
-	let scrollY = $state(0);
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });
 
-
-	// Initialize element visibility states
-	let titleVisible = $state(false);
-	const faqItemsVisible = $state([false, false, false, false, false]);
-
-	// Create tweens for Y position animations
-	const titleY = new Tween(20, { duration: 500, easing: cubicOut });
-
-	const faqItemsY = [
-		new Tween(20, { duration: 500, easing: cubicOut }),
-		new Tween(20, { duration: 500, easing: cubicOut }),
-		new Tween(20, { duration: 500, easing: cubicOut }),
-		new Tween(20, { duration: 500, easing: cubicOut }),
-		new Tween(20, { duration: 500, easing: cubicOut })
-	];
-
-	// Opacity tweens
-	const titleOpacity = new Tween(0, { duration: 500, easing: cubicOut });
-	const faqItemsOpacity = [
-		new Tween(0, { duration: 500, easing: cubicOut }),
-		new Tween(0, { duration: 500, easing: cubicOut }),
-		new Tween(0, { duration: 500, easing: cubicOut }),
-		new Tween(0, { duration: 500, easing: cubicOut }),
-		new Tween(0, { duration: 500, easing: cubicOut })
-	];
-
-	// for the skipping notification on the screen
+		// for the skipping notification on the screen
 	const springForFastForwardInVideo = new Tween(
 		{ x: 0, y: 0 },
 		{
@@ -56,77 +30,13 @@
 		}
 	);
 
-	let facsArray = $state([
-		{
-			shouldWeKeepItOpen: true,
-			question: 'How does the extension detect sponsorships?',
-			answer:
-				'Our extension uses a combination of machine learning algorithms and community-reported data to identify sponsorship segments in videos. It recognizes patterns in speech, visual cues, and common sponsorship phrases.'
-		},
-		{
-			question: "What's the difference between Free and Premium?",
-			answer:
-				'The Free version allows you to skip up to 50 sponsorships per month, while Premium offers unlimited skipping, advanced detection, custom skip rules, and additional features like intro/outro skipping and detailed analytics.',
-			shouldWeKeepItOpen: true
-		},
-		{
-			shouldWeKeepItOpen: true,
-			question: 'Will this slow down my browser?',
-			answer:
-				'No, our extension is designed to be lightweight and efficient. It runs in the background with minimal impact on your browsing experience or computer performance.'
-		},
-		{
-			shouldWeKeepItOpen: true,
-			question: 'Can I customize what gets skipped?',
-			answer:
-				'Yes, Premium users can set custom rules for what types of segments to skip (sponsorships, intros, outros, etc.) and even create channel-specific settings.'
-		},
-		{
-			shouldWeKeepItOpen: true,
-			question: 'How do I cancel my Premium subscription?',
-			answer:
-				'You can cancel your Premium subscription at any time from your account settings. Your Premium features will remain active until the end of your billing period.'
-		}
-	]);
 
 	onMount(() => {
-		const handleScroll = () => {
-			scrollY = window.scrollY;
-
-			// Check if elements are in viewport
-			const faqSection = document.getElementById('faq');
-			if (faqSection) {
-				const rect = faqSection.getBoundingClientRect();
-				const isInViewport = rect.top < window.innerHeight * 0.75 && rect.bottom > 0;
-
-				if (isInViewport && !titleVisible) {
-					titleVisible = true;
-					titleOpacity.target = 1;
-					titleY.target = 0;
-
-					// Animate FAQ items with delay
-					faqItemsVisible.forEach((_, index) => {
-						setTimeout(() => {
-							faqItemsVisible[index] = true;
-							faqItemsOpacity[index].target = 1;
-							faqItemsY[index].target = 0;
-						}, 100 * index);
-					});
-				}
-			}
-		};
 		// animating the >> in the skipping the sponsor message
 		springForFastForwardInVideo.target = {
 			x: springForFastForwardInVideo.target.x + 12,
 			y: springForFastForwardInVideo.target.y
 		};
-
-		// setTimeout(() => {
-		// 	springForFastForwardInVideo.set({x:0, y:0})
-		// }, 400)
-		window.addEventListener('scroll', handleScroll);
-		// Initial check in case elements are already in viewport
-		handleScroll();
 
 		// Animations for the circles
 		const animateShapes = () => {
@@ -151,42 +61,104 @@
 		animateShapes();
 
 		return () => {
-			window.removeEventListener('scroll', handleScroll);
 		};
 	});
-	// after on sight
-	/**
-	 * Creates a YouTube-style progress bar as an HTML element.
-	 * @param {string} baseColorForTailwindProgressBar - The Tailwind color for the filled progress bar.
-	 * @param {string} baseColorForBarWhenNotUse - The Tailwind color for the unfilled part of the progress bar.
-	 * @param {number} currentStateOfTheProgressBar - The progress percentage (0-100).
-	 * @returns {HTMLDivElement} - The progress bar element.
-	 */
-	function factoryYoutubeProgressBar(
-		baseColorForTailwindProgressBar,
-		baseColorForBarWhenNotUse,
-		currentStateOfTheProgressBar
-	) {
-		// Create the main progress bar container
-		const progressBar = document.createElement('div');
-		progressBar.className = `relative w-full h-4 ${baseColorForBarWhenNotUse} rounded overflow-hidden`;
 
-		// Create the filled part of the progress bar
-		const progressFill = document.createElement('div');
-		progressFill.className = `absolute top-0 left-0 h-full ${baseColorForTailwindProgressBar}`;
-		progressFill.style.width = `${currentStateOfTheProgressBar}%`;
 
-		// Append the fill to the main container
-		progressBar.appendChild(progressFill);
+	// change  the type to be union of string
+	function paymentButtonClicked(textOnPayemntButton:string) {
+		try {
+			// switch (textOnPayemntButton) {
+			// 	case "Try Once":
+					
+			// 		break;
+					
+			// 	case "Go Premium":
+						
+			// 		break;
+			// 	case "Install Now":
 
-		return progressBar;
+			// 	break;
+
+			// 	default:
+			// 		break;
+			// }
+			if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForOnetime === "" ||
+			razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.orderIdForRecurring === "") {
+				console.log(`the razor pay key id is not there returning`);
+				return 
+			}
+			const functionHandler = (response:any) =>{
+				console.log(`the razor pay payment was successfull and the response is ->`, response);
+			}
+			let option:RazorpayOptions = {
+				"key": "", // Enter the Key ID generated from the Dashboard
+				"amount": "50000", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+				"currency": "INR",
+				"name": "Youtube Sponsor Skipper",
+				"description": "Test Transaction",
+				"image": "https://example.com/your_logo",
+				"order_id": "order_IluGWxBm9U8zJ8", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+				"handler": (resp )=>functionHandler (resp),
+				"prefill": {
+				},
+				"notes": {
+					"address": "Razorpay Corporate Office"
+				},
+				"theme": {
+					"color": "#2c15bf"
+				}
+
+			} 
+			option.order_id = razorpayOrderId.orderIdForOnetime
+			option.key = PUBLIC_RAZORPAY_KEY_ID
+
+			if(textOnPayemntButton === "Try Once"){
+				option.amount = PUBLIC_ONETIMEPAYMENTPRICE
+			}
+			if(textOnPayemntButton === "Go Premium"){
+				option.amount = PUBLIC_RECURRINGPAYMENTPRICE
+			}
+			if(textOnPayemntButton === "Install Now"){
+				// free teir, send them to the chrome extension site
+				return // for now 
+			}
+			
+			console.log("out of it");
+			
+			// IDK how to make the lsp caught it, it is working though
+			// @ts-ignore
+			let rzrpy = new Razorpay(option);
+			rzrpy.open()
+			rzrpy.on('payment.failed', function (response: { error: { code: any; description: any; source: any; step: any; reason: any; metadata: { order_id: any; payment_id: any; }; }; }){
+        // alert(response.error.code);
+        // alert(response.error.description);
+        // alert(response.error.source);
+        // alert(response.error.step);
+        // alert(response.error.reason);
+        // alert(response.error.metadata.order_id);
+        // alert(response.error.metadata.payment_id);
+		console.log(`the failure response is ->`, response);
+		
+});
+
+
+
+		} catch (error) {
+			console.error(` there is a errir in  running your buttom in payment click ->`,error)
+			return
+		}
 	}
+
+
+
 
 	
 </script>
 
 <svelte:head>
 	<title>SkipIt - Skip the boring parts</title>
+	<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </svelte:head>
 
 <div class="min-h-screen overflow-hidden bg-white text-black">
@@ -348,8 +320,11 @@
 									</li>
 								{/each}
 							</ul>
+							<!-- add a function that pases in the buttontext as argument -->
 							<button
 								class="{plan.buttonColor} w-full transform border-3 border-black px-8 py-3 font-bold  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
+								onclick={()=>{paymentButtonClicked(plan.buttonText); console.log("button clickd")}}
+								
 							>
 								{plan.buttonText}
 							</button>

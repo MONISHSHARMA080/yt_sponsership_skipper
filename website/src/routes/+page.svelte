@@ -11,6 +11,7 @@
 	import ProgressBar from './components/youtubeProgressBar/progressBar.svelte';
 	import { checkIfKeyIsValidAndUpdateTheState } from '$lib/utils/seeIfTheKeyIsValidByBackend';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
+	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
 	
 		// Commented extension code preserved as in original
 		// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
@@ -39,11 +40,13 @@
 		
 		let val = $derived(keyFromChromeExtensionState)
 		$effect(()=>{
-
 				 askBackendForOrderId(val).then((val)=>{
 				console.log(`the svelte effect returned and the value is ->`, val);
 			 })
-			
+		})
+
+		$effect(()=>{
+			console.log(`the razor pay id is ->`, razorpayOrderId.orderIdForOnetime, razorpayOrderId.orderIdForRecurring);
 		})
 
 

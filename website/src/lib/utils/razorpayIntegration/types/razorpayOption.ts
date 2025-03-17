@@ -11,10 +11,7 @@ export type RazorpayOptions = {
     razorpay_order_id: string;
     razorpay_signature: string;
   }) => void;
-  prefill: {
-    name: string;
-    email: string;
-    contact: string;
+  prefill: { 
   };
   notes: {
     address: string;
