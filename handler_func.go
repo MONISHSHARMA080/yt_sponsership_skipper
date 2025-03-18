@@ -177,7 +177,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 	// but there accuraccy is meh! I think )
 
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		if r.Method != http.MethodPost {
 			http.Error(w, "Invalid request method", http.StatusBadRequest)
 			// this cpuld return in error , if there is a error decoding json then I am sending the same error in the request code
@@ -190,7 +189,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		println("body is ")
 		var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
 		err := json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
-
 		if err != nil {
 			println(err.Error())
 			_, errorInUserResponse := err.(*json.UnmarshalTypeError)

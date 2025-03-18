@@ -13,6 +13,7 @@
 	import type { RazorpayOptions } from '$lib/utils/razorpayIntegration/types/razorpayOption';
 	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
 	import { PUBLIC_ONETIMEPAYMENTPRICE, PUBLIC_RAZORPAY_KEY_ID, PUBLIC_RECURRINGPAYMENTPRICE } from '$env/static/public';
+	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });
@@ -68,24 +69,11 @@
 	// change  the type to be union of string
 	function paymentButtonClicked(textOnPayemntButton:string) {
 		try {
-			// switch (textOnPayemntButton) {
-			// 	case "Try Once":
-					
-			// 		break;
-					
-			// 	case "Go Premium":
-						
-			// 		break;
-			// 	case "Install Now":
-
-			// 	break;
-
-			// 	default:
-			// 		break;
-			// }
 			if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForOnetime === "" ||
 			razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.orderIdForRecurring === "") {
-				console.log(`the razor pay key id is not there returning`);
+				console.log(`the razor pay key id is not there returning, the `);
+				// let's fetch again just to be sure 
+				askBackendForOrderId(keyFromChromeExtensionState)
 				return 
 			}
 			const functionHandler = (response:any) =>{
@@ -96,7 +84,6 @@
 				"amount": "50000", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
 				"currency": "INR",
 				"name": "Youtube Sponsor Skipper",
-				"description": "Test Transaction",
 				"image": "https://example.com/your_logo",
 				"order_id": "order_IluGWxBm9U8zJ8", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
 				"handler": (resp )=>functionHandler (resp),

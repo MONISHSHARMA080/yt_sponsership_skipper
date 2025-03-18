@@ -205,16 +205,7 @@
 
 
 <style>
-	.body {
-		font-family: 'Inter', sans-serif;
-		background-color: white;
-	}
-
-	.section {
-		background-color: white;
-	}
-
-	@keyframes spin {
+		@keyframes spin {
 		from {
 			transform: rotate(0deg);
 		}
