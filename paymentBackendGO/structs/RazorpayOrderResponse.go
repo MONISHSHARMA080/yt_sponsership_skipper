@@ -2,6 +2,7 @@ package structs
 
 import (
 	"encoding/json"
+	"youtubeAdsSkipper/paymentBackendGO/common"
 
 	"github.com/razorpay/razorpay-go"
 )
@@ -35,26 +36,29 @@ func (rpResp *RazorpayOrderResponse) convertResponseToJSON(responseBody map[stri
 	return nil
 }
 
-func (respRPay *RazorpayOrderResponse) AskRazorpayForTheOrderID(client *razorpay.Client, ammount int64) (*RazorpayOrderResponse, error) {
+func (respRPay *RazorpayOrderResponse) AskRazorpayForTheOrderID(client *razorpay.Client, ammount int64, resultChannel chan common.ErrorAndResultStruct[string])  {
 	// client := razorpay.NewClient(razorpayKeyID, razorpaySecretID)
 
 	data := map[string]interface{}{
 		"amount":   ammount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-		"currency": "INR",
+		"currency": "USD",
 		"receipt":  "some_receipt_id",
 	}
 	body, err := client.Order.Create(data, nil)
 	if err != nil {
-		return nil, err
+		println("error is ->.>", err.Error())
+		resultChannel <- common.ErrorAndResultStruct[string]{Error: err, Result: ""}
+		return 
 	}
 
-	println(body)
-
-	var RazorpayOrderResponse RazorpayOrderResponse
-	err = RazorpayOrderResponse.convertResponseToJSON(body)
+	err = respRPay.convertResponseToJSON(body)
 	if err != nil {
-		return nil, err
+		println("error is ->.>", err.Error())
+		resultChannel <- common.ErrorAndResultStruct[string]{Error: err, Result: ""}
+		return 
 	}
 
-	return &RazorpayOrderResponse, nil
+		resultChannel <- common.ErrorAndResultStruct[string]{Error: nil, Result: respRPay.Status + string(respRPay.Attempts)}
+
+	// return &RazorpayOrderResponse, nil
 }

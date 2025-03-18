@@ -63,18 +63,8 @@ func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byt
     InfoHolder.IsPaidUser = isPaidUser
 
     return true, &InfoHolder, nil
-	  // resultFormChannel := <-channel_for_userDetails
-	  // if resultFormChannel.err != nil {
-		// 	println("the error in decoding the key is ->", resultFormChannel.err.Error())
-		// 	returnTheJsonResponseonError("key value can't be empty", http.StatusBadRequest, false, w)
-		// 	return
-		// }
-		// email, name := getEmailAndNameFormKey(resultFormChannel.string_value)
 }
-// func (req *RequestFromClientInPaymentStruct) ValidateUserPlanType(planType string) bool{
 
-//   return false
-// }
 
 
 
