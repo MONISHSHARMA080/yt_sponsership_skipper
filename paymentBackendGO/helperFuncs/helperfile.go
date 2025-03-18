@@ -10,6 +10,16 @@ import (
 	"strings"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
+func ExtractPriceFormEnv (price  string) (int64, error){
+if price == "" {
+			return 0, fmt.Errorf("the price name for the one time payment price is not there in the env")
+		}
+		priceInInt, err := strconv.ParseInt(price, 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return priceInInt, nil
+}
 
 // paymentPlanType should be "onetime" or "recurring"
 func GetPaymentForThePlan(paymentPlanType string) (int64, error) {

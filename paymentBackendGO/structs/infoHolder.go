@@ -2,10 +2,11 @@
 package structs
 
 type InfoHolder struct{
-	Price int64
+	PriceForRecurring int64
+	PriceForOneTime int64
 	DecryptedKey string
 	Name string
 	Email string
 	IsPaidUser bool
-	PlanType string
+	// PlanType string
 }

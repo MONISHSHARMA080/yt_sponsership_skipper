@@ -2,12 +2,12 @@ package structs
 
 import (
 	"encoding/json"
+	"os"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	helperfuncs "youtubeAdsSkipper/paymentBackendGO/helperFuncs"
 )
 
 type RequestFromClientInPaymentStruct struct{
-    PlanType    string  `json:"plan_type"` // Can be "recurring" or "onetime"
     UserKey     string    `json:"user_key"`
 }
 
@@ -24,22 +24,35 @@ func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byt
 
     go helperfuncs.DecryptAndWriteToChannel( req.UserKey, envKey, channelForRes )
     // this will also validate the plan type
-    price, err :=   helperfuncs.GetPaymentForThePlan(req.PlanType)
+    priceForRecurring, err := helperfuncs.ExtractPriceFormEnv( os.Getenv("RECURRINGPAYMENTPRICE"))
     if err != nil{
       return false, nil , err
     }
-    println("the price is ", price, "  for the plan type ", req.PlanType)
+    priceForOneTime, err := helperfuncs.ExtractPriceFormEnv(os.Getenv("ONETIMEPAYMENTPRICE"))
+    if err != nil{
+      return false, nil , err
+    }
+
+    // price, err :=   helperfuncs.GetPaymentForThePlan(req.PlanType)
+    // if err != nil{
+    //   return false, nil , err
+    // }
+
+    // println("the price is ", price, "  for the plan type ", req.PlanType)
     // now decrypting the struct
     var InfoHolder InfoHolder
-    InfoHolder.Price = price
+    InfoHolder.PriceForOneTime = priceForOneTime
+    InfoHolder.PriceForRecurring = priceForRecurring
     // var userInDB  common
+
      decryptedKey := <- channelForRes
      if decryptedKey.Error != nil{
        return false, nil, decryptedKey.Error
      }
+
      InfoHolder.DecryptedKey =  decryptedKey.Result
-     InfoHolder.PlanType = req.PlanType
-     println("the plan type is ->", InfoHolder.PlanType)
+    //  InfoHolder.PlanType = req.PlanType
+    //  println("the plan type is ->", InfoHolder.PlanType)
      println("decrypted key is ->", decryptedKey.Result, " and same in the infoHolder is ->", InfoHolder.DecryptedKey)
     email, name, isPaidUser, err :=  helperfuncs.GetEmailAndNameFormKey(InfoHolder.DecryptedKey)
     if err != nil {
