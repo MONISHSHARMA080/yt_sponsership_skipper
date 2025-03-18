@@ -73,7 +73,10 @@
 			razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.orderIdForRecurring === "") {
 				console.log(`the razor pay key id is not there returning, the `);
 				// let's fetch again just to be sure 
-				askBackendForOrderId(keyFromChromeExtensionState)
+
+				console.log(` the razorpay id is ->${razorpayOrderId.orderIdForOnetime} and the recurring one is ${razorpayOrderId.orderIdForRecurring}`);
+				
+				// askBackendForOrderId(keyFromChromeExtensionState)
 				return 
 			}
 			const functionHandler = (response:any) =>{

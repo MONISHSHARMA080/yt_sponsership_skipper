@@ -50,13 +50,21 @@ export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
                 console.log(`there is a error in the result array at ${0} and is ->`,res.error, "\n and the message form the server is ->",res.result?.message);
                 return
             }
-           if (res.result?.order_id_for_onetime ){
-                razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime
-           }else if (res.result?.order_id_for_recurring ){
-                razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring
-           }
+            console.log(`about to store the response in razorpay storage and it is -> ${res.result?.order_id_for_recurring} and the one time is ${res.result?.order_id_for_onetime}`);
+            
+          //  if (res.result?.order_id_for_onetime ){
+          //       razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime
+          //  }else if (res.result?.order_id_for_recurring ){
+          //       razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring
+          //  }
+        if (res.result?.order_id_for_onetime) {
+          razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime;
+        }
+        if (res.result?.order_id_for_recurring) {
+          razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring;
+        }
         // }
-        console.log("\n\n\n\n\n result array is ->", result,"\n\n\n\n\n");
+        console.log("\n\n\n\n\n result array is ->", result,"\n\n\n\n\n and the razor pay state is 1 time ", razorpayOrderId.orderIdForOnetime, " and recurr ", razorpayOrderId.orderIdForRecurring);
         
     } catch (error) {
         console.log(`there is a error in asking backend for the order Id ->`,error);
