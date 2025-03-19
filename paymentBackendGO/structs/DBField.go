@@ -40,3 +40,20 @@ INSERT INTO temporaryFieldToVerifyParymentLater (user_account_id, recurring_orde
 	}
 	resultChan <- common.ErrorAndResultStruct[string]{Error: nil, Result: "worked hopefully"}
 }
+
+// gets token  based on  the user Email
+func (DbField *TemporaryFieldToVerifyPaymentLater) GetTokens(DB *sql.DB, emailOFTheUser string, resultChan chan common.ErrorAndResultStruct[bool]) {
+	query := `
+	SELECT recurring_order_id, onetime_order_id 
+	FROM temporaryFieldToVerifyParymentLater 
+	JOIN UserAccount ON temporaryFieldToVerifyParymentLater.user_account_id = UserAccount.id 
+	WHERE UserAccount.email = ?`
+
+	err := DB.QueryRow(query, emailOFTheUser).Scan(&DbField.RecurringOrderID, &DbField.OnetimeOrderID)
+	if err != nil {
+		resultChan <- common.ErrorAndResultStruct[bool]{Result: false, Error: err}
+		return
+	}
+
+	resultChan <- common.ErrorAndResultStruct[bool]{Result: true, Error: nil}
+}

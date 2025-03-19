@@ -41,7 +41,7 @@ func (respRPay *RazorpayOrderResponse) AskRazorpayForTheOrderID(client *razorpay
 
 	data := map[string]interface{}{
 		"amount":   ammount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-		"currency": "USD",
+		"currency": "INR",
 		"receipt":  "some_receipt_id",
 	}
 	body, err := client.Order.Create(data, nil)
