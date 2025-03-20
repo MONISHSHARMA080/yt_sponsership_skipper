@@ -3,7 +3,10 @@ package helperfuncs
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strconv"
@@ -103,4 +106,24 @@ func GetEmailAndNameFormKey(k string) (email, name string, isPaidUsers bool, err
 	}
 
 	return strings[1], strings[2], isPaidUser, nil
+}
+
+
+//
+func  GetGeneratedSignature(RazorpayOrderId, RazorpayPaymentId, razorpaySecretID string) (string,  error) {
+	
+
+		data := RazorpayOrderId + "|" + RazorpayPaymentId
+		// data := request.RazorpayOrderId + "|" + request.RazorpayPaymentId
+		h := hmac.New(sha256.New, []byte(razorpaySecretID))
+		// Write the data to the HMAC
+		intReturned, err := h.Write([]byte(data))
+		if err != nil {
+			// response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
+			return "", err
+		}
+		println("the int returned is ->", intReturned)
+
+		generatedSignature := hex.EncodeToString(h.Sum(nil))
+		return generatedSignature, nil
 }

@@ -1,9 +1,7 @@
 package paymentbackendgo
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
+	"fmt"
 	"net/http"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	helperfuncs "youtubeAdsSkipper/paymentBackendGO/helperFuncs"
@@ -82,29 +80,39 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		}
 		println("Order ID from DB:", orderID)
 		println("Order ID from request:", request.RazorpayOrderId)
-		data := request.RazorpayOrderId + "|" + request.RazorpayPaymentId
 
-		h := hmac.New(sha256.New, []byte(razorpaySecretID))
+		
 
-		// Write the data to the HMAC
-		intReturned, err := h.Write([]byte(data))
+		// form the request
+		signatureGeneratedFromRequestOrderdID,err := helperfuncs.GetGeneratedSignature(request.RazorpayPaymentId, request.RazorpayPaymentId, razorpaySecretID)
 		if err != nil {
+			println(" the error in generatign the singature form the request ->", err.Error(), " --++-- the singnature generated is -> ", signatureGeneratedFromRequestOrderdID)
+			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
+			return
+		 }
+		 signatureGeneratedFromStoredOrderdID,err :=helperfuncs.GetGeneratedSignature(orderID, request.RazorpayPaymentId, razorpaySecretID)
+		 if err != nil {
+			println(" the error in generatign the singature form the db is ->", err.Error(), " --++-- the singnature generated is -> ", signatureGeneratedFromStoredOrderdID)
+			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
+			return
+		 }
+
+		 fmt.Println(" the signature generated form the request is %s  -- and the one form the Db/stored one is %s and are they equal %b", signatureGeneratedFromRequestOrderdID, signatureGeneratedFromStoredOrderdID, signatureGeneratedFromRequestOrderdID == signatureGeneratedFromStoredOrderdID)
+
+
+		if signatureGeneratedFromRequestOrderdID != request.RazorpaySignature {
+			println("the generate signature is ->", signatureGeneratedFromRequestOrderdID, "++---------- and form the razorpay is ->", request.RazorpaySignature)
 			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
 			return
 		}
-		println("the int returned is ->", intReturned)
 
-		generatedSignature := hex.EncodeToString(h.Sum(nil))
-		if generatedSignature != request.RazorpaySignature {
-			println("the generate signature is ->", generatedSignature, "++---------- and form the razorpay is ->", request.RazorpaySignature)
-			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
-			return
-		}
-
-			println("the generate signature is ->", generatedSignature, "++---------- and form the razorpay is ->", request.RazorpaySignature)
 
 		// now we can update the db
 		// see what the webhook returns and if it is  same shit(based on that response) make the db table and update it here
+		//
+		//
+		// just give the user generated key that resets after 2 days for the optimistic update state, we will update the key in the message form next day and till 
+		// then the payment situation will be sorted 
 		//
 		//
 		//
