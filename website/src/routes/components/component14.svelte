@@ -12,7 +12,7 @@
 	import TestimonialsAndFaqs from '$lib/components/homepage/TestimonialsAndFaqs.svelte';
 	import type { RazorpayOptions } from '$lib/utils/razorpayIntegration/types/razorpayOption';
 	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
-	import { PUBLIC_ONETIMEPAYMENTPRICE, PUBLIC_RAZORPAY_KEY_ID, PUBLIC_RECURRINGPAYMENTPRICE } from '$env/static/public';
+	import { PUBLIC_CURRENCYTYPE, PUBLIC_ONETIMEPAYMENTPRICE, PUBLIC_RAZORPAY_KEY_ID, PUBLIC_RECURRINGPAYMENTPRICE } from '$env/static/public';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 	import { validateCompletedPayment } from '$lib/utils/razorpayIntegration/ValidateCompletedPayment';
 	import { didUserSelectOneTimePayment } from '$lib/sharedState/didUserSeletctOneTimePayment.svelte';
@@ -264,7 +264,7 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
             amount: isOneTimePayment ? 
                 PUBLIC_ONETIMEPAYMENTPRICE : 
                 PUBLIC_RECURRINGPAYMENTPRICE,
-            currency: "INR",
+            currency:PUBLIC_CURRENCYTYPE,
             name: "Youtube Sponsorship Skipper",
             description: isOneTimePayment ? "One-time payment" : "Premium subscription",
             order_id: orderId,
@@ -296,7 +296,7 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
                 email: keyFromChromeExtensionState.email || "",
             },
             theme: {
-                color: "#6366f1"
+                color: "#2c15bf"
             },
         };
         

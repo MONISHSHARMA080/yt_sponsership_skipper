@@ -80,8 +80,8 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			println("user selected recurring payment")
 			orderID = verifuPaymentLaterFromDB.RecurringOrderID
 		}
-println("Order ID from DB:", orderID)
-println("Order ID from request:", request.RazorpayOrderId)
+		println("Order ID from DB:", orderID)
+		println("Order ID from request:", request.RazorpayOrderId)
 		data := request.RazorpayOrderId + "|" + request.RazorpayPaymentId
 
 		h := hmac.New(sha256.New, []byte(razorpaySecretID))
