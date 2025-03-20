@@ -14,6 +14,8 @@
 	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
 	import { PUBLIC_ONETIMEPAYMENTPRICE, PUBLIC_RAZORPAY_KEY_ID, PUBLIC_RECURRINGPAYMENTPRICE } from '$env/static/public';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
+	import { validateCompletedPayment } from '$lib/utils/razorpayIntegration/ValidateCompletedPayment';
+	import { didUserSelectOneTimePayment } from '$lib/sharedState/didUserSeletctOneTimePayment.svelte';
 
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });
@@ -65,81 +67,256 @@
 		};
 	});
 
+			let didUserSelectedOneTimePaymentmethod = $state({isOneTimePaymentSelected:false})
 
 	// change  the type to be union of string
-	function paymentButtonClicked(textOnPayemntButton:string) {
-		try {
-			if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForOnetime === "" ||
-			razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.orderIdForRecurring === "") {
-				console.log(`the razor pay key id is not there returning, the `);
-				// let's fetch again just to be sure 
+// 	function paymentButtonClicked(textOnPayemntButton:string) {
+// 		// fixing this , and getting the bool value right 
+// 		try {
+// 			if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForOnetime === "" ||
+// 			razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.orderIdForRecurring === "" || keyFromChromeExtensionState.key === null) {
+// 				console.log(`the razor pay key id is not there returning, the `);
+// 				// let's fetch again just to be sure 
 
-				console.log(` the razorpay id is ->${razorpayOrderId.orderIdForOnetime} and the recurring one is ${razorpayOrderId.orderIdForRecurring}`);
+// 				console.log(` the razorpay id is ->${razorpayOrderId.orderIdForOnetime} and the recurring one is ${razorpayOrderId.orderIdForRecurring}`);
+// 				// askBackendForOrderId(keyFromChromeExtensionState)
+// 				return 
+// 			}
+// 			 function functionHandler (response:any, userPreferenceisOneTime:boolean) {
+// 				if (keyFromChromeExtensionState.key === null|| keyFromChromeExtensionState.email=== null  ) {
+// 					console.log(` the key is null so returning `);
+// 					return
+					
+// 				}
+// 				console.log(`\n\n didUserSelectedOneTimePayment is ${didUserSelectedOneTimePaymentmethod.isOneTimePaymentSelected } and userPreferenceisOneTime.valueOf() -->${userPreferenceisOneTime.valueOf()}, -- ${userPreferenceisOneTime}  \n\n`);
 				
-				// askBackendForOrderId(keyFromChromeExtensionState)
-				return 
-			}
-			const functionHandler = (response:any) =>{
-				console.log(`the razor pay payment was successfull and the response is ->`, response);
-			}
-			let option:RazorpayOptions = {
-				"key": "", // Enter the Key ID generated from the Dashboard
-				"amount": "50000", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-				"currency": "USD",
-				"name": "Youtube Sponsor Skipper",
-				"image": "https://example.com/your_logo",
-				"order_id": "order_IluGWxBm9U8zJ8", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-				"handler": (resp )=>functionHandler (resp),
-				"prefill": {
-				},
-				"notes": {
-					"address": "Razorpay Corporate Office"
-				},
-				"theme": {
-					"color": "#2c15bf"
-				}
+// 				console.log(`the razor pay payment was successfull and the response is ->`, response);
+// 				validateCompletedPayment(response, keyFromChromeExtensionState.key, keyFromChromeExtensionState.email, didUserSelectedOneTimePaymentmethod.isOneTimePaymentSelected ).then((res)=>{
+// 					console.log(`result of validating the resonse is ->`, res);
+// 				})
+// 			}
+// 			let option:RazorpayOptions = {
+// 				"key": "", // Enter the Key ID generated from the Dashboard
+// 				"amount": "", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+// 				"currency": "USD",
+// 				"name": "Youtube Sponsor Skipper",
+// 				"image": "https://example.com/your_logo",
+// 				"order_id": "order_IluGWxBm9U8zJ8", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+// 				"handler":()=>{},
+// 				"prefill": {
+// 				},
+// 				"notes": {
+// 					"address": "Razorpay Corporate Office"
+// 				},
+// 				"theme": {
+// 					"color": "#2c15bf"
+// 				}
 
-			} 
-			option.order_id = razorpayOrderId.orderIdForOnetime
-			option.key = PUBLIC_RAZORPAY_KEY_ID
+// 			} 
+// 			option.order_id = razorpayOrderId.orderIdForOnetime
+// 			option.key = PUBLIC_RAZORPAY_KEY_ID
+// 			let rzrpy:any
 
-			if(textOnPayemntButton === "Try Once"){
-				option.amount = PUBLIC_ONETIMEPAYMENTPRICE
-			}
-			if(textOnPayemntButton === "Go Premium"){
-				option.amount = PUBLIC_RECURRINGPAYMENTPRICE
-			}
-			if(textOnPayemntButton === "Install Now"){
-				// free teir, send them to the chrome extension site
-				return // for now 
-			}
+// 			if(textOnPayemntButton === "Try Once"){
+// 				option.amount = PUBLIC_ONETIMEPAYMENTPRICE
+// 				console.log(`the usr didUserSelectedOneTimePayment should be true here ---`);
+// 				console.log(" <-- the user is going for the tial -->");
+// 				didUserSelectedOneTimePaymentmethod.isOneTimePaymentSelected = true
+// 				didUserSelectOneTimePayment.valueChangedByMe = true 
+// 				didUserSelectOneTimePayment.didUserSelectOneTimePayment = true 
+//   				console.log(`\n\n++++ user selected one time payemnt, value change by me is  ${didUserSelectOneTimePayment.valueChangedByMe} and the value is ${didUserSelectOneTimePayment.didUserSelectOneTimePayment}+++++++\n\n`);
+// 				option.handler =
 			
-			console.log("out of it");
-			
-			// IDK how to make the lsp caught it, it is working though
-			// @ts-ignore
-			let rzrpy = new Razorpay(option);
-			rzrpy.open()
-			rzrpy.on('payment.failed', function (response: { error: { code: any; description: any; source: any; step: any; reason: any; metadata: { order_id: any; payment_id: any; }; }; }){
-        // alert(response.error.code);
-        // alert(response.error.description);
-        // alert(response.error.source);
-        // alert(response.error.step);
-        // alert(response.error.reason);
-        // alert(response.error.metadata.order_id);
-        // alert(response.error.metadata.payment_id);
-		console.log(`the failure response is ->`, response);
+// 				// @ts-ignore
+// 				rzrpy= new Razorpay({
+// 				"key": PUBLIC_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
+// 				"amount": PUBLIC_ONETIMEPAYMENTPRICE, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+// 				"currency": "USD",
+// 				"name": "Youtube Sponsor Skipper",
+// 				"image": "https://example.com/your_logo",
+// 				"order_id":razorpayOrderId.orderIdForOnetime, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+// 				"handler":  (resp: any )=>functionHandler (resp, true),
+// 				"prefill": {
+// 				},
+// 				"notes": {
+// 					"address": "Razorpay Corporate Office"
+// 				},
+// 				"theme": {
+// 					"color": "#2c15bf"
+// 				}
+
+// 			} );
+// 			rzrpy.open()	
+// 			rzrpy.on('payment.failed', function (response: { error: { code: any; description: any; source: any; step: any; reason: any; metadata: { order_id: any; payment_id: any; }; }; }){
+//         // alert(response.error.code);
+//         // alert(response.error.description);
+//         // alert(response.error.source);
+//         // alert(response.error.step);
+//         // alert(response.error.reason);
+//         // alert(response.error.metadata.order_id);
+//         // alert(response.error.metadata.payment_id);
+// 		console.log(`the failure response is ->`, response);
 		
-});
+// });
+// 			}
+// 			if(textOnPayemntButton === "Go Premium"){
+// 				option.amount = PUBLIC_RECURRINGPAYMENTPRICE
+// 				didUserSelectOneTimePayment.valueChangedByMe = true 
+// 				didUserSelectOneTimePayment.didUserSelectOneTimePayment = false 
+// 				option.handler =  (resp )=>functionHandler (resp, false )
+// 				console.log("the user is going premium -->");
+				
+// 				// @ts-ignore
+// 				rzrpy= new Razorpay({
+// 				"key": PUBLIC_RAZORPAY_KEY_ID, // Enter the Key ID generated from the Dashboard
+// 				"amount": PUBLIC_RECURRINGPAYMENTPRICE, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+// 				"currency": "USD",
+// 				"name": "Youtube Sponsor Skipper",
+// 				"image": "https://example.com/your_logo",
+// 				"order_id":razorpayOrderId.orderIdForOnetime, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+// 				"handler":  (resp: any )=>functionHandler (resp, true),
+// 				"prefill": {
+// 				},
+// 				"notes": {
+// 					"address": "Razorpay Corporate Office"
+// 				},
+// 				"theme": {
+// 					"color": "#2c15bf"
+// 				}
+
+// 			} );
+// 			rzrpy.open()
+// 	rzrpy.on('payment.failed', function (response: { error: { code: any; description: any; source: any; step: any; reason: any; metadata: { order_id: any; payment_id: any; }; }; }){
+//         // alert(response.error.code);
+//         // alert(response.error.description);
+//         // alert(response.error.source);
+//         // alert(response.error.step);
+//         // alert(response.error.reason);
+//         // alert(response.error.metadata.order_id);
+//         // alert(response.error.metadata.payment_id);
+// 		console.log(`the failure response is ->`, response);
+		
+// });
+// 			}
+// 			if(textOnPayemntButton === "Install Now"){
+// 				// free teir, send them to the chrome extension site
+// 				return // for now 
+// 			}
+			
+// 			console.log("out of it");
+			
+// 			// IDK how to make the lsp caught it, it is working though
+// 			// @ts-ignore
+			
+// 			rzrpy.on('payment.failed', function (response: { error: { code: any; description: any; source: any; step: any; reason: any; metadata: { order_id: any; payment_id: any; }; }; }){
+//         // alert(response.error.code);
+//         // alert(response.error.description);
+//         // alert(response.error.source);
+//         // alert(response.error.step);
+//         // alert(response.error.reason);
+//         // alert(response.error.metadata.order_id);
+//         // alert(response.error.metadata.payment_id);
+// 		console.log(`the failure response is ->`, response);
+		
+// });
 
 
 
-		} catch (error) {
-			console.error(` there is a errir in  running your buttom in payment click ->`,error)
-			return
-		}
-	}
+// 		} catch (error) {
+// 			console.error(` there is a errir in  running your buttom in payment click ->`,error)
+// 			return
+// 		}
+// 	}
 
+
+async function paymentButtonClicked(textOnPaymentButton: string) {
+    try {
+        // Early return for the free tier
+        if (textOnPaymentButton === "Install Now") {
+            console.log("Free tier selected, no payment needed");
+            return; // as this is free tier and don't have to do anything on it
+        }
+        
+        // Create a local variable that will be captured by the closure
+        const isOneTimePayment = textOnPaymentButton === "Try once";
+		console.log(` is this a one time payment ->${isOneTimePayment} and the texxt on the button is ->${textOnPaymentButton}<- and ->${textOnPaymentButton === "Try once"}`);
+		
+        
+        // Also update the state for other parts of the app
+        didUserSelectOneTimePayment.didUserSelectOneTimePayment = isOneTimePayment;
+        didUserSelectOneTimePayment.valueChangedByMe = true;
+        console.log(`Set one-time payment flag to: ${isOneTimePayment}`);
+        
+        // Get the appropriate order ID based on payment type
+        let orderId = isOneTimePayment ? 
+            razorpayOrderId.orderIdForOnetime : 
+            razorpayOrderId.orderIdForRecurring;
+            
+        // If order ID is not available, log error and return
+        if (!orderId) {
+            console.error("Order ID not found. Make sure it's fetched before payment.");
+            return;
+        }
+        
+        // Configure Razorpay options
+        const options: RazorpayOptions = {
+            key: PUBLIC_RAZORPAY_KEY_ID,
+            amount: isOneTimePayment ? 
+                PUBLIC_ONETIMEPAYMENTPRICE : 
+                PUBLIC_RECURRINGPAYMENTPRICE,
+            currency: "INR",
+            name: "Youtube Sponsorship Skipper",
+            description: isOneTimePayment ? "One-time payment" : "Premium subscription",
+            order_id: orderId,
+            handler: async function(response) {
+                console.log("Payment successful, validating payment...");
+                console.log(`Using payment type (one-time): ${isOneTimePayment}`);
+                
+                if (keyFromChromeExtensionState.email === null || keyFromChromeExtensionState.key === null) {
+                    return;
+                }
+                
+                // Validate the payment - using the local variable instead of the state
+                const validationResult = await validateCompletedPayment(
+                    response,
+                    keyFromChromeExtensionState.key,
+                    keyFromChromeExtensionState.email,
+                    isOneTimePayment  // Using the local variable that's captured in the closure
+                );
+                
+                if (validationResult !== null && validationResult.success) {
+                    console.log("Payment validation successful:", validationResult.message);
+                    // Handle successful payment (e.g., update UI, redirect, etc.)
+                } else {
+                    console.error("Payment validation failed:", validationResult);
+                    // Handle failed validation
+                }
+            },
+            prefill: {
+                email: keyFromChromeExtensionState.email || "",
+            },
+            theme: {
+                color: "#6366f1"
+            },
+        };
+        
+        // Initialize Razorpay
+        const rzp = new (window as any).Razorpay(options);
+        
+        // Handle payment failures
+        rzp.on('payment.failed', function(response: any) {
+            console.error("Payment failed:", response.error);
+            alert(`Payment failed: ${response.error.description}`);
+        });
+        
+        // Open Razorpay payment modal
+        rzp.open();
+        
+    } catch (error) {
+        console.error("Error in payment button click handler:", error);
+        alert("An error occurred while processing your payment. Please try again.");
+    }
+}
 
 
 

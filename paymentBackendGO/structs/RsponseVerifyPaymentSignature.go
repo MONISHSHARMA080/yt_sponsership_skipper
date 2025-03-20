@@ -9,7 +9,7 @@ type ResponseVerifyPaymentSignature struct {
 	Message    string `json:"message"`
 	StatusCode int    `json:"status_code"`
 	Success    bool   `json:"success"`
-	// NewKey     string  `json:"ney_key"` // maybe we should return the key here
+	// NewKey     string  `json:"new_key"` // maybe we should return the key here
 }
 
 func (resp *ResponseVerifyPaymentSignature) FillTheStruct(Success bool, messageWeGot string, statusCode int) {

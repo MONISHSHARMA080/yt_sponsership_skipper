@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	paymentbackendgo "youtubeAdsSkipper/paymentBackendGO"
+	handlerfunction "youtubeAdsSkipper/paymentBackendGO/handlerFunction"
 
 	"github.com/joho/godotenv"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
@@ -53,7 +54,10 @@ func main() {
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
 	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient))
 	http.HandleFunc("/checkIfKeyIsValid", CheckIfKeyIsValid(encryption_key_as_byte))
-	http.HandleFunc("/makeAPayment", paymentbackendgo.CreateAndReturnOrderId( os.Getenv("RAZORPAY_KEY_ID") , os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte ))
+	http.HandleFunc("/makeAPayment", paymentbackendgo.CreateAndReturnOrderId(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
+	http.HandleFunc("/validatePayment", handlerfunction.VerifyPaymentSignature(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
+	
+
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())

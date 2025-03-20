@@ -1,7 +1,3 @@
-
-
-// export class askBackendForOrderId{
-
 import { razorpayOrderId } from "$lib/sharedState/razorPayKey.svelte";
 import type { keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
 import { AsyncRequestQueue } from "../newAsyncRequestQueue";

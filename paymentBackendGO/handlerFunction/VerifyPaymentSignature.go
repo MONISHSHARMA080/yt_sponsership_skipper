@@ -54,8 +54,8 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			response.ReturnTheErrorInJsonResponse(w, r, "error in getting information out of the key", http.StatusBadRequest, false)
 			return
 		}
-		if userKey.UserInTheDb.Email != "" || userKey.UserInTheDb.Email != request.Email {
-			println("the error is that the email in request is ->", request.Email, " and the one form the key is ->", userKey.UserInTheDb.Email)
+		if userKey.UserInTheDb.Email != "" && userKey.UserInTheDb.Email != request.Email {
+			println("the error is that the email in request is ->",request.Email,"<- and the one form the key is ->", userKey.UserInTheDb.Email,"<- and are they equal ->",userKey.UserInTheDb.Email != request.Email)
 			response.ReturnTheErrorInJsonResponse(w, r, "the email does not match the one in the key", http.StatusBadRequest, false)
 			return
 		}
@@ -74,11 +74,15 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		// do not
 		var orderID string
 		if request.DidUserSelectedOneTimePayment {
+			println("user selected one time payment")
 			orderID = verifuPaymentLaterFromDB.OnetimeOrderID
 		} else {
+			println("user selected recurring payment")
 			orderID = verifuPaymentLaterFromDB.RecurringOrderID
 		}
-		data := orderID + "|" + request.RazorpayPaymentId
+println("Order ID from DB:", orderID)
+println("Order ID from request:", request.RazorpayOrderId)
+		data := request.RazorpayOrderId + "|" + request.RazorpayPaymentId
 
 		h := hmac.New(sha256.New, []byte(razorpaySecretID))
 
@@ -92,11 +96,20 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 
 		generatedSignature := hex.EncodeToString(h.Sum(nil))
 		if generatedSignature != request.RazorpaySignature {
+			println("the generate signature is ->", generatedSignature, "++---------- and form the razorpay is ->", request.RazorpaySignature)
 			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
 			return
 		}
 
+			println("the generate signature is ->", generatedSignature, "++---------- and form the razorpay is ->", request.RazorpaySignature)
+
 		// now we can update the db
 		// see what the webhook returns and if it is  same shit(based on that response) make the db table and update it here
+		//
+		//
+		//
+		//
+		// as of now here is the right response
+		response.ReturnTheErrorInJsonResponse(w, r, "success", http.StatusOK, true)
 	}
 }
