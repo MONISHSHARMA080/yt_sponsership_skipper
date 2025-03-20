@@ -97,7 +97,7 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		 }
 
-		 fmt.Println(" the signature generated form the request is %s  -- and the one form the Db/stored one is %s and are they equal %b", signatureGeneratedFromRequestOrderdID, signatureGeneratedFromStoredOrderdID, signatureGeneratedFromRequestOrderdID == signatureGeneratedFromStoredOrderdID)
+		 fmt.Println(" the signature generated form the request is %s  -- and the one form the Db/stored one is %s and are they equal %t", signatureGeneratedFromRequestOrderdID, signatureGeneratedFromStoredOrderdID, signatureGeneratedFromRequestOrderdID == signatureGeneratedFromStoredOrderdID)
 
 
 		if signatureGeneratedFromRequestOrderdID != request.RazorpaySignature {
