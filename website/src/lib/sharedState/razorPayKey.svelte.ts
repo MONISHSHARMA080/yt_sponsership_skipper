@@ -1,1 +1,1 @@
-export const razorpayOrderId = $state<{orderIdForRecurring:string|null,orderIdForOnetime:string|null}>({orderIdForOnetime:null, orderIdForRecurring:null})
+export const razorpayOrderId = $state<{orderIdForRecurring:string|null,orderIdForOnetime:string|null,numberOfTimesKeyUsed:number}>({orderIdForOnetime:null, orderIdForRecurring:null, numberOfTimesKeyUsed:0})

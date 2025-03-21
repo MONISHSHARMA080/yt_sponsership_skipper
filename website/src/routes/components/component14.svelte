@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import { Spring, Tween } from 'svelte/motion';
-	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard } from 'lucide-svelte';
+	import { ChevronRight, FastForward, Clock, Zap, Award, CreditCard, Loader2 } from 'lucide-svelte';
 	import PremiumBenfitsSectionForPermiumUsers from './premiumBenfitsSectionForPermiumUsers/premiumBenfitsSectionForPermiumUsers.svelte';
 	import { keyFromChromeExtensionState } from '$lib/sharedState/sharedKeyState.svelte';
 	import HeroSection from '$lib/components/homepage/HeroSection.svelte';
@@ -67,7 +67,6 @@
 		};
 	});
 
-			let didUserSelectedOneTimePaymentmethod = $state({isOneTimePaymentSelected:false})
 
 	// change  the type to be union of string
 // 	function paymentButtonClicked(textOnPayemntButton:string) {
@@ -306,7 +305,12 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
         // Handle payment failures
         rzp.on('payment.failed', function(response: any) {
             console.error("Payment failed:", response.error);
-            alert(`Payment failed: ${response.error.description}`);
+            // alert(`Payment failed: ${response.error.description}`);
+
+			// updating the razor pay state so that it can be updated for future use  
+			console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+			razorpayOrderId.numberOfTimesKeyUsed++
+			console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
         });
         
         // Open Razorpay payment modal
@@ -460,42 +464,53 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
         }
     ] as plan, index}
 
-        <div
-            class="relative border-4 {plan.messageOnTop ? (plan.messageOnTop === 'Popular' ? 'border-red-600' : (plan.messageOnTop === 'Try once' ? 'border-yellow-500' : 'border-black')) : 'border-black'} flex flex-col bg-white p-8"
-            in:fade={{ duration: 500, delay: index * 100 }}
-        >
-            {#if plan.messageOnTop}
-                <div
-                    class="absolute -top-4 -right-4 border-4 border-black {plan.messageOnTop === 'Popular' ? 'bg-red-500' : (plan.messageOnTop === 'Try once' ? 'bg-yellow-400' : 'bg-black')} px-4 py-1 font-bold text-black"
-                >
-                    {plan.messageOnTop}
-                </div>
-            {/if}
-							<h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
-							<div class="mb-4 flex items-end">
-								<span class="text-4xl font-black">{plan.price}</span>
-								<span class="ml-1 text-gray-600">/{plan.period}</span>
-							</div>
-							<p class="mb-6 text-gray-600">{plan.description}</p>
-							<ul class="mb-8 flex-grow space-y-3">
-								{#each plan.features as feature}
-									<li class="flex  font-medium items-start">
-										<div class="mr-2 bg-green-500 p-1 text-white">
-											<ChevronRight class="h-4 w-4" />
-										</div>
-										{feature}
-									</li>
-								{/each}
-							</ul>
-							<!-- add a function that pases in the buttontext as argument -->
-							<button
-								class="{plan.buttonColor} w-full transform border-3 border-black px-8 py-3 font-bold  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:scale-105 hover:shadow-none active:scale-95"
-								onclick={()=>{paymentButtonClicked(plan.buttonText); console.log("button clickd")}}
-								
-							>
-								{plan.buttonText}
-							</button>
-						</div>
+        
+    <div
+        class="relative border-4 {plan.messageOnTop ? (plan.messageOnTop === 'Popular' ? 'border-red-600' : (plan.messageOnTop === 'Try once' ? 'border-yellow-500' : 'border-black')) : 'border-black'} flex flex-col bg-white p-8"
+        in:fade={{ duration: 500, delay: index * 100 }}
+    >
+        {#if plan.messageOnTop}
+            <div
+                class="absolute -top-4 -right-4 border-4 border-black {plan.messageOnTop === 'Popular' ? 'bg-red-500' : (plan.messageOnTop === 'Try once' ? 'bg-yellow-400' : 'bg-black')} px-4 py-1 font-bold text-black"
+            >
+                {plan.messageOnTop}
+            </div>
+        {/if}
+        <h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
+        <div class="mb-4 flex items-end">
+            <span class="text-4xl font-black">{plan.price}</span>
+            <span class="ml-1 text-gray-600">/{plan.period}</span>
+        </div>
+        <p class="mb-6 text-gray-600">{plan.description}</p>
+        <ul class="mb-8 flex-grow space-y-3">
+            {#each plan.features as feature}
+                <li class="flex items-start font-medium">
+                    <div class="mr-2 bg-green-500 p-1 text-white rounded-sm">
+                        <ChevronRight class="h-4 w-4" />
+                    </div>
+                    <span>{feature}</span>
+                </li>
+            {/each}
+        </ul>
+        
+        {#if razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null}
+            <button
+                class=" bg-gray-200 text-black w-full flex items-center justify-center gap-2 transform border-3 border-black px-8 py-3 font-bold rounded-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                on:click={() => {paymentButtonClicked(plan.buttonText); console.log("button clicked")}}
+            >
+                <Loader2 class="animate-spin h-5 w-5" /> 
+                <span>{plan.buttonText}</span>
+            </button>
+        {:else}
+            <button
+                class="{plan.buttonColor} w-full flex items-center justify-center transform border-3 border-black px-8 py-3 font-bold rounded-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                on:click={() => {paymentButtonClicked(plan.buttonText); console.log("button clicked")}}
+            >
+                <span>{plan.buttonText}</span>
+            </button>
+        {/if}
+    </div>
+
 					{/each}
 				</div>
 				<div class="mt-16 text-center" in:fade={{ duration: 500 }}>

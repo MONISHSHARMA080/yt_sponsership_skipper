@@ -80,28 +80,19 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		}
 		println("Order ID from DB:", orderID)
 		println("Order ID from request:", request.RazorpayOrderId)
-
 		
-
-		// form the request
-		signatureGeneratedFromRequestOrderdID,err := helperfuncs.GetGeneratedSignature(request.RazorpayPaymentId, request.RazorpayPaymentId, razorpaySecretID)
-		if err != nil {
-			println(" the error in generating the signature form the request ->", err.Error(), " --++-- the signature generated is -> ", signatureGeneratedFromRequestOrderdID)
-			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
-			return
-		 }
-		 signatureGeneratedFromStoredOrderdID,err :=helperfuncs.GetGeneratedSignature(orderID, request.RazorpayPaymentId, razorpaySecretID)
+		 signatureGeneratedFromOrderIdStoredInDb,err :=helperfuncs.GetGeneratedSignature(orderID, request.RazorpayPaymentId, razorpaySecretID)
 		 if err != nil {
-			println(" the error in generating the signature form the db is ->", err.Error(), " --++-- the signature generated is -> ", signatureGeneratedFromStoredOrderdID)
+			println(" the error in generating the signature form the db is ->", err.Error(), " --++-- the signature generated is -> ", signatureGeneratedFromOrderIdStoredInDb)
 			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
 			return
 		 }
 
-		 fmt.Printf("\n the signature generated form the request is %s  -- and the one form the Db/stored one is %s and are they equal %t \n", signatureGeneratedFromRequestOrderdID, signatureGeneratedFromStoredOrderdID, signatureGeneratedFromRequestOrderdID == signatureGeneratedFromStoredOrderdID)
+		 fmt.Printf("\n the signature generated form the   -- and the one form the Db/stored one is %s  \n", signatureGeneratedFromOrderIdStoredInDb,  )
 
 
-		if signatureGeneratedFromStoredOrderdID != request.RazorpaySignature {
-			println("the generate signature is ->", signatureGeneratedFromRequestOrderdID, "++---------- and form the razorpay is ->", request.RazorpaySignature)
+		if signatureGeneratedFromOrderIdStoredInDb != request.RazorpaySignature {
+			println("the generate signature is ->", signatureGeneratedFromOrderIdStoredInDb, "++---------- and form the razorpay is ->", request.RazorpaySignature)
 			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
 			return
 		}
