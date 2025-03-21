@@ -1,3 +1,4 @@
+import { browser } from "$app/environment";
 
 export class accessLocalStorage{
 

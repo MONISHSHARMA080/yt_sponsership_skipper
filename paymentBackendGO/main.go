@@ -91,6 +91,7 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			println("the result of adding the token to db is ->", resultFromAddingTODb.Result)
 		}
 		responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, RazorpayOrderForRecurring.ID, RazorpayOrderForOneTime.ID, "success", http.StatusOK)
-		println("time taken is ->", time.Since(startTime).Microseconds()," microsec")
+		timeTaken:= time.Since(startTime)
+		println("time taken is ->", timeTaken.Microseconds()," Microseconds or ", timeTaken.Seconds(), " sec")
 	}
 }

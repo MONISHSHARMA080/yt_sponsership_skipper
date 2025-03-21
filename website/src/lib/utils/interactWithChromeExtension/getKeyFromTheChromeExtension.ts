@@ -1,3 +1,4 @@
+import { browser } from "$app/environment";
 import { keyFromChromeExtensionState, type keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
 import { accessLocalStorage } from "../localStorage";
 import { checkIfKeyIsValidAndUpdateTheState } from "../seeIfTheKeyIsValidByBackend";
@@ -88,6 +89,9 @@ export class interactWithTheChromeExtensionAndStoreIt{
     */
    public start(funcToRunWhenWeGetTheKey:funcToRunWhenWeGetTheKey) : Error|null {
       try {
+         if(!browser){
+            return new Error("the app is not running in the browser(ssr) and we can't start listenig to the chrome extension ")
+         }
          let [keyObj, error] = this.getKeyObjFromLocalStorage()
          if( error !== null || keyObj === null){
             console.log("the key object is not there in the local storage or the error is ->", error);
