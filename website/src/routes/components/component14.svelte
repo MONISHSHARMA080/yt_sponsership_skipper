@@ -223,7 +223,7 @@
 
 
 // 		} catch (error) {
-// 			console.error(` there is a errir in  running your buttom in payment click ->`,error)
+// 			console.error(` there is a error in  running your button in payment click ->`,error)
 // 			return
 // 		}
 // 	}

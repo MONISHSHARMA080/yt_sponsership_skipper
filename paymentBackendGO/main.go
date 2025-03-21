@@ -92,6 +92,6 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		}
 		responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, RazorpayOrderForRecurring.ID, RazorpayOrderForOneTime.ID, "success", http.StatusOK)
 		timeTaken:= time.Since(startTime)
-		println("time taken is ->", timeTaken.Microseconds()," Microseconds or ", timeTaken.Seconds(), " sec")
+		println("time taken is ->", timeTaken.Microseconds()," Microseconds or ", timeTaken.Seconds(), " sec", " and", timeTaken.Milliseconds(), " ms")
 	}
 }
