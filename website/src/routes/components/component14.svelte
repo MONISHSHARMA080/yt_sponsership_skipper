@@ -285,10 +285,19 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
                 
                 if (validationResult !== null && validationResult.success) {
                     console.log("Payment validation successful:", validationResult.message);
+					// console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+					// razorpayOrderId.numberOfTimesKeyUsed++
+					// console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+					askBackendForOrderId(keyFromChromeExtensionState)
                     // Handle successful payment (e.g., update UI, redirect, etc.)
                 } else {
                     console.error("Payment validation failed:", validationResult);
-                    // Handle failed validation
+					// Handle failed validation
+					// updating the keys as this one is used and will not be required and if I updated the numberOfTImesKeyused++ I am stuck in a recursive loop 
+					askBackendForOrderId(keyFromChromeExtensionState)
+					// console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+					// razorpayOrderId.numberOfTimesKeyUsed++
+					// console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
                 }
             },
             prefill: {

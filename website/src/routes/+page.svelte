@@ -48,15 +48,18 @@
 		})
 
 		// if we don't do this and the ordered id is used in a failure , it will not update, also update it only when the failure is registered
-		let newRazorPayOrderID = $derived(razorpayOrderId)
-		$effect(()=>{
-			if (newRazorPayOrderID.numberOfTimesKeyUsed >= 1) {
-				console.log(`the razor pay ordered id has been used one time`);
-				askBackendForOrderId(val).then((val)=>{
-					console.log(`the razorpay order ID is used one time and we are updated it and the returned value is  -> ${val} `);
-				})
-			}
-		})
+		// let newRazorPayOrderID = $derived(razorpayOrderId)
+		// $effect(()=>{
+		// 	console.log(`the razor pay order id after change is -> ${JSON.stringify(newRazorPayOrderID)}`);
+		// 	if (newRazorPayOrderID.numberOfTimesKeyUsed === 1 || newRazorPayOrderID.numberOfTimesKeyUsed >1) {
+		// 		console.log(`the razor pay ordered id has been used one time`);
+		// 		askBackendForOrderId(keyFromChromeExtensionState).then((val)=>{
+		// 			console.log(`the razorpay order ID is used one time and we are updated it and the returned value is  -> ${val} `);
+		// 		})
+		// 	}else{
+		// 		return
+		// 	}
+		// })
 
 		$effect(()=>{
 			console.log(`the razor pay id is ->`, razorpayOrderId.orderIdForOnetime, razorpayOrderId.orderIdForRecurring);

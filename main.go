@@ -56,8 +56,7 @@ func main() {
 	http.HandleFunc("/checkIfKeyIsValid", CheckIfKeyIsValid(encryption_key_as_byte))
 	http.HandleFunc("/makeAPayment", paymentbackendgo.CreateAndReturnOrderId(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
 	http.HandleFunc("/validatePayment", handlerfunction.VerifyPaymentSignature(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
-	
-
+	http.HandleFunc("/webHookIntegrationForPaymentCapture", handlerfunction.WebHookIntegrationForPaymentCapture(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), os.Getenv("RAZORPAYWEBHOOKSECRET"), encryption_key_as_byte))
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())
