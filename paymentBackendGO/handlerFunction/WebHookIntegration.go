@@ -39,8 +39,22 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 			println("---- webhook is not form razorpay ----")
 			return
 		}
-		println("webHook is from the razorpay indeed and now we are going to make the call to DB to set a message there for the user, the ammount paid by the user is ->", webhookEvent.Payload.Payment.Entity.Amount, " and the Currency is ", webhookEvent.Payload.Payment.Entity.Currency)
+		// if webhookEvent.Payload.Payment.Entity.Currency !=
+		// how do I get the tier of the request
+
+		ispaymentForOneTimeOnly, err := webhookEvent.IsThePaymentForOneTimePaymentTier()
+		if err != nil {
+			println("error in knowing if the event is free tier or not and  the error is ->", err.Error())
+			return
+		}
+		println("\n\n\n--------webHook is from the razorpay indeed and now we are going to make the call to DB to set a message there for the user, the ammount paid by the user is ->",
+			webhookEvent.Payload.Payment.Entity.Amount, " and the Currency is ", webhookEvent.Payload.Payment.Entity.Currency, "and the payment for one time only ", ispaymentForOneTimeOnly, "\n\n\n")
 
 		// now make sure the ammount paid is correct and if everything is alright if it is then set the message in the DB
+		//
+		//
+		//
+		//for inserting in the message table we would need to use the onconflict update the, or SELECT COALESCE(MAX(version), 0-- depending
+		// upon if I want many rows for the user or just a single one(many)
 	}
 }

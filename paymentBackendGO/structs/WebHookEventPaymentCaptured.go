@@ -3,8 +3,11 @@ package structs
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
@@ -163,6 +166,27 @@ func (w *WebhookEvent) GetWallet() string {
 		return *wallet
 	}
 	return ""
+}
+
+// returns true if the payment made by the user is regarding free teir
+func (w *WebhookEvent) IsThePaymentForOneTimePaymentTier() (bool, error) {
+	recurringPaymentPrice, err := strconv.ParseInt(os.Getenv("RECURRINGPAYMENTPRICE"), 10, 64)
+	if err != nil {
+		return false, err
+	}
+	oneTimePayment, err := strconv.ParseInt(os.Getenv("ONETIMEPAYMENTPRICE"), 10, 64)
+	if err != nil {
+		return false, err
+	}
+
+	println("price paid by the user acc to web hook is ->", w.Payload.Payment.Entity.Amount, " and the recurring payment price is:", recurringPaymentPrice, " and the one time payement price is:", oneTimePayment)
+
+	if w.Payload.Payment.Entity.Amount == int(recurringPaymentPrice) {
+		return false, nil
+	} else if w.Payload.Payment.Entity.Amount == int(oneTimePayment) {
+		return true, nil
+	}
+	return false, fmt.Errorf("can't find the error in the ")
 }
 
 // GetVPA returns the VPA for UPI payments

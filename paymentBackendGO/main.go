@@ -15,7 +15,7 @@ import (
 // handler function that will called by the user and give them the oder id
 func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		startTime:= time.Now()
+		startTime := time.Now()
 		println("in the payment func and envKeyAsByte is ->", envKeyAsByte, "\n\n")
 		var responseFromTheServer structs.ResponseToTheUser
 		if r.Method != http.MethodPost {
@@ -61,10 +61,10 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		razorPayClient := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"))
 
 		go RazorpayOrderForRecurring.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForRecurring, recurringChannel)
-		go RazorpayOrderForOneTime.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForRecurring, oneTimeChannel)
+		go RazorpayOrderForOneTime.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForOneTime, oneTimeChannel)
 		println("waiting for the func to finish")
-		resFromOneTime:= <- oneTimeChannel
-		resFromRecurring := <- recurringChannel
+		resFromOneTime := <-oneTimeChannel
+		resFromRecurring := <-recurringChannel
 		if resFromOneTime.Error != nil || resFromRecurring.Error != nil {
 			println("error in validating ->")
 			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "trouble getting to the razorpay", http.StatusInternalServerError)
@@ -91,7 +91,8 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			println("the result of adding the token to db is ->", resultFromAddingTODb.Result)
 		}
 		responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, RazorpayOrderForRecurring.ID, RazorpayOrderForOneTime.ID, "success", http.StatusOK)
-		timeTaken:= time.Since(startTime)
-		println("time taken is ->", timeTaken.Microseconds()," Microseconds or ", timeTaken.Seconds(), " sec", " and", timeTaken.Milliseconds(), " ms")
+		timeTaken := time.Since(startTime)
+		println("time taken is ->", timeTaken.Microseconds(), " Microseconds or ", timeTaken.Seconds(), " sec", " and", timeTaken.Milliseconds(), " ms")
 	}
 }
+
