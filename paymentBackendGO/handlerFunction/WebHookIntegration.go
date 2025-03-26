@@ -81,30 +81,9 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 			return
 		}
 
-		// refundResult, err := helperfuncs.RefundTheUser(int64(webhookEvent.Payload.Payment.Entity.Amount), webhookEvent.Payload.Payment.Entity.ID, razorPayClient)
-		// if err != nil {
-		// 	println("there was a error in calling the refunc function form the razorpay ->", err.Error())
-		// 	return
-		// }
-		// if refundResult.Error != nil {
-		// 	println("well there is a error  in the repsonse of the refund func and the code is->", refundResult.Error.Code, "\n and the description is ->", refundResult.Error.Description)
-		// 	return
-		// } else {
-		// 	println("the success is not equal to nil ->", refundResult.Success != nil)
-		// 	println("the result form the refund func is success and ammount is ->", refundResult.Success.Amount)
-		// 	return
-		// }
-		//
-		//
-		//
-		//
 		// now for some reason we have a error in updating the DB or can't do anything then we should refund to the usrr the money
 		// maybe we would add it later
 		// now make sure the ammount paid is correct and if everything is alright if it is then set the message in the DB
 		//
-
-		//
-		//for inserting in the message table we would need to use the onconflict update the, or SELECT COALESCE(MAX(version), 0-- depending
-		// upon if I want many rows for the user or just a single one(many)
 	}
 }

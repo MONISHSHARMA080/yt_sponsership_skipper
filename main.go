@@ -41,7 +41,6 @@ func main() {
 		println("Error loading .env file: %v", err)
 		panic(err)
 	}
-
 	encryption_key := os.Getenv("encryption_key")
 	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
 
