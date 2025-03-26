@@ -3,8 +3,10 @@ package paymentbackendgo
 import (
 	"net/http"
 	"youtubeAdsSkipper/paymentBackendGO/common"
+	helperfuncs "youtubeAdsSkipper/paymentBackendGO/helperFuncs"
 	"youtubeAdsSkipper/paymentBackendGO/structs"
 
+	"github.com/razorpay/razorpay-go"
 	"github.com/razorpay/razorpay-go/utils"
 )
 
@@ -14,9 +16,13 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 		println("in the webHookEvent")
 
 		// Decode the webHookEvent
-		var webhookEvent structs.WebhookEvent
+		var webHookEvent structs.WebhookEvent
+		var messageFormDbOnPaymentCapture structs.MessageForUserOnPaymentCapture
+		resultChannelToGetToDB := make(chan common.ErrorAndResultStruct[bool])
 		resultFromJSONDecode := make(chan common.ErrorAndResultStruct[string])
-		go webhookEvent.DecodeJSONResponseInStructAndGetRequestBodyOut(r, resultFromJSONDecode)
+
+		razorPayClient := razorpay.NewClient(razorpayKeyID, razorpaySecretID)
+		go webHookEvent.DecodeJSONResponseInStructAndGetRequestBodyOut(r, resultFromJSONDecode)
 
 		// getting the webhook
 		webhookSignature := r.Header.Get("X-Razorpay-Signature")
@@ -40,19 +46,63 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 			return
 		}
 		// if webhookEvent.Payload.Payment.Entity.Currency !=
-		// how do I get the tier of the request
 
-		ispaymentForOneTimeOnly, err := webhookEvent.IsThePaymentForOneTimePaymentTier()
+		// here if I get the error maybe I need to make a DB call  and check the order id against it to see the payment type, but for as
+		// of now this is ok
+		//
+		//I am probally making the call to the DB for the getting the order ID form it, might as well check it
+		ispaymentForOneTimeOnly, err := webHookEvent.IsThePaymentForOneTimePaymentTier()
 		if err != nil {
 			println("error in knowing if the event is free tier or not and  the error is ->", err.Error())
-			return
+			// return
+			// assuming it to be true, such that you will implement it later
+			ispaymentForOneTimeOnly = true
+			println("\n\n\n\n\n\n\n---------WE ARE NOT ABLE TO DETERMINE IF THE PAYMENT IS PAID OR NOT, SO WE ARE MAKING IT PAID ;;;FIX THIS NOW--------------\n\n\n\n\n\n\n\n\n\n")
+			println("error in getting payment for one time in webhookEvent is ->", err.Error())
+			helperfuncs.AbstractRefundFunctionWrapper(webHookEvent.Payload.Payment.Entity.Amount, webHookEvent.Payload.Payment.Entity.ID, razorPayClient)
 		}
 		println("\n\n\n--------webHook is from the razorpay indeed and now we are going to make the call to DB to set a message there for the user, the ammount paid by the user is ->",
-			webhookEvent.Payload.Payment.Entity.Amount, " and the Currency is ", webhookEvent.Payload.Payment.Entity.Currency, "and the payment for one time only ", ispaymentForOneTimeOnly, "\n\n\n")
+			webHookEvent.Payload.Payment.Entity.Amount, " and the Currency is ", webHookEvent.Payload.Payment.Entity.Currency, "and the payment for one time only ", ispaymentForOneTimeOnly, "\n\n\n")
 
+		// if  ispaymentForOneTimeOnly is true make a fucn on it to make it after the day or months form the env
+		// should it be on my webHookEvent or on my InitializeStruct method and passing a bool on whether it is a free tier
+		// or not should set it
+		err = messageFormDbOnPaymentCapture.InitializeStruct(webHookEvent.Payload.Payment.Entity.ID, webHookEvent.Payload.Payment.Entity.Notes.IDPrimaryKey, ispaymentForOneTimeOnly)
+		if err != nil {
+			println("there is a error in Initializing the Struct and we can't send messgae to the Db ->", err.Error())
+			helperfuncs.AbstractRefundFunctionWrapper(webHookEvent.Payload.Payment.Entity.Amount, webHookEvent.Payload.Payment.Entity.ID, razorPayClient)
+			return
+		}
+		go messageFormDbOnPaymentCapture.AddMessageAfterUserPaymentReceived(helperfuncs.DbConnect(), resultChannelToGetToDB)
+		resultFormTheDB := <-resultChannelToGetToDB
+		if resultFormTheDB.Error != nil {
+			println("there  is a performing  operations in the DB and it is -> ", resultFormTheDB.Error.Error())
+			helperfuncs.AbstractRefundFunctionWrapper(webHookEvent.Payload.Payment.Entity.Amount, webHookEvent.Payload.Payment.Entity.ID, razorPayClient)
+			return
+		}
+
+		// refundResult, err := helperfuncs.RefundTheUser(int64(webhookEvent.Payload.Payment.Entity.Amount), webhookEvent.Payload.Payment.Entity.ID, razorPayClient)
+		// if err != nil {
+		// 	println("there was a error in calling the refunc function form the razorpay ->", err.Error())
+		// 	return
+		// }
+		// if refundResult.Error != nil {
+		// 	println("well there is a error  in the repsonse of the refund func and the code is->", refundResult.Error.Code, "\n and the description is ->", refundResult.Error.Description)
+		// 	return
+		// } else {
+		// 	println("the success is not equal to nil ->", refundResult.Success != nil)
+		// 	println("the result form the refund func is success and ammount is ->", refundResult.Success.Amount)
+		// 	return
+		// }
+		//
+		//
+		//
+		//
+		// now for some reason we have a error in updating the DB or can't do anything then we should refund to the usrr the money
+		// maybe we would add it later
 		// now make sure the ammount paid is correct and if everything is alright if it is then set the message in the DB
 		//
-		//
+
 		//
 		//for inserting in the message table we would need to use the onconflict update the, or SELECT COALESCE(MAX(version), 0-- depending
 		// upon if I want many rows for the user or just a single one(many)

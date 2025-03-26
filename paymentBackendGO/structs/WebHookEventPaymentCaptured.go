@@ -34,40 +34,42 @@ type PaymentEntity struct {
 
 // PaymentDetails contains all possible fields from various payment methods
 type PaymentDetails struct {
-	ID                string        `json:"id"`
-	Entity            string        `json:"entity"`
-	Amount            int           `json:"amount"`
-	Currency          string        `json:"currency"`
-	BaseAmount        int           `json:"base_amount"`
-	Status            string        `json:"status"`
-	OrderID           string        `json:"order_id"`
-	InvoiceID         *string       `json:"invoice_id"`
-	International     bool          `json:"international"`
-	Method            string        `json:"method"` // "netbanking", "card", "wallet", "upi", etc.
-	AmountRefunded    int           `json:"amount_refunded"`
-	AmountTransferred int           `json:"amount_transferred"`
-	RefundStatus      *string       `json:"refund_status"`
-	Captured          bool          `json:"captured"`
-	Description       *string       `json:"description"`
-	CardID            *string       `json:"card_id"`
-	Bank              *string       `json:"bank"` // For netbanking
-	Wallet            *string       `json:"wallet"`
-	VPA               *string       `json:"vpa"` // For UPI
-	Email             string        `json:"email"`
-	Contact           string        `json:"contact"`
-	Notes             []interface{} `json:"notes"`
-	Fee               *int          `json:"fee"`
-	Tax               *int          `json:"tax"`
-	ErrorCode         *string       `json:"error_code"`
-	ErrorDescription  *string       `json:"error_description"`
-	ErrorSource       *string       `json:"error_source"`
-	ErrorStep         *string       `json:"error_step"`
-	ErrorReason       *string       `json:"error_reason"`
-	AcquirerData      AcquirerData  `json:"acquirer_data"`
-	CreatedAt         int64         `json:"created_at"`
-	Card              *CardDetails  `json:"card,omitempty"`     // For card payments
-	UPI               *UPIDetails   `json:"upi,omitempty"`      // For UPI payments
-	TokenID           *string       `json:"token_id,omitempty"` // For tokenized card payments
+	ID                string  `json:"id"`
+	Entity            string  `json:"entity"`
+	Amount            int     `json:"amount"`
+	Currency          string  `json:"currency"`
+	BaseAmount        int     `json:"base_amount"`
+	Status            string  `json:"status"`
+	OrderID           string  `json:"order_id"`
+	InvoiceID         *string `json:"invoice_id"`
+	International     bool    `json:"international"`
+	Method            string  `json:"method"` // "netbanking", "card", "wallet", "upi", etc.
+	AmountRefunded    int     `json:"amount_refunded"`
+	AmountTransferred int     `json:"amount_transferred"`
+	RefundStatus      *string `json:"refund_status"`
+	Captured          bool    `json:"captured"`
+	Description       *string `json:"description"`
+	CardID            *string `json:"card_id"`
+	Bank              *string `json:"bank"` // For netbanking
+	Wallet            *string `json:"wallet"`
+	VPA               *string `json:"vpa"` // For UPI
+	Email             string  `json:"email"`
+	Contact           string  `json:"contact"`
+	Notes             struct {
+		IDPrimaryKey int64 `json:"id_primary_key"`
+	} `json:"notes"`
+	Fee              *int         `json:"fee"`
+	Tax              *int         `json:"tax"`
+	ErrorCode        *string      `json:"error_code"`
+	ErrorDescription *string      `json:"error_description"`
+	ErrorSource      *string      `json:"error_source"`
+	ErrorStep        *string      `json:"error_step"`
+	ErrorReason      *string      `json:"error_reason"`
+	AcquirerData     AcquirerData `json:"acquirer_data"`
+	CreatedAt        int64        `json:"created_at"`
+	Card             *CardDetails `json:"card,omitempty"`     // For card payments
+	UPI              *UPIDetails  `json:"upi,omitempty"`      // For UPI payments
+	TokenID          *string      `json:"token_id,omitempty"` // For tokenized card payments
 }
 
 // AcquirerData contains payment processor details that vary by payment method
