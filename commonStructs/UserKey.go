@@ -33,15 +33,6 @@ type UserKey struct {
 	decryptedUserKey string // this is the string representation of the user struct 29012093-|-name-|-email-|-kskjdc...
 }
 
-// now the user message table will be
-//
-// for updating we will need to use the
-
-// method will encrypt The User in the struct and will give you the Encrypted Key out, also setting the key on the private feild
-// func (userKey *UserKey) EncryptTheUserAndGetTheKey(result <-chan common.ErrorAndResultStruct[string]) {
-// 	// to be implemented
-// }
-
 // should return false if the struct is initialized jsut now or things smth is not set
 // A better approach: if we int all the && feilds and add them and it is equal to 0 then may be there is a error
 func (u *UserKey) IsMyStructEmpty() bool {
