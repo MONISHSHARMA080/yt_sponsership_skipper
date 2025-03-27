@@ -1,9 +1,8 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 	"time"
 	commonstructs "youtubeAdsSkipper/commonStructs"
@@ -61,38 +60,15 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 			return
 		}
 		// checking if the user has not provided the field
-		// println("22")
+		println("22")
 
-		// don't need this now as we are storing the string in the Db and not the int64
-		signup_user_details, err := signup_user_details_temp.convertAccountIDToNumber()
-		if err != nil {
-			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
-			ResponseFromTheUserAuth.Message = "Bad request, can't parse your accountID"
-			ResponseFromTheUserAuth.Success = false
-			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
-			println("can't convert account ID to int, error -->", err.Error())
-			return
-		}
-
-		// we should have some sort of struct method to check for this as it will clean this up
-		if signup_user_details.AccountID == 0 || signup_user_details.UserToken == "" {
-			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
-			ResponseFromTheUserAuth.Message = "Bad request"
-			ResponseFromTheUserAuth.Success = false
-			println("3")
-			println("id is ", signup_user_details.AccountID, "-- user token is --", signup_user_details.UserToken)
-			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
-			return
-		}
-
-		println("User signed up successfully", signup_user_details.AccountID, " - ", signup_user_details.UserToken)
 		db := DbConnect()
 		resultAndErrChan := make(chan common.ErrorAndResultStruct[string])
 		responseFromGoogleAuth := make(chan TokenResponseFromGoogleAuth)
 
 		// --------------- check for the oauth and see wether the user detail is true or not and then take the email(from OAUTH2) etc, name etc and put that in the db
 
-		go verifyGoogleAuthToken(signup_user_details.UserToken, responseFromGoogleAuth)
+		go verifyGoogleAuthToken(signup_user_details_temp.UserToken, responseFromGoogleAuth)
 		responseFormGoogleAuthToken := <-responseFromGoogleAuth
 		if responseFormGoogleAuthToken.Error != nil {
 			println("error occurred in the google Oauth", responseFormGoogleAuthToken.Error.Error())
@@ -109,71 +85,50 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		// ---> now make the json response func <---
 		// -------- this one should send the json response and not http error
 
-		// userToInsert := UserInDb{
-		// 	accounID:       signup_user_details.AccountID,
-		// 	email:          responseFormGoogleAuthToken.Email,
-		// 	userName:       responseFormGoogleAuthToken.Name,
-		// 	is_a_paid_user: false, // Assuming default is false
-		// }
+		println("making the db struct")
 		userToInsert := commonstructs.UserInDb{
 			AccountID:  signup_user_details_temp.AccountID,
 			Email:      responseFormGoogleAuthToken.Email,
 			UserName:   responseFormGoogleAuthToken.Name,
 			IsUserPaid: false, //  default is false for the new user
 		}
-		println("user account id", signup_user_details.AccountID)
 
-		// go func() {
-		// 	err := InsertUserInDB(db, userToInsert) // Assuming 'db' is accessible here
-		// 	errChan <- err                          // Send error (or nil) to channel
-		// }()
-
-		go userToInsert.InsertNewUserInDb(db, resultAndErrChan)
-
+		println("is the Db struct valid (not added the free tier so it should be false->", userToInsert.IsUserValid())
+		userToInsert.AddUserToFreeTier()
+		println("is the Db struct valid added the free tier so it should be true->", userToInsert.IsUserValid())
+		go userToInsert.InsertNewUserInDbAndGetNewKey(db, resultAndErrChan)
+		// var encryptedKeyOrResult string
 		// Wait for the goroutine to finish or timeout
+		println("waiting for the channel to receive on  ")
+
 		select {
 		case result := <-resultAndErrChan:
 			if result.Error != nil {
+				println("there is a error in inserting teh user in Db ->", result.Error.Error())
 				ResponseFromTheUserAuth.Message = "error inserting you in the DB"
 				ResponseFromTheUserAuth.Success = false
 				ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
 				ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
-				log.Printf("Error inserting user into DB: %v", err)
+				fmt.Printf("Error inserting user into DB: %v", result.Error)
 				return
+			} else {
+				println("there is no problem in getting the key and we are returning")
+				ResponseFromTheUserAuth.Message = "successfully completed user signup"
+				ResponseFromTheUserAuth.Success = true
+				ResponseFromTheUserAuth.Status_code = http.StatusOK
+				ResponseFromTheUserAuth.EncryptedKey = result.Result
+				ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
+				w.Header().Set("Content-Type", "application/json")
 			}
-		case <-time.After(6 * time.Second): // Timeout after 5 seconds
+		case <-time.After(6 * time.Second): // Timeout after 6 seconds
 			ResponseFromTheUserAuth.Message = "timeout while inserting you in the DB"
 			ResponseFromTheUserAuth.Success = false
 			ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
 			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 			return
 		}
+
 		// new user the version will be 0
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		plaintext := []byte(return_string_based_on_user_details_for_encryption_text(userToInsert, false))
-		ciphertext, err := encrypt(plaintext, []byte(os_env_key))
-		if err != nil {
-			ResponseFromTheUserAuth.Message = "can't make the key for you"
-			ResponseFromTheUserAuth.Success = false
-			ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
-			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
-			return
-		}
-		base64Ciphertext := base64.StdEncoding.EncodeToString(ciphertext)
-		println("\n\nabout to encrypt -->", return_string_based_on_user_details_for_encryption_text(userToInsert, false), "\n\n", "and ", base64Ciphertext, "\n\n")
-		ResponseFromTheUserAuth.Message = "successfully completed user signup"
-		ResponseFromTheUserAuth.Success = true
-		ResponseFromTheUserAuth.Status_code = http.StatusOK
-		ResponseFromTheUserAuth.EncryptedKey = base64Ciphertext
-		ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
-		w.Header().Set("Content-Type", "application/json")
 	}
 }
 

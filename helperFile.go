@@ -303,6 +303,7 @@ func (r *ResponseFromTheUserAuthStruct) writeJSONAndHttpForUserSignupFunc(w http
 		println("error in the json encoding for the user signup -->", err.Error())
 		return err
 	}
+	println("---- writting to the json  ----")
 	return nil
 }
 

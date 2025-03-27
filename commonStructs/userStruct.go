@@ -29,37 +29,23 @@ func (U *UserInDb) IsUserValid() bool {
 	// // 	return false
 	// // }
 	// return true
-	return U.AccountID == "" || U.Email == "" || U.UserName == "" || U.UserTeir == ""
+	// return U.AccountID == "" || U.Email == "" || U.UserName == "" || U.UserTeir == ""
+	return U.AccountID != "" && U.Email != "" && U.UserName != "" && U.UserTeir != ""
 }
 
 func (UserInDb *UserInDb) AddUserToFreeTier() {
 	UserInDb.UserTeir = "free tier" // taken form the DB
 }
 
-// we are not checking if the user is free tier, this method just copies it and calls it a day, and will error if the user in db is empty,
-//
-//hard code values/assumptions: the user tier will be free and the version to be 0, and gthe time to check for update on is after 1 month and 1 day
-// func   InitializeTheStructForNewUser( userKey *UserKey, userInDb UserInDb , primaryKeyOfTheUserReturnedFromTheDB int)error{
-// 	userInDb.AddUserToFreeTier()
-// 	if !userInDb.IsUserValid(){
-// 		return fmt.Errorf("the user struct is not valid ")
-// 	}
-// 	userKey.AccountID = userInDb.AccountID
-// 	userKey.UserName = userInDb.UserName
-// 	userKey.Email = userInDb.Email
-// 	userKey.IsUserPaid = userInDb.IsUserPaid
-// 	userKey.UserTier = userInDb.UserTeir
-// 	userKey.Version = 0
-// 	userKey.IDPrimaryKey = int64(primaryKeyOfTheUserReturnedFromTheDB)
-// 	userKey.CheckForKeyUpdateOn = time.Now().AddDate(0,1,1).Unix()
-// 	return nil
-// }
-
 // method to insert New User in Db
-func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan common.ErrorAndResultStruct[string]) {
+func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan common.ErrorAndResultStruct[int64]) {
 	UserInDb.AddUserToFreeTier()
 	if !UserInDb.IsUserValid() {
-		resultChannel <- common.ErrorAndResultStruct[string]{Result: "", Error: fmt.Errorf("the Db struct is not valid or it is empty")}
+		println("\n\n")
+		println("the user in db is not valid lets see its fields tier ->", UserInDb.UserTeir, " account id ->", UserInDb.AccountID, " email ->", UserInDb.Email, " user name ->", UserInDb.UserName)
+		println("is the user valid->", UserInDb.IsUserValid())
+		println("\n\n")
+		resultChannel <- common.ErrorAndResultStruct[int64]{Result: 0, Error: fmt.Errorf("the Db struct is not valid or it is empty")}
 		return
 	}
 	query := `
@@ -67,17 +53,25 @@ func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan commo
         (accountid, email, userName, is_a_paid_user)
         VALUES (?, ?, ?, ?)
     `
-	_, err := db.Exec(query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid)
+	result, err := db.Exec(query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid)
+	println("made the sql query")
 	if err != nil {
-		resultChannel <- common.ErrorAndResultStruct[string]{Result: "", Error: err}
+		resultChannel <- common.ErrorAndResultStruct[int64]{Result: 0, Error: err}
 		return
 	}
-	resultChannel <- common.ErrorAndResultStruct[string]{Result: "", Error: nil}
+	id, err := result.LastInsertId()
+	if err != nil {
+		resultChannel <- common.ErrorAndResultStruct[int64]{Result: 0, Error: err}
+		return
+	}
+	println("the db insert is successfull--")
+	resultChannel <- common.ErrorAndResultStruct[int64]{Result: id, Error: nil}
 }
 
 // method to insert New User in and get the encrypted key with it in the channel result string
 func (UserInDb *UserInDb) InsertNewUserInDbAndGetNewKey(db *sql.DB, resultChannel chan common.ErrorAndResultStruct[string]) {
-	resultChannelForDb := make(chan common.ErrorAndResultStruct[string])
+	resultChannelForDb := make(chan common.ErrorAndResultStruct[int64])
+	resulChannellForEncryptionKey := make(chan common.ErrorAndResultStruct[string])
 	go UserInDb.InsertNewUserInDb(db, resultChannelForDb)
 	resultFromTheDB := <-resultChannelForDb
 	if resultFromTheDB.Error != nil {
@@ -86,10 +80,17 @@ func (UserInDb *UserInDb) InsertNewUserInDbAndGetNewKey(db *sql.DB, resultChanne
 	}
 	// take the user in the Db and make the key there
 	newUserKey := UserKey{}
-	newUserKey.InitializeTheStructForNewUser(*UserInDb, 23)
+	err := newUserKey.InitializeTheStructForNewUser(*UserInDb, resultFromTheDB.Result)
+	if err != nil {
+		resultChannel <- common.ErrorAndResultStruct[string]{Result: "", Error: err}
+		return
+	}
+	println("about to encrypt the key ")
+	go newUserKey.EncryptTheUser(resulChannellForEncryptionKey)
+	resulFromEncryptedKey := <-resulChannellForEncryptionKey
+	if resulFromEncryptedKey.Error != nil {
+		resultChannel <- common.ErrorAndResultStruct[string]{Result: resulFromEncryptedKey.Result, Error: resulFromEncryptedKey.Error}
+		return
+	}
+	resultChannel <- common.ErrorAndResultStruct[string]{Result: resulFromEncryptedKey.Result, Error: nil}
 }
-
-// method to insert  User in Db,
-// not implemented yet
-// func (UserInDb *UserInDb) InsertUserInDb(db *sql.DB, resultChannel chan common.ErrorAndResultStruct[string]) {
-// }

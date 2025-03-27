@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
 	// "time"
 	// commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
@@ -34,8 +35,6 @@ type UserKey struct {
 	encryptedUserKey string // also known as cipherText, that will be decoded into the key eg. -> =mkdkcccno/ubuinewc889nxkn==
 	decryptedUserKey string // this is the string representation of the user struct 29012093-|-name-|-email-|-kskjdc...
 }
-
-
 
 // should return false if the struct is initialized jsut now or things smth is not set
 // A better approach: if we int all the && feilds and add them and it is equal to 0 then may be there is a error
@@ -201,6 +200,7 @@ func (userKey *UserKey) EncryptTheUser(resultChannel chan common.ErrorAndResultS
 		return
 	}
 
+	println("creating the GCM mode")
 	// Create GCM mode
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
@@ -230,6 +230,7 @@ func (userKey *UserKey) EncryptTheUser(resultChannel chan common.ErrorAndResultS
 	// Store the encrypted key in the struct
 	userKey.encryptedUserKey = encryptedBase64
 
+	println("about to write to the result channel in the encryptedUserKey ->", encryptedBase64)
 	// Send result through the channel
 	resultChannel <- common.ErrorAndResultStruct[string]{
 		Result: encryptedBase64,
