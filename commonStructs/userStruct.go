@@ -48,23 +48,21 @@ func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan commo
 		resultChannel <- common.ErrorAndResultStruct[int64]{Result: 0, Error: fmt.Errorf("the Db struct is not valid or it is empty")}
 		return
 	}
+	var id int64
 	query := `
         INSERT OR IGNORE INTO UserAccount
         (accountid, email, userName, is_a_paid_user)
         VALUES (?, ?, ?, ?)
+        RETURNING id
     `
-	result, err := db.Exec(query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid)
+	err := db.QueryRow(query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid).Scan(&id)
 	println("made the sql query")
 	if err != nil {
 		resultChannel <- common.ErrorAndResultStruct[int64]{Result: 0, Error: err}
 		return
 	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		resultChannel <- common.ErrorAndResultStruct[int64]{Result: 0, Error: err}
-		return
-	}
-	println("the db insert is successfull--")
+	// the primary key is not returned here
+	println("the db insert is successfull-- and the primary id is ->", id)
 	resultChannel <- common.ErrorAndResultStruct[int64]{Result: id, Error: nil}
 }
 

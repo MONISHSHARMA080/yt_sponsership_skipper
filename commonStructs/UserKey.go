@@ -57,7 +57,9 @@ func (userKey *UserKey) GetDecryptedStringInTheStruct() string {
 // decrypts the encryptedUserKey on the struct  (probally set it first using the method); and sets it on the struct and returns it too
 //
 // working: will take the encrypted key and get the decoded string out(JSON) and then try to decode the JSON string into the struct
-func (userKey *UserKey) DecryptTheKey(resultChannel chan common.ErrorAndResultStruct[string]) {
+func (userKey *UserKey) DecryptTheKey(encryptedUserKey2 string, resultChannel chan common.ErrorAndResultStruct[string]) {
+	userKey.encryptedUserKey = encryptedUserKey2
+
 	if userKey.encryptedUserKey == "" {
 		resultChannel <- common.ErrorAndResultStruct[string]{Result: "", Error: fmt.Errorf("the encrypted key is empty and we can't decode it")}
 		return

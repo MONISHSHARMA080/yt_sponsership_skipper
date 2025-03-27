@@ -93,9 +93,9 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 			IsUserPaid: false, //  default is false for the new user
 		}
 
-		println("is the Db struct valid (not added the free tier so it should be false->", userToInsert.IsUserValid())
-		userToInsert.AddUserToFreeTier()
-		println("is the Db struct valid added the free tier so it should be true->", userToInsert.IsUserValid())
+		// println("is the Db struct valid (not added the free tier so it should be false->", userToInsert.IsUserValid())
+		// userToInsert.AddUserToFreeTier()
+		// println("is the Db struct valid added the free tier so it should be true->", userToInsert.IsUserValid())
 		go userToInsert.InsertNewUserInDbAndGetNewKey(db, resultAndErrChan)
 		// var encryptedKeyOrResult string
 		// Wait for the goroutine to finish or timeout
@@ -184,14 +184,27 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			return
 		}
 
+		channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
+		userKey := commonstructs.UserKey{}
+
 		channel_for_userDetails := make(chan string_and_error_channel)
 		channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
 		ChanForResponseForGettingSubtitlesTiming := make(chan ResponseForGettingSubtitlesTiming)
 
+		go userKey.DecryptTheKey(request_for_youtubeVideo_struct.Encrypted_string, channelToDecryptUserKey)
 		go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
 		go Get_the_subtitles(*httpClient, request_for_youtubeVideo_struct.Youtube_Video_Id, channel_for_subtitles)
+		// getting new user encrypted key decrypted
 
 		result_for_user_details := <-channel_for_userDetails
+		resultForUserKeyChannel := <-channelToDecryptUserKey
+		if resultForUserKeyChannel.Error != nil {
+			println("there is a erron in decoding the encrypted_key ->", resultForUserKeyChannel.Error.Error())
+			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
+			return
+		} else {
+			fmt.Printf("resultForUserKeyChannel: %v\n", resultForUserKeyChannel)
+		}
 
 		if result_for_user_details.err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
