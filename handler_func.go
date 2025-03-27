@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+	commonstructs "youtubeAdsSkipper/commonStructs"
+	"youtubeAdsSkipper/paymentBackendGO/common"
 )
 
 type JsonError_HTTPErrorCode_And_Message struct {
@@ -59,8 +61,9 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 			return
 		}
 		// checking if the user has not provided the field
-		println("22")
+		// println("22")
 
+		// don't need this now as we are storing the string in the Db and not the int64
 		signup_user_details, err := signup_user_details_temp.convertAccountIDToNumber()
 		if err != nil {
 			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
@@ -71,6 +74,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 			return
 		}
 
+		// we should have some sort of struct method to check for this as it will clean this up
 		if signup_user_details.AccountID == 0 || signup_user_details.UserToken == "" {
 			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
 			ResponseFromTheUserAuth.Message = "Bad request"
@@ -83,7 +87,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 
 		println("User signed up successfully", signup_user_details.AccountID, " - ", signup_user_details.UserToken)
 		db := DbConnect()
-		errChan := make(chan error, 1)
+		resultAndErrChan := make(chan common.ErrorAndResultStruct[string])
 		responseFromGoogleAuth := make(chan TokenResponseFromGoogleAuth)
 
 		// --------------- check for the oauth and see wether the user detail is true or not and then take the email(from OAUTH2) etc, name etc and put that in the db
@@ -105,22 +109,31 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		// ---> now make the json response func <---
 		// -------- this one should send the json response and not http error
 
-		userToInsert := UserInDb{
-			accounID:       signup_user_details.AccountID,
-			email:          responseFormGoogleAuthToken.Email,
-			userName:       responseFormGoogleAuthToken.Name,
-			is_a_paid_user: false, // Assuming default is false
+		// userToInsert := UserInDb{
+		// 	accounID:       signup_user_details.AccountID,
+		// 	email:          responseFormGoogleAuthToken.Email,
+		// 	userName:       responseFormGoogleAuthToken.Name,
+		// 	is_a_paid_user: false, // Assuming default is false
+		// }
+		userToInsert := commonstructs.UserInDb{
+			AccountID:  signup_user_details_temp.AccountID,
+			Email:      responseFormGoogleAuthToken.Email,
+			UserName:   responseFormGoogleAuthToken.Name,
+			IsUserPaid: false, //  default is false for the new user
 		}
-		println("user acount id", signup_user_details.AccountID)
+		println("user account id", signup_user_details.AccountID)
 
-		go func() {
-			err := InsertUserInDB(db, userToInsert) // Assuming 'db' is accessible here
-			errChan <- err                          // Send error (or nil) to channel
-		}()
+		// go func() {
+		// 	err := InsertUserInDB(db, userToInsert) // Assuming 'db' is accessible here
+		// 	errChan <- err                          // Send error (or nil) to channel
+		// }()
+
+		go userToInsert.InsertNewUserInDb(db, resultAndErrChan)
+
 		// Wait for the goroutine to finish or timeout
 		select {
-		case err := <-errChan:
-			if err != nil {
+		case result := <-resultAndErrChan:
+			if result.Error != nil {
 				ResponseFromTheUserAuth.Message = "error inserting you in the DB"
 				ResponseFromTheUserAuth.Success = false
 				ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError
@@ -135,6 +148,15 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 			ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 			return
 		}
+		// new user the version will be 0
+		//
+		//
+		//
+		//
+		//
+		//
+		//
+		//
 		plaintext := []byte(return_string_based_on_user_details_for_encryption_text(userToInsert, false))
 		ciphertext, err := encrypt(plaintext, []byte(os_env_key))
 		if err != nil {

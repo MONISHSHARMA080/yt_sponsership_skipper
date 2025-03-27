@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	// "time"
+	// commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
 
@@ -22,7 +24,7 @@ type UserKey struct {
 	//the above feilds could be used as a foreign key and the new db row will have
 	//
 	UserTier            string `json:"user_tier"`               // could only be free tier | recurring | one time
-	Version             int64  `json:"version"`                 // this is used to compare it to the db version and get the new version from the DB, default is 0
+	Version             int64  `json:"version"`                 // this is used to compare it to the db version and get the new version from the DB, default is 1
 	CheckForKeyUpdateOn int64  `json:"check_for_key_update_on"` // this field is used when we will decrypt the key on the server and check if the time is more than the time on the server. If yes then ask user to update the key
 	IDPrimaryKey        int64  `json:"id_primary_key"`          // this is the id (primary key) in the DB, would give it to the razorpay during orderID
 	// creation  and will take it out during the webHook-- will save us a DB call -- or in the webHook for payment capture we cam make an
@@ -32,6 +34,8 @@ type UserKey struct {
 	encryptedUserKey string // also known as cipherText, that will be decoded into the key eg. -> =mkdkcccno/ubuinewc889nxkn==
 	decryptedUserKey string // this is the string representation of the user struct 29012093-|-name-|-email-|-kskjdc...
 }
+
+
 
 // should return false if the struct is initialized jsut now or things smth is not set
 // A better approach: if we int all the && feilds and add them and it is equal to 0 then may be there is a error
@@ -232,6 +236,9 @@ func (userKey *UserKey) EncryptTheUser(resultChannel chan common.ErrorAndResultS
 		Error:  nil,
 	}
 }
+
+// func (UserKey *UserKey) FillTheUserKeyFormUserInDb(userInDb common.UserInDB) {
+// }
 
 //
 //
