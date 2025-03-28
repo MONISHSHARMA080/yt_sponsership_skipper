@@ -2,10 +2,10 @@ package structs
 
 import (
 	"encoding/json"
+	"fmt"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 
 	"github.com/razorpay/razorpay-go"
-	"fmt"
 )
 
 type RazorpayOrderResponse struct {
@@ -40,12 +40,12 @@ func (rpResp *RazorpayOrderResponse) convertResponseToJSON(responseBody map[stri
 	return nil
 }
 
-func (respRPay *RazorpayOrderResponse) AskRazorpayForTheOrderID(client *razorpay.Client, amount int64, resultChannel chan common.ErrorAndResultStruct[string]) {
+func (respRPay *RazorpayOrderResponse) AskRazorpayForTheOrderID(client *razorpay.Client, amount int64, resultChannel chan common.ErrorAndResultStruct[string], userIDPrimaryKeyFromTheDb int64) {
 	// client := razorpay.NewClient(razorpayKeyID, razorpaySecretID)
 
 	// get primiary id form the new key
 	notes := map[string]int64{
-		"id_primary_key": 1,
+		"id_primary_key": userIDPrimaryKeyFromTheDb,
 	}
 
 	data := map[string]interface{}{

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	helperfuncs "youtubeAdsSkipper/paymentBackendGO/helperFuncs"
 	structs "youtubeAdsSkipper/paymentBackendGO/structs"
@@ -29,6 +30,7 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 		var request structs.RequestFromClientInPaymentStruct
+		var userFromTheRequest commonstructs.UserKey
 		channelForRes := make(chan common.ErrorAndResultStruct[string])
 
 		err = request.ParseIntoJson(bodyBytes)
@@ -38,7 +40,7 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 
-		validated, infoHolder, err := request.ValidateAndExtractInfo(envKeyAsByte, channelForRes)
+		validated, infoHolder, err := request.ValidateAndExtractInfo(envKeyAsByte, channelForRes, userFromTheRequest)
 
 		if err != nil || !validated {
 			println("error in validating ->", err.Error())
@@ -60,8 +62,8 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 
 		razorPayClient := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"))
 
-		go RazorpayOrderForRecurring.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForRecurring, recurringChannel)
-		go RazorpayOrderForOneTime.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForOneTime, oneTimeChannel)
+		go RazorpayOrderForRecurring.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForRecurring, recurringChannel, userFromTheRequest.IDPrimaryKey)
+		go RazorpayOrderForOneTime.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForOneTime, oneTimeChannel, userFromTheRequest.IDPrimaryKey)
 		println("waiting for the func to finish")
 		resFromOneTime := <-oneTimeChannel
 		resFromRecurring := <-recurringChannel

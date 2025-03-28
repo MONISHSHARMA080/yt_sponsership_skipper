@@ -20,11 +20,10 @@ func (requestFromClient *RequestFromClientInPaymentStruct) ParseIntoJson(data []
 	return nil
 }
 
-func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byte, channelForRes chan common.ErrorAndResultStruct[string]) (bool, *InfoHolder, error) {
+func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byte, channelForRes chan common.ErrorAndResultStruct[string], userFormKey commonstructs.UserKey) (bool, *InfoHolder, error) {
 	// go  helperfuncs.Decrypt_and_write_to_channel(req.UserKey, EnvKey byte, envenvKey , chan<- structs.ErrorAndResultStruct[string])(request.Key, os_env_key, channel_for_userDetails)
 
 	// channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
-	userFormKey := commonstructs.UserKey{}
 	go userFormKey.DecryptTheKey(req.UserKey, channelForRes)
 
 	// go helperfuncs.DecryptAndWriteToChannel(req.UserKey, envKey, channelForRes)
