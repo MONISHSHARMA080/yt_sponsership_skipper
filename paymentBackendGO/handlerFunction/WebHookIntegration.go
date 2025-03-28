@@ -37,7 +37,6 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 			return
 		}
 		webHookBodyFromReqAsAString := webHookEventReceiveChannel.Result
-		// Process the webhook event...
 		// validate the webHook event and if it is correct then go into the db
 		// razorPayClient := razorpay.NewClient(razorpayKeyID, razorpaySecretID, webHookSecret)
 		isWebHookCorrect := utils.VerifyWebhookSignature(webHookBodyFromReqAsAString, webhookSignature, webHookSecret)
