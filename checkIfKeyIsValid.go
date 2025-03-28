@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
+	commonstructs "youtubeAdsSkipper/commonStructs"
+	"youtubeAdsSkipper/paymentBackendGO/common"
 )
 
 type responseStruct struct {
@@ -44,21 +47,27 @@ func CheckIfKeyIsValid(os_env_key []byte) http.HandlerFunc {
 			returnTheJsonResponseonError("key value can't be empty", http.StatusBadRequest, false, w)
 			return
 		}
-		channel_for_userDetails := make(chan string_and_error_channel)
-		go decrypt_and_write_to_channel(request.Key, os_env_key, channel_for_userDetails)
-		resultFormChannel := <-channel_for_userDetails
-		if resultFormChannel.err != nil {
-			println("the error in decoding the key is ->", resultFormChannel.err.Error())
+		channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
+		userFormKey := commonstructs.UserKey{}
+		go userFormKey.DecryptTheKey(request.Key, channelToDecryptUserKey)
+		// channel_for_userDetails := make(chan string_and_error_channel)
+		// go decrypt_and_write_to_channel(request.Key, os_env_key, channel_for_userDetails)
+		resultFormChannel := <-channelToDecryptUserKey
+		if resultFormChannel.Error != nil {
+			println("the error in decoding the key is ->", resultFormChannel.Error.Error())
 			returnTheJsonResponseonError("key value can't be empty", http.StatusBadRequest, false, w)
 			return
 		}
-		email, name := getEmailAndNameFormKey(resultFormChannel.string_value)
+		// email, name := getEmailAndNameFormKey(resultFormChannel.string_value)
+		email := userFormKey.Email
+		name := userFormKey.UserName
 		response := responseStruct{Message: "success", Status_code: http.StatusOK, Success: true, Email: email, Name: name, EncryptedKey: request.Key}
-		println("the email and the name is ->", email, name)
+		fmt.Printf("\n\n the user struct is -> %v \n\n", userFormKey)
+		println("the decoded json string is ->", userFormKey.GetDecryptedStringInTheStruct())
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			returnTheJsonResponseonError("error encoding json", http.StatusInternalServerError, false, w)
-			println("the error in the json encoding is ->", err.Error()+"\n and the value returned is ->", resultFormChannel.string_value)
+			println("the error in the json encoding is ->", err.Error()+"\n and the value returned is ->", resultFormChannel.Result)
 			return
 		}
 	}
