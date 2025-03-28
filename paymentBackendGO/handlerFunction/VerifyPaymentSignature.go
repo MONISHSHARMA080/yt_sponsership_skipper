@@ -28,11 +28,11 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 
 		channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
 		userFormKey := commonstructs.UserKey{}
-		go userFormKey.DecryptTheKey(request.UserKey, channelToDecryptUserKey)
-
 		db := helperfuncs.DbConnect()
 		resultFromGettingTokensFromDbChann := make(chan common.ErrorAndResultStruct[bool])
 
+		go userFormKey.DecryptTheKey(request.UserKey, channelToDecryptUserKey)
+		go verifuPaymentLaterFromDB.GetTokens(db, request.Email, resultFromGettingTokensFromDbChann)
 		// get the email etc form the key
 		// userKey.EncryptedUserKey = request.UserKey
 		// channForKeyResult := make(chan common.ErrorAndResultStruct[string])
@@ -40,8 +40,6 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		// go userKey.DecryptKey(envKeyAsByte, channForKeyResult)
 
 		// getting the order id form the db, use the request.email to get the order id we will check later to see if it is correct
-
-		go verifuPaymentLaterFromDB.GetTokens(db, request.Email, resultFromGettingTokensFromDbChann)
 
 		resultFromDecryptingKey := <-channelToDecryptUserKey
 		if err := resultFromDecryptingKey.Error; err != nil {

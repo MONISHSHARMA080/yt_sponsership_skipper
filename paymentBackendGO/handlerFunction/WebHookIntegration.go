@@ -45,7 +45,6 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 			println("---- webhook is not form razorpay ----")
 			return
 		}
-		// if webhookEvent.Payload.Payment.Entity.Currency !=
 
 		// here if I get the error maybe I need to make a DB call  and check the order id against it to see the payment type, but for as
 		// of now this is ok
@@ -80,10 +79,5 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 			helperfuncs.AbstractRefundFunctionWrapper(webHookEvent.Payload.Payment.Entity.Amount, webHookEvent.Payload.Payment.Entity.ID, razorPayClient)
 			return
 		}
-
-		// now for some reason we have a error in updating the DB or can't do anything then we should refund to the usrr the money
-		// maybe we would add it later
-		// now make sure the ammount paid is correct and if everything is alright if it is then set the message in the DB
-		//
 	}
 }
