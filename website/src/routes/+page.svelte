@@ -34,14 +34,23 @@
 		})
 		if (error) {
 			console.log(`the error in interacting with the extension class is ->${error}`);
-		
 		}
-		})
+		console.log("about to ask backend for the order id");
+		
+			 askBackendForOrderId(keyFromChromeExtensionState).then((val)=>{
+				console.log(`the order id form the backend's value is ->${val}`);
+				
+			 })
+
+
+		}
+	)
 		// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
 
 		
 		let val = $derived(keyFromChromeExtensionState)
 		$effect(()=>{
+			console.log(`asking backend for the order id`);
 				 askBackendForOrderId(val).then((val)=>{
 				console.log(`the svelte effect returned and the value is ->`, val);
 			 })

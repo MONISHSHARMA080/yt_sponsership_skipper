@@ -19,8 +19,12 @@ interface responseType{
  * 
 */
 export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
+  console.log(`1111`);
+  
     try {
         if( !keyStateObj.isValidatedThroughBackend  || keyStateObj.key ===""  || keyStateObj.key === null){
+          console.log(`the key is not validated or is empty or null we are returning ->`,keyStateObj.key);
+          
             return 
         }
         // if we are validated 
@@ -38,6 +42,7 @@ export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
             //     body: JSON.stringify(reqBody)
             // })
         ]
+  console.log(`22222`);
         let result = await asyncReqQueue.process(promiseArray,(promiseToProcess)=>processIndividualPromise<responseType>(promiseToProcess))
         
         // for (let index = 0; index < result.length; index++) {

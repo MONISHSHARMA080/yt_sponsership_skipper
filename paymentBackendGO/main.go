@@ -95,4 +95,3 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		println("time taken is ->", timeTaken.Microseconds(), " Microseconds or ", timeTaken.Seconds(), " sec", " and", timeTaken.Milliseconds(), " ms")
 	}
 }
-
