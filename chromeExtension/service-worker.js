@@ -1,11 +1,11 @@
 // @ts-check
 
 import {
-    getDefaultValueOfToSkipTheSponsorAndShowTheModal,
-    getKeyFromStorageOrBackend,
-    getValueFromTheStorage,
-    getWhereToSkipInYtVideo,
-saveValueToTheStorage
+  getDefaultValueOfToSkipTheSponsorAndShowTheModal,
+  getKeyFromStorageOrBackend,
+  getValueFromTheStorage,
+  getWhereToSkipInYtVideo,
+  saveValueToTheStorage
 } from './helper.js';
 import { config } from './config.js';
 
@@ -34,32 +34,32 @@ console.log("hi from the service worker and will run say hi() now");
  * @returns {boolean} - Return true to indicate async response
  */
 chrome.runtime.onMessage.addListener((
-/**
- * Message handler for Chrome extension background script
- * @type {GetKeyMessage} request - The message request object
- * @param {chrome.runtime.MessageSender} sender - Message sender information
- * @param {(response?: any) => void} sendResponse - Callback to send response
- * @returns {boolean} - Return true to indicate async response
- */
-    // @ts-ignore
-    request, sender, sendResponse) => {
+  /**
+   * Message handler for Chrome extension background script
+   * @type {GetKeyMessage} request - The message request object
+   * @param {chrome.runtime.MessageSender} sender - Message sender information
+   * @param {(response?: any) => void} sendResponse - Callback to send response
+   * @returns {boolean} - Return true to indicate async response
+   */
+  // @ts-ignore
+  request, sender, sendResponse) => {
 
-    if (request.type === "getKeyFromStorageOrBackend") {
+  if (request.type === "getKeyFromStorageOrBackend") {
     console.log("Received message in background script:", request);
-        // Execute the key fetch function and handle the response
-        getKeyFromStorageOrBackend(config)
-            .then(([key, error]) => {
-                console.log("Key fetch completed", { key: key?.substring(0, 10), error });
-                sendResponse([key, error]);
-            })
-            .catch(error => {
-                console.error("Error in background script:", error);
-                sendResponse(["", error]);
-            });
+    // Execute the key fetch function and handle the response
+    getKeyFromStorageOrBackend(config)
+      .then(([key, error]) => {
+        console.log("Key fetch completed", { key: key?.substring(0, 10), error });
+        sendResponse([key, error]);
+      })
+      .catch(error => {
+        console.error("Error in background script:", error);
+        sendResponse(["", error]);
+      });
 
-        // Return true to indicate we will send response asynchronously
-        return true;
-    }
+    // Return true to indicate we will send response asynchronously
+    return true;
+  }
 });
 
 
@@ -78,32 +78,32 @@ chrome.runtime.onMessage.addListener((
  * @returns {boolean} - Return true to indicate async response
  */
 chrome.runtime.onMessage.addListener((
-/**
- * Message handler for Chrome extension background script
- * @type {GetKeyMessage2} request - The message request object,
- * @typedef {chrome.runtime.MessageSender} sender - Message sender information
- * @typedef {(response?: any) => void} sendResponse - Callback to send response
- * @returns {boolean} - Return true to indicate async response
- */
-    // @ts-ignore
-    request, sender, sendResponse) => {
+  /**
+   * Message handler for Chrome extension background script
+   * @type {GetKeyMessage2} request - The message request object,
+   * @typedef {chrome.runtime.MessageSender} sender - Message sender information
+   * @typedef {(response?: any) => void} sendResponse - Callback to send response
+   * @returns {boolean} - Return true to indicate async response
+   */
+  // @ts-ignore
+  request, sender, sendResponse) => {
 
-    if (request.type === "getKeyFromStorage") {
+  if (request.type === "getKeyFromStorage") {
     console.log("Received message in background script:", request);
-        // Execute the key fetch function and handle the response
-        getValueFromTheStorage("key",()=>{})
-            .then(([key, error]) => {
-                console.log("Key fetch completed for the event ->", { key: key?.substring(0, 10), error });
-                sendResponse([key, error]);
-            })
-            .catch(error => {
-                console.error("Error in background script:", error);
-                sendResponse(["", error]);
-            });
+    // Execute the key fetch function and handle the response
+    getValueFromTheStorage("key", () => { })
+      .then(([key, error]) => {
+        console.log("Key fetch completed for the event ->", { key: key?.substring(0, 10), error });
+        sendResponse([key, error]);
+      })
+      .catch(error => {
+        console.error("Error in background script:", error);
+        sendResponse(["", error]);
+      });
 
-        // Return true to indicate we will send response asynchronously
-        return true;
-    }
+    // Return true to indicate we will send response asynchronously
+    return true;
+  }
 });
 
 
@@ -143,29 +143,29 @@ chrome.runtime.onMessage.addListener((
  */
 
 chrome.runtime.onMessage.addListener((
-    /**@type {MessageRequest} request */ 
-    request, 
-        /** @type {chrome.runtime.MessageSender} sender */
-    sender,
-    /**@type {sendResponse} sendResponse*/
-    sendResponse) => {
+  /**@type {MessageRequest} request */
+  request,
+  /** @type {chrome.runtime.MessageSender} sender */
+  sender,
+  /**@type {sendResponse} sendResponse*/
+  sendResponse) => {
 
-    if (request.type === "getWhereToSkipInYtVideo") {
-        // Execute the key fetch function and handle the response
+  if (request.type === "getWhereToSkipInYtVideo") {
+    // Execute the key fetch function and handle the response
     console.log("Received message in background script:", request);
-        getWhereToSkipInYtVideo(request.encKey, request.videoID)
-            .then(([responseObject, error]) => {
-                console.log("Key fetch completed", { key: responseObject, error });
-                sendResponse([responseObject, error]);
-            })
-            .catch(error => {
-                console.error("Error in background script:", error);
-                sendResponse([null, error]);
-            });
+    getWhereToSkipInYtVideo(request.encKey, request.videoID)
+      .then(([responseObject, error]) => {
+        console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
+        sendResponse([responseObject, error]);
+      })
+      .catch(error => {
+        console.error("Error in background script:", error);
+        sendResponse([null, error]);
+      });
 
-        // Return true to indicate we will send response asynchronously
-        return true;
-    }
+    // Return true to indicate we will send response asynchronously
+    return true;
+  }
 });
 /**
  * @typedef {Object} MessageRequest2
@@ -174,19 +174,19 @@ chrome.runtime.onMessage.addListener((
  */
 chrome.runtime.onMessage.addListener((
     /** @type {{ type: string; }} */ request, /** @type {any} */ sender, /** @type {( response:[boolean, Error|null] ) => void } */ sendResponse) => {
-    if (request.type === "alwaysSkipTheSponsorAndDoNotShowTheModal") {
-        console.log(`got the request in the  alwaysSkipTheSponsorAndDoNotShowTheModal`, request);
-        
-        getDefaultValueOfToSkipTheSponsorAndShowTheModal().then(([value, error] )=>{
-        console.log("Error in background script while getting the default value of to skip modal or not:->", error,"  and the value is -->",value);
-        if (error !== null && error instanceof Error) {
+  if (request.type === "alwaysSkipTheSponsorAndDoNotShowTheModal") {
+    console.log(`got the request in the  alwaysSkipTheSponsorAndDoNotShowTheModal`, request);
+
+    getDefaultValueOfToSkipTheSponsorAndShowTheModal().then(([value, error]) => {
+      console.log("Error in background script while getting the default value of to skip modal or not:->", error, "  and the value is -->", value);
+      if (error !== null && error instanceof Error) {
         return sendResponse([Boolean(value), error])
-        }
-        return sendResponse([Boolean(value), null])
-       })
+      }
+      return sendResponse([Boolean(value), null])
+    })
     return true;
-    }
-    return false;
+  }
+  return false;
 
 })
 
@@ -206,16 +206,16 @@ chrome.runtime.onMessage.addListener((
     /** @type {any} */ sender,
     /** @type {(response: Error|null) => void} */ sendResponse
 ) => {
-     if (request.type === "saveValueInStorage") {
-        try {
-        const error = saveValueToTheStorage(request.key, request.value);
-        console.log("error in storing the value in the db is -->", error, "\n and the key ->", request.key, " and the value was ->",request.value);
-        return sendResponse(error);
-        } catch (error) {
-            console.log("error in the try catch -->",error);
-            return error   
-        }
+  if (request.type === "saveValueInStorage") {
+    try {
+      const error = saveValueToTheStorage(request.key, request.value);
+      console.log("error in storing the value in the db is -->", error, "\n and the key ->", request.key, " and the value was ->", request.value);
+      return sendResponse(error);
+    } catch (error) {
+      console.log("error in the try catch -->", error);
+      return error
     }
+  }
 });
 
 /**
@@ -231,18 +231,18 @@ chrome.runtime.onMessage.addListener((
  */
 
 chrome.runtime.onInstalled.addListener((
-    /** @type {InstallDetails} detail - Details about the installation event */
-    detail)=>{
-    if (detail.reason === 'install') {
-        getKeyFromStorageOrBackend(config)
-            .then(([key, error]) => {
-                console.log("Key fetch completed on the first run ", { key: key?.substring(0, 10), error });
-            })
-            .catch(error => {
-                console.error("Error in background script while getting the key on first run:", error);
-            });
+  /** @type {InstallDetails} detail - Details about the installation event */
+  detail) => {
+  if (detail.reason === 'install') {
+    getKeyFromStorageOrBackend(config)
+      .then(([key, error]) => {
+        console.log("Key fetch completed on the first run ", { key: key?.substring(0, 10), error });
+      })
+      .catch(error => {
+        console.error("Error in background script while getting the key on first run:", error);
+      });
 
-    }
+  }
 })
 
 
@@ -269,7 +269,7 @@ chrome.runtime.onInstalled.addListener((
  * @returns {boolean} - Must return true if response is async
  */
 chrome.runtime.onMessageExternal.addListener(
-  function(
+  function (
     /**@type {MessageRequest3} */ request,
     /**@type {chrome.runtime.MessageSender} */ sender,
     /**@type  {function(MessageResponse?): void}  */ sendResponse) {
@@ -328,30 +328,30 @@ chrome.runtime.onMessageExternal.addListener(
 
 
 chrome.runtime.onMessage.addListener(
-    /**
- * Message listener for handling key change requests from content script
- * @param {RequestObjForChangingKeyOnPayment} request - The request object from content script
- * @param {chrome.runtime.MessageSender} sender - Information about the sender
- * @param {function(responseFromChangingKeyOnPayment): void} sendResponse - Function to call with the response
+  /**
+* Message listener for handling key change requests from content script
+* @param {RequestObjForChangingKeyOnPayment} request - The request object from content script
+* @param {chrome.runtime.MessageSender} sender - Information about the sender
+* @param {function(responseFromChangingKeyOnPayment): void} sendResponse - Function to call with the response
 //   @ returns {boolean} - Return true to indicate async response
- */
-    (  request, sender, sendResponse) => { 
-        if (request.type === "paymentReceivedChangeTheKey") {
-            // Save the new key to storage
-            console.log("in the paymentReceivedChangeTheKey", request);
-            if (request.key === "" || request.key === null) {
-                return sendResponse({ success: false });
-            }
-            chrome.storage.local.set({ key: request.key }, () => {
-                if (chrome.runtime.lastError) {
-                    console.error('Error setting key:', chrome.runtime.lastError);
-                    return sendResponse({ success: false });
-                }
-                // Send response to content script
-                sendResponse({ success: true });
-            });
+*/
+  (request, sender, sendResponse) => {
+    if (request.type === "paymentReceivedChangeTheKey") {
+      // Save the new key to storage
+      console.log("in the paymentReceivedChangeTheKey", request);
+      if (request.key === "" || request.key === null) {
+        return sendResponse({ success: false });
+      }
+      chrome.storage.local.set({ key: request.key }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Error setting key:', chrome.runtime.lastError);
+          return sendResponse({ success: false });
         }
-        return true; // for the async support 
+        // Send response to content script
+        sendResponse({ success: true });
+      });
     }
+    return true; // for the async support 
+  }
 );
 

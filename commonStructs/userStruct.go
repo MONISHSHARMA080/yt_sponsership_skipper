@@ -50,7 +50,7 @@ func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan commo
 	}
 	var id int64
 	query := `
-        INSERT OR IGNORE INTO UserAccount
+        INSERT OR REPLACE INTO UserAccount
         (accountid, email, userName, is_a_paid_user)
         VALUES (?, ?, ?, ?)
         RETURNING id

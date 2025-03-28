@@ -163,7 +163,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			// }
 			return
 		}
-		println("body is ")
 		var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
 		err := json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
 		if err != nil {
@@ -185,58 +184,59 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		}
 
 		channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
-		userKey := commonstructs.UserKey{}
+		userFormKey := commonstructs.UserKey{}
 
-		channel_for_userDetails := make(chan string_and_error_channel)
+		// channel_for_userDetails := make(chan string_and_error_channel)
 		channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
 		ChanForResponseForGettingSubtitlesTiming := make(chan ResponseForGettingSubtitlesTiming)
 
-		go userKey.DecryptTheKey(request_for_youtubeVideo_struct.Encrypted_string, channelToDecryptUserKey)
-		go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
+		go userFormKey.DecryptTheKey(request_for_youtubeVideo_struct.Encrypted_string, channelToDecryptUserKey)
+		// go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
 		go Get_the_subtitles(*httpClient, request_for_youtubeVideo_struct.Youtube_Video_Id, channel_for_subtitles)
 		// getting new user encrypted key decrypted
 
-		result_for_user_details := <-channel_for_userDetails
+		// result_for_user_details := <-channel_for_userDetails
 		resultForUserKeyChannel := <-channelToDecryptUserKey
 		if resultForUserKeyChannel.Error != nil {
 			println("there is a erron in decoding the encrypted_key ->", resultForUserKeyChannel.Error.Error())
 			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
 			return
 		} else {
-			fmt.Printf("resultForUserKeyChannel: %v\n", resultForUserKeyChannel)
+			fmt.Printf("resultForUserKeyChannel: %v\n", resultForUserKeyChannel.Result)
 		}
 
-		if result_for_user_details.err != nil {
-			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
-			return
-		}
+		// if result_for_user_details.err != nil {
+		//
+		// 	method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
+		// 	return
+		// }
 		// if the paid user has the
 
-		userInDb, err := returnUserInDbFormEncryptedString(result_for_user_details.string_value)
-		if err != nil {
-			// this could be a bad request too
-			println(" in the returnUserInDbFormEncryptedString's error -->", err.Error(), "\n")
-			method_to_write_http_and_json_to_respond(w, "Something went wron on out side , error recognizing you form the auth token", http.StatusInternalServerError)
-		}
+		// userInDb, err := returnUserInDbFormEncryptedString(result_for_user_details.string_value)
+		// if err != nil {
+		// 	// this could be a bad request too
+		// 	println(" in the returnUserInDbFormEncryptedString's error -->", err.Error(), "\n")
+		// 	method_to_write_http_and_json_to_respond(w, "Something went wron on out side , error recognizing you form the auth token", http.StatusInternalServerError)
+		// }
 
-		println("result_for_user_details--++", result_for_user_details.string_value, "\n user in db is -> ", userInDb.userName, userInDb.accounID, userInDb.email, userInDb.is_a_paid_user)
-		if len(result_for_user_details.string_value) >= 4700 && !userInDb.is_a_paid_user {
-			// block it I guess
-			println(" +++++++++++string is longer than 3000")
-			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
-			return
-		}
+		// println("result_for_user_details--++", result_for_user_details.string_value, "\n user in db is -> ", userInDb.userName, userInDb.accounID, userInDb.email, userInDb.is_a_paid_user)
+		// if len(result_for_user_details.string_value) >= 4700 && !userInDb.is_a_paid_user {
+		// 	// block it I guess
+		// 	println(" +++++++++++string is longer than 3000")
+		// 	method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
+		// 	return
+		// }
 		result_for_subtitles := <-channel_for_subtitles
 		if result_for_subtitles.err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side", http.StatusInternalServerError)
 			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 			return
 		}
-		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
+		print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
 
 		// what about the free user and paid user channel/key_channel and prompt the groq
 		channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
-		apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userInDb.is_a_paid_user)
+		apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userFormKey.IsUserPaid)
 		if err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
 			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())

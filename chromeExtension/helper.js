@@ -192,7 +192,7 @@ export async function getKeyFromStorageOrBackend(config) {
   try {
     let [valueFromStorage, error] = await getValueFromTheStorage(
       "key",
-      () => {},
+      () => { },
     );
     console.log(" after the value");
     if (error !== null) {
@@ -295,6 +295,7 @@ export async function getWhereToSkipInYtVideo(key, videoID) {
     { "Content-Type": "application/json" },
     requestBody,
   );
+  console.log(` sending a fetch request to the backend`)
   try {
     let response = await fetchRequestToBackend();
     console.log("the response form the yt video api is -->", response);
@@ -319,7 +320,7 @@ export async function getWhereToSkipInYtVideo(key, videoID) {
 
 export async function getDefaultValueOfToSkipTheSponsorAndShowTheModal() /** @returns {Promise<[Boolean,Error|null]>} */ {
   let key = "alwaysSkipTheSponsorAndDoNotShowTheModal";
-  let [valueFromStorage, error] = await getValueFromTheStorage(key, () => {});
+  let [valueFromStorage, error] = await getValueFromTheStorage(key, () => { });
   if (
     error !== null ||
     valueFromStorage === null ||
