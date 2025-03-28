@@ -3,6 +3,7 @@ package paymentbackendgo
 import (
 	"fmt"
 	"net/http"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	helperfuncs "youtubeAdsSkipper/paymentBackendGO/helperFuncs"
 	"youtubeAdsSkipper/paymentBackendGO/structs"
@@ -18,26 +19,31 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 		var request structs.RequestVerifyPaymentSignature
-		var userKey common.UserKey
+		// var userKey common.UserKey
 		err := request.ParseIntoJson(r)
 		if err != nil {
 			response.ReturnTheErrorInJsonResponse(w, r, "error decoding JSON", http.StatusBadRequest, false)
 			return
 		}
 
+		channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
+		userFormKey := commonstructs.UserKey{}
+		go userFormKey.DecryptTheKey(request.UserKey, channelToDecryptUserKey)
+
 		db := helperfuncs.DbConnect()
 		resultFromGettingTokensFromDbChann := make(chan common.ErrorAndResultStruct[bool])
 
 		// get the email etc form the key
-		userKey.EncryptedUserKey = request.UserKey
-		channForKeyResult := make(chan common.ErrorAndResultStruct[string])
+		// userKey.EncryptedUserKey = request.UserKey
+		// channForKeyResult := make(chan common.ErrorAndResultStruct[string])
 
-		go userKey.DecryptKey(envKeyAsByte, channForKeyResult)
+		// go userKey.DecryptKey(envKeyAsByte, channForKeyResult)
+
 		// getting the order id form the db, use the request.email to get the order id we will check later to see if it is correct
 
 		go verifuPaymentLaterFromDB.GetTokens(db, request.Email, resultFromGettingTokensFromDbChann)
 
-		resultFromDecryptingKey := <-channForKeyResult
+		resultFromDecryptingKey := <-channelToDecryptUserKey
 		if err := resultFromDecryptingKey.Error; err != nil {
 			println("the error in decrypting the key is ->", err.Error())
 			response.ReturnTheErrorInJsonResponse(w, r, "error is decrypting key", http.StatusBadRequest, false)
@@ -45,15 +51,15 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		}
 
 		// checking if the email sent by user matches the email in the key, if not then here is a error
-		err = userKey.SetUserDetail()
-		if err != nil {
-			// 400 error as IDK what is causing it the bad key or smth
-			println("the error in decrypting the key is ->", err.Error())
-			response.ReturnTheErrorInJsonResponse(w, r, "error in getting information out of the key", http.StatusBadRequest, false)
-			return
-		}
-		if userKey.UserInTheDb.Email != "" && userKey.UserInTheDb.Email != request.Email {
-			println("the error is that the email in request is ->",request.Email,"<- and the one form the key is ->", userKey.UserInTheDb.Email,"<- and are they equal ->",userKey.UserInTheDb.Email != request.Email)
+		// err = userKey.SetUserDetail()
+		// if err != nil {
+		// 	// 400 error as IDK what is causing it the bad key or smth
+		// 	println("the error in decrypting the key is ->", err.Error())
+		// 	response.ReturnTheErrorInJsonResponse(w, r, "error in getting information out of the key", http.StatusBadRequest, false)
+		// 	return
+		// }
+		if userFormKey.Email != "" && userFormKey.Email != request.Email {
+			println("the error is that the email in request is ->", request.Email, "<- and the one form the key is ->", userFormKey.Email, "<- and are they equal ->", userFormKey.Email != request.Email)
 			response.ReturnTheErrorInJsonResponse(w, r, "the email does not match the one in the key", http.StatusBadRequest, false)
 			return
 		}
@@ -80,16 +86,15 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		}
 		println("Order ID from DB:", orderID)
 		println("Order ID from request:", request.RazorpayOrderId)
-		
-		 signatureGeneratedFromOrderIdStoredInDb,err :=helperfuncs.GetGeneratedSignature(orderID, request.RazorpayPaymentId, razorpaySecretID)
-		 if err != nil {
+
+		signatureGeneratedFromOrderIdStoredInDb, err := helperfuncs.GetGeneratedSignature(orderID, request.RazorpayPaymentId, razorpaySecretID)
+		if err != nil {
 			println(" the error in generating the signature form the db is ->", err.Error(), " --++-- the signature generated is -> ", signatureGeneratedFromOrderIdStoredInDb)
 			response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
 			return
-		 }
+		}
 
-		 fmt.Printf("\n the signature generated form the   -- and the one form the Db/stored one is %s  \n", signatureGeneratedFromOrderIdStoredInDb,  )
-
+		fmt.Printf("\n the signature generated form the   -- and the one form the Db/stored one is %s  \n", signatureGeneratedFromOrderIdStoredInDb)
 
 		if signatureGeneratedFromOrderIdStoredInDb != request.RazorpaySignature {
 			println("the generate signature is ->", signatureGeneratedFromOrderIdStoredInDb, "++---------- and form the razorpay is ->", request.RazorpaySignature)
@@ -97,13 +102,12 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 
-
 		// now we can update the db
 		// see what the webhook returns and if it is  same shit(based on that response) make the db table and update it here
 		//
 		//
-		// just give the user generated key that resets after 2 days for the optimistic update state, we will update the key in the message form next day and till 
-		// then the payment situation will be sorted 
+		// just give the user generated key that resets after 2 days for the optimistic update state, we will update the key in the message form next day and till
+		// then the payment situation will be sorted
 		//
 		//
 		//
