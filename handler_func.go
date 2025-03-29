@@ -112,7 +112,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 				fmt.Printf("Error inserting user into DB: %v", result.Error)
 				return
 			} else {
-				println("there is no problem in getting the key and we are returning")
+				println("there is no problem in getting the key and we are returning the encrypted key to be ->", result.Result)
 				ResponseFromTheUserAuth.Message = "successfully completed user signup"
 				ResponseFromTheUserAuth.Success = true
 				ResponseFromTheUserAuth.Status_code = http.StatusOK

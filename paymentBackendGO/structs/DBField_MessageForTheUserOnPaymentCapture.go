@@ -89,7 +89,7 @@ func (messageForUserOnPaymentCapture *MessageForUserOnPaymentCapture) Initialize
 	if !validTiers[UserTier] {
 		return fmt.Errorf("the UserTier string is not of a valid category")
 	}
-	timeToCheckForKeyUpdate, err := messageForUserOnPaymentCapture.getTimeToCheckForKeyUpdateOn(UserTier)
+	timeToCheckForKeyUpdate, err := messageForUserOnPaymentCapture.GetTimeToCheckForKeyUpdateOn(UserTier)
 	if err != nil {
 		return fmt.Errorf("can't get the time to check for key on update")
 	}
@@ -111,7 +111,7 @@ func (DbField *MessageForUserOnPaymentCapture) IsMyStructUninitialized() bool {
 }
 
 // will give us the hardcoded time to check for the key; will return error if the UserTier is not a valid one
-func (msgForUser *MessageForUserOnPaymentCapture) getTimeToCheckForKeyUpdateOn(UserTier string) (int64, error) {
+func (msgForUser *MessageForUserOnPaymentCapture) GetTimeToCheckForKeyUpdateOn(UserTier string) (int64, error) {
 	validTiers := map[string]bool{
 		"recurring": true,
 		"free tier": true,
@@ -170,11 +170,11 @@ func (DbField *MessageForUserOnPaymentCapture) GetLatestMessageForTheUser(db *sq
 	rowsReturned := db.QueryRow(query, email)
 
 	err := rowsReturned.Scan(
-		DbField.UserTier,
-		DbField.Version,
-		DbField.CheckForKeyUpdateOn,
-		DbField.UserAccountID,
-		DbField.RazorpayPaymentID,
+		&DbField.UserTier,
+		&DbField.Version,
+		&DbField.CheckForKeyUpdateOn,
+		&DbField.UserAccountID,
+		&DbField.RazorpayPaymentID,
 	)
 	if err != nil {
 		// this will be true if the email is not there or for the message is not there
