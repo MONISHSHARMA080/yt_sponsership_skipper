@@ -1,6 +1,7 @@
 package paymentbackendgo
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -40,25 +41,40 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 
-		validated, infoHolder, err := request.ValidateAndExtractInfo(envKeyAsByte, channelForRes, userFromTheRequest)
+		go userFromTheRequest.DecryptTheKey(request.UserKey, channelForRes)
+		validated, infoHolder, err := request.ValidateAndExtractInfo(envKeyAsByte, channelForRes)
 
 		if err != nil || !validated {
 			println("error in validating ->", err.Error())
 			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "can't decode key send by you or ", http.StatusBadRequest)
 			return
 		}
-		println("decrypted key ->", infoHolder.DecryptedKey)
+		resutFromKeyDecryption := <- channelForRes
+		if resutFromKeyDecryption.Error != nil{
+			println("error in key decoidng ->", err.Error())
+			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "can't decode key send by you or ", http.StatusBadRequest)
+			return
+		}
+		
+	email, name, isPaidUser := userFromTheRequest.Email, userFromTheRequest.UserName, userFromTheRequest.IsUserPaid
+	infoHolder.Email = email
+	infoHolder.Name = name
+	infoHolder.IsPaidUser = isPaidUser
+
 		println("email ->", infoHolder.Email)
 		// println("price ->", infoHolder.Price)
 		println("name ->", infoHolder.Name)
 		println("IsPaidUser ->", infoHolder.IsPaidUser)
-		// println("the plan type is ->", infoHolder.PlanType)
-		// println("the plan type is ->", request.PlanType)
-		//  now let's make the call to thr razopay
+
 		recurringChannel := make(chan common.ErrorAndResultStruct[string])
 		oneTimeChannel := make(chan common.ErrorAndResultStruct[string])
 		var RazorpayOrderForRecurring structs.RazorpayOrderResponse
 		var RazorpayOrderForOneTime structs.RazorpayOrderResponse
+		
+
+		fmt.Printf("\n\n----------the useKey struct's decrypted key is -> %s ---------\n\n", userFromTheRequest.GetDecryptedStringInTheStruct())
+		fmt.Printf("\n\n----------the useKey struct is -> %v ---------\n\n", userFromTheRequest)
+		println(" it should be id primary key ->", userFromTheRequest.IDPrimaryKey)
 
 		razorPayClient := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"))
 

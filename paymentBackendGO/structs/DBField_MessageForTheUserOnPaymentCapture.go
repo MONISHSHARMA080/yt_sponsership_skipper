@@ -38,6 +38,7 @@ func (messageOnPaymentCapture *MessageForUserOnPaymentCapture) AddMessageAfterUs
 	//
 	//
 	//
+	println("the user account ID is ->", messageOnPaymentCapture.UserAccountID)
 	query := `
 INSERT INTO messageForTheUserAfterPaymentCaptured (
         user_account_id, 
@@ -96,6 +97,7 @@ func (messageForUserOnPaymentCapture *MessageForUserOnPaymentCapture) Initialize
 	if time.Now().Unix() >= timeToCheckForKeyUpdate {
 		return fmt.Errorf("the time should be less than CheckForKeyUpdateOn")
 	}
+	println("the user account is by razorpay is ->", UserAccountID)
 	messageForUserOnPaymentCapture.UserTier = UserTier
 	messageForUserOnPaymentCapture.CheckForKeyUpdateOn = timeToCheckForKeyUpdate
 	messageForUserOnPaymentCapture.UserAccountID = UserAccountID
@@ -183,7 +185,7 @@ func (DbField *MessageForUserOnPaymentCapture) GetLatestMessageForTheUser(db *sq
 		}
 		println("\n\n the error in the getting latest message form the DB is ->", err.Error(), "\n\n")
 		resultChannel <- common.ErrorAndResultStruct[bool]{Result: false, Error: err}
-		return
+	} else {
+		resultChannel <- common.ErrorAndResultStruct[bool]{Result: true, Error: nil}
 	}
-	resultChannel <- common.ErrorAndResultStruct[bool]{Result: true, Error: nil}
 }

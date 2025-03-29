@@ -3,7 +3,6 @@ package structs
 import (
 	"encoding/json"
 	"os"
-	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	helperfuncs "youtubeAdsSkipper/paymentBackendGO/helperFuncs"
 )
@@ -20,11 +19,10 @@ func (requestFromClient *RequestFromClientInPaymentStruct) ParseIntoJson(data []
 	return nil
 }
 
-func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byte, channelForRes chan common.ErrorAndResultStruct[string], userFormKey commonstructs.UserKey) (bool, *InfoHolder, error) {
+func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byte, channelForRes chan common.ErrorAndResultStruct[string], ) (bool, *InfoHolder, error) {
 	// go  helperfuncs.Decrypt_and_write_to_channel(req.UserKey, EnvKey byte, envenvKey , chan<- structs.ErrorAndResultStruct[string])(request.Key, os_env_key, channel_for_userDetails)
 
 	// channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
-	go userFormKey.DecryptTheKey(req.UserKey, channelForRes)
 
 	// go helperfuncs.DecryptAndWriteToChannel(req.UserKey, envKey, channelForRes)
 	// this will also validate the plan type
@@ -49,20 +47,16 @@ func (req *RequestFromClientInPaymentStruct) ValidateAndExtractInfo(envKey []byt
 	InfoHolder.PriceForRecurring = priceForRecurring
 	// var userInDB  common
 
-	decryptedKey := <-channelForRes
-	if decryptedKey.Error != nil {
-		return false, nil, decryptedKey.Error
-	}
+	// decryptedKey := <-channelForRes
+	// if decryptedKey.Error != nil {
+	// 	return false, nil, decryptedKey.Error
+	// }
 
-	InfoHolder.DecryptedKey = decryptedKey.Result
-	//  InfoHolder.PlanType = req.PlanType
-	//  println("the plan type is ->", InfoHolder.PlanType)
-	println("decrypted key is ->", decryptedKey.Result, " and same in the infoHolder is ->", InfoHolder.DecryptedKey)
-	email, name, isPaidUser := userFormKey.Email, userFormKey.UserName, userFormKey.IsUserPaid
+	// InfoHolder.DecryptedKey = decryptedKey.Result
+	// //  InfoHolder.PlanType = req.PlanType
+	// //  println("the plan type is ->", InfoHolder.PlanType)
+	// println("decrypted key is ->", decryptedKey.Result, " and same in the infoHolder is ->", InfoHolder.DecryptedKey)
 
-	InfoHolder.Email = email
-	InfoHolder.Name = name
-	InfoHolder.IsPaidUser = isPaidUser
 
 	return true, &InfoHolder, nil
 }

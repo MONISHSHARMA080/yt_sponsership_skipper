@@ -31,24 +31,25 @@ func GetNewKey() http.HandlerFunc {
 		resultDBChannel := make(chan common.ErrorAndResultStruct[bool])
 		var DBStruct structs.MessageForUserOnPaymentCapture
 		db := helperfuncs.DbConnect()
-		go oldUser.DecryptTheKey(Request.UserKey, resultUserChannel)
 
+		go oldUser.DecryptTheKey(Request.UserKey, resultUserChannel)
 		go DBStruct.GetLatestMessageForTheUser(db, Request.EmailByRequestDoNotTrust, resultDBChannel)
 
 		userDecryptionResult := <-resultUserChannel
 		if userDecryptionResult.Error != nil {
 			println("there is a error in decrypting the userKey ->", userDecryptionResult.Error.Error())
-			// return JSON response
+			response.ReturnJSONResponse(w, "", "can't decode your key", http.StatusBadRequest)
 			return
 		}
 		fmt.Printf("the user struct is -> %s \n", oldUser.GetDecryptedStringInTheStruct())
-		// makeing sure to check the email enterd by the user is correct and same as the one in the userKey
+
 		if Request.EmailByRequestDoNotTrust != oldUser.Email {
-			fmt.Printf("the email enterd by the user in req (--%s--) is not same as the one in the key (--%s--) we are returning the error \n\n", Request.EmailByRequestDoNotTrust, oldUser.Email)
-			// retiurn json response
+			fmt.Printf("the email enterd by the user in req (%s) is not same as the one in the key (%s) we are returning the error \n\n", Request.EmailByRequestDoNotTrust, oldUser.Email)
+			response.ReturnJSONResponse(w, "", "you email in the request does not match the one in the key", http.StatusBadRequest)
 			return
 		}
 		resultFromTheDB := <-resultDBChannel
+		// here the email is valid, now the row is 0
 		if resultFromTheDB.Error != nil {
 			println("there is a error form the DB request ->", resultFromTheDB.Error.Error())
 			// return json response

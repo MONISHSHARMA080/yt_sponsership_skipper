@@ -65,6 +65,7 @@ func WebHookIntegrationForPaymentCapture(razorpayKeyID, razorpaySecretID, webHoo
 		// if  ispaymentForOneTimeOnly is true make a fucn on it to make it after the day or months form the env
 		// should it be on my webHookEvent or on my InitializeStruct method and passing a bool on whether it is a free tier
 		// or not should set it
+		println("the IDPrimary key is ->",webHookEvent.Payload.Payment.Entity.Notes.IDPrimaryKey)
 		err = messageFormDbOnPaymentCapture.InitializeStruct(webHookEvent.Payload.Payment.Entity.ID, webHookEvent.Payload.Payment.Entity.Notes.IDPrimaryKey, ispaymentForOneTimeOnly)
 		if err != nil {
 			println("there is a error in Initializing the Struct and we can't send messgae to the Db ->", err.Error())

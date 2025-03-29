@@ -13,15 +13,16 @@ import (
 	"strings"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
-func ExtractPriceFormEnv (price  string) (int64, error){
-if price == "" {
-			return 0, fmt.Errorf("the price name for the one time payment price is not there in the env")
-		}
-		priceInInt, err := strconv.ParseInt(price, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return priceInInt, nil
+
+func ExtractPriceFormEnv(price string) (int64, error) {
+	if price == "" {
+		return 0, fmt.Errorf("the price name for the one time payment price is not there in the env")
+	}
+	priceInInt, err := strconv.ParseInt(price, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return priceInInt, nil
 }
 
 // paymentPlanType should be "onetime" or "recurring"
@@ -36,7 +37,7 @@ func GetPaymentForThePlan(paymentPlanType string) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		println("price will be ", intVal," for the payment plan ->", paymentPlanType)
+		println("price will be ", intVal, " for the payment plan ->", paymentPlanType)
 		return intVal, nil
 	} else if paymentPlanType == "recurringpayment" {
 		price := os.Getenv("RECURRINGPAYMENTPRICE")
@@ -108,22 +109,19 @@ func GetEmailAndNameFormKey(k string) (email, name string, isPaidUsers bool, err
 	return strings[1], strings[2], isPaidUser, nil
 }
 
+func GetGeneratedSignature(RazorpayOrderId, RazorpayPaymentId, razorpaySecretID string) (string, error) {
+	data := RazorpayOrderId + "|" + RazorpayPaymentId
+	// data := request.RazorpayOrderId + "|" + request.RazorpayPaymentId
+	h := hmac.New(sha256.New, []byte(razorpaySecretID))
+	// Write the data to the HMAC
+	_, err := h.Write([]byte(data))
+	if err != nil {
+		// response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
+		return "", err
+	}
+	// println("the int returned is ->", intReturned)
 
-//
-func  GetGeneratedSignature(RazorpayOrderId, RazorpayPaymentId, razorpaySecretID string) (string,  error) {
-	
-
-		data := RazorpayOrderId + "|" + RazorpayPaymentId
-		// data := request.RazorpayOrderId + "|" + request.RazorpayPaymentId
-		h := hmac.New(sha256.New, []byte(razorpaySecretID))
-		// Write the data to the HMAC
-		intReturned, err := h.Write([]byte(data))
-		if err != nil {
-			// response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
-			return "", err
-		}
-		println("the int returned is ->", intReturned)
-
-		generatedSignature := hex.EncodeToString(h.Sum(nil))
-		return generatedSignature, nil
+	generatedSignature := hex.EncodeToString(h.Sum(nil))
+	return generatedSignature, nil
 }
+
