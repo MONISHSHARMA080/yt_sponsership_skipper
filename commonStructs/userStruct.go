@@ -16,19 +16,6 @@ type UserInDb struct {
 
 // returns true if the user is valid, the UserTeir should be set before using it
 func (U *UserInDb) IsUserValid() bool {
-	// if len(U.AccountID) >= 1 {
-	// 	return false
-	// } else if len(U.Email) >= 1 {
-	// 	return false
-	// } else if len(U.UserName) >= 1 {
-	// 	return false
-	// } else if !U.IsUserPaid {
-	// 	return false
-	// } // will always br false
-	// // else if U.UserTeir != "RecurringPayment" && U.UserTeir != "OneTime" {
-	// // 	return false
-	// // }
-	// return true
 	// return U.AccountID == "" || U.Email == "" || U.UserName == "" || U.UserTeir == ""
 	return U.AccountID != "" && U.Email != "" && U.UserName != "" && U.UserTeir != ""
 }
@@ -51,9 +38,13 @@ func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan commo
 	var id int64
 	query := `
         INSERT OR REPLACE INTO UserAccount
-        (accountid, email, userName, is_a_paid_user)
-        VALUES (?, ?, ?, ?)
-        RETURNING id
+		(accountid, email, userName, is_a_paid_user)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(email) DO UPDATE SET
+		accountid = excluded.accountid,
+		userName = excluded.userName,
+		is_a_paid_user = excluded.is_a_paid_user
+		RETURNING id
     `
 	err := db.QueryRow(query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid).Scan(&id)
 	println("made the sql query")

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	routehandlerfunc "youtubeAdsSkipper/RouteHandlerFunc/GetNewKey"
 	paymentbackendgo "youtubeAdsSkipper/paymentBackendGO"
 	handlerfunction "youtubeAdsSkipper/paymentBackendGO/handlerFunction"
 
@@ -57,6 +58,8 @@ func main() {
 	http.HandleFunc("/validatePayment", handlerfunction.VerifyPaymentSignature(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
 	http.HandleFunc("/webHookIntegrationForPaymentCapture", handlerfunction.WebHookIntegrationForPaymentCapture(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), os.Getenv("RAZORPAYWEBHOOKSECRET"), encryption_key_as_byte))
 	// now make one for checking the update
+
+	http.HandleFunc("/getNewKey", routehandlerfunc.GetNewKey())
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err.Error())

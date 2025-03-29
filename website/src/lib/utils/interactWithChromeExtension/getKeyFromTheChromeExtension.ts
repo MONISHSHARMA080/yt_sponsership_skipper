@@ -37,7 +37,12 @@ export class interactWithTheChromeExtensionAndStoreIt{
          // keyFromChromeExtensionState.key = event.data.key 
 
          // --- new code ----
+         console.log(`the key form the chrome extension is ->`, event.data.key);
+         
          if (this.keyStateFromStorage !== null) {
+            console.log(`the key form the local storage is 234->`, this.keyStateFromStorage);
+            
+            
            if (this.keyStateFromStorage.key === event.data.key) {
                // the key is same and we don't need to do anything
                console.log("the key is same and we don't need to do anything, the key is ->", event.data.key, "and the key state from storage is ->", this.keyStateFromStorage.key);
@@ -46,14 +51,15 @@ export class interactWithTheChromeExtensionAndStoreIt{
                this.removeAndCloseEventListeners()
                return
            }
-         }else{
+         }
                // the key is null as it might be the first  time or the key is not same 
                // the key is diff. and we need to do the whole thing again
                // this method will also update the key in local storage so don't worry about it
                console.log("the key is diff and we are checking if it is valid, ");
+            console.log(`+++++++++++++++++++++++++++++++++++++++++++++++++++++2222222222222222222222222`);
                
                this.checkIfKeyIsValid.seeIfKeyIsValid(event.data.key)
-           } 
+           
 
          if (this.callBackAfterKeyIsReceived !== null) {
             try {
@@ -98,7 +104,9 @@ export class interactWithTheChromeExtensionAndStoreIt{
             // if we don't have the key then we should clear the local storage
             this.localStorageHelper.removeFromLocalStorage("KEY")
          }
-         console.log("the key object is ->", keyObj);
+         console.log("the key object is  in the start()->", keyObj);
+         console.log(`key form the storage is ->`,this.keyStateFromStorage);
+         
          this.keyStateFromStorage = keyObj
          // this.saveKeyObjFromLocalStorageToGlobalState(keyObj)
             // if the keyObj is not null then set it as the global export state

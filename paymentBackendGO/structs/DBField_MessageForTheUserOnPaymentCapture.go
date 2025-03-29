@@ -133,3 +133,57 @@ func (msgForUser *MessageForUserOnPaymentCapture) getTimeToCheckForKeyUpdateOn(U
 	// Convert to Unix timestamp
 	return timeAfter1monthAnd1Day.Unix(), nil
 }
+
+// type DBChannelResult struct {
+// 	IsUserThere    bool
+// 	IsMessageThere bool
+// 	Error          error
+// }
+
+// this one gets the latest message for the user and fills the structs, it is intended to be used on the empty struct
+// returns false if the message is not there in the DB(no rows)-- maybe update the time to check in Db and return it
+//
+// think about this, this will not give me message not found error as we are not checking for the message when the  user is on
+// free tier, only when they make payment we gave them a fake key and they look after a day (eg) -> we receive a web hook and we set the message ->
+// user check for the new key/message and they gets it -> they do it after the expiration time and then if the user is on free teir or on paid we need to check
+//
+// here we are assuming that the email is there in the DB if not then give them the error outside form it
+func (DbField *MessageForUserOnPaymentCapture) GetLatestMessageForTheUser(db *sql.DB, email string, resultChannel chan common.ErrorAndResultStruct[bool],
+
+// resultChannel2 chan common.ErrorAndResultStruct[DBChannelResult],
+) {
+	query := `
+    SELECT 
+        m.user_tier,
+        m.version,
+        m.check_for_key_update_on,
+        m.user_account_id,
+        m.razorpay_payment_id
+    FROM messageForTheUserAfterPaymentCaptured m
+    JOIN UserAccount ua ON m.user_account_id = ua.id
+    WHERE ua.email = ?
+    ORDER BY m.version DESC
+    LIMIT 1`
+
+	rowsReturned := db.QueryRow(query, email)
+
+	err := rowsReturned.Scan(
+		DbField.UserTier,
+		DbField.Version,
+		DbField.CheckForKeyUpdateOn,
+		DbField.UserAccountID,
+		DbField.RazorpayPaymentID,
+	)
+	if err != nil {
+		// this will be true if the email is not there or for the message is not there
+		if err == sql.ErrNoRows {
+			println("there are no rows in the DB(err)")
+			resultChannel <- common.ErrorAndResultStruct[bool]{Result: false, Error: nil}
+			return
+		}
+		println("\n\n the error in the getting latest message form the DB is ->", err.Error(), "\n\n")
+		resultChannel <- common.ErrorAndResultStruct[bool]{Result: false, Error: err}
+		return
+	}
+	resultChannel <- common.ErrorAndResultStruct[bool]{Result: true, Error: nil}
+}

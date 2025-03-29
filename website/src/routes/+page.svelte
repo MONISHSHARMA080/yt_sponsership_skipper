@@ -31,6 +31,8 @@
 		let error =interactWithExtensionClass.start(
 			// func that will run after we get the keys form the chrome extension and not form the local storage
 			(a)=>{console.log("the key we got in the func passed in the start() is", a);
+			keyFromChromeExtensionState.key = a
+			interactWithExtensionClass.cleanup()
 		})
 		if (error) {
 			console.log(`the error in interacting with the extension class is ->${error}`);
@@ -50,7 +52,7 @@
 		
 		let val = $derived(keyFromChromeExtensionState)
 		$effect(()=>{
-			console.log(`asking backend for the order id`);
+			console.log(`asking backend for the order id and the key is -> ${keyFromChromeExtensionState.key}`);
 				 askBackendForOrderId(val).then((val)=>{
 				console.log(`the svelte effect returned and the value is ->`, val);
 			 })

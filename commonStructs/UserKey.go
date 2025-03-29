@@ -57,8 +57,8 @@ func (userKey *UserKey) GetDecryptedStringInTheStruct() string {
 // decrypts the encryptedUserKey on the struct  (probally set it first using the method); and sets it on the struct and returns it too
 //
 // working: will take the encrypted key and get the decoded string out(JSON) and then try to decode the JSON string into the struct
-func (userKey *UserKey) DecryptTheKey(encryptedUserKey2 string, resultChannel chan common.ErrorAndResultStruct[string]) {
-	userKey.encryptedUserKey = encryptedUserKey2
+func (userKey *UserKey) DecryptTheKey(encryptedUserKeyToDecrypt string, resultChannel chan common.ErrorAndResultStruct[string]) {
+	userKey.encryptedUserKey = encryptedUserKeyToDecrypt
 
 	if userKey.encryptedUserKey == "" {
 		resultChannel <- common.ErrorAndResultStruct[string]{Result: "", Error: fmt.Errorf("the encrypted key is empty and we can't decode it")}
@@ -240,8 +240,12 @@ func (userKey *UserKey) EncryptTheUser(resultChannel chan common.ErrorAndResultS
 	}
 }
 
-// func (UserKey *UserKey) FillTheUserKeyFormUserInDb(userInDb common.UserInDB) {
-// }
+// NOTE: it is not implemented yet
+func (userKey *UserKey) ShouldWeTellUserToGoGetANewKey() bool {
+	// note if the user is in free tier return false as in DBfeild for it we are returning 0, if user in free tier
+	// we won't tell them to go get a new key ever and if not then we might, is the reason
+	return false
+}
 
 //
 //

@@ -28,3 +28,13 @@ curl -X POST http://localhost:8080/makeAPayment \
      -d '{
          "plan_type": "dsicbdsic",
          "user_key": "VqOvjITcxly8f9eSvXAPAOwt2kTkJAw6xjFFR/RbG943wYCBwLHz+8Gq/x1KsZjyTP5S0CbK5BcP0lvPsDR24TxlyhyJsAHjjxqvdTuTlL0=" }'
+
+
+------------
+
+
+curl -X POST http://localhost:8080/getNewKey \
+     -H "Content-Type: application/json" \
+     -d '{
+         "email": "dsicbdsic",
+         "user_key": "CMnkuCcZ3DDJDxr9z9Z/6bdaDfov4R3pkeQZfgGQh+WfFVHv2ulIqUMiRCM36nAeIlxvCSuHbFMtaSWIYDVicftGNs+Ix5uf/CI3OTzM2hDNdUI+Y81FQEjCrL5dtBF4TfbX49pQHMGntOl7kueRWnNRThjauj7RURkYk3eVwYHQkT5oRth/ltW3DXpph673ogyXfKV/HiuiZsystq5q0ddgAsTDDLtzWrFwd/ze16OUT6fxLBmgT4T7fbc3M/MJ8zuVLNhnL1GrGEBwayQJ8ntxm9xCLlCf1x/k+b1watteMbIR6nTWyklf9Mpu" }'
