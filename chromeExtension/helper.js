@@ -299,6 +299,7 @@ export async function getWhereToSkipInYtVideo(key, videoID) {
   try {
     let response = await fetchRequestToBackend();
     console.log("the response form the yt video api is -->", response);
+    response.status
     /** @type ResponseObject */
     let responseOBJ = await response.json();
     if (responseOBJ.status !== 200) {
@@ -348,4 +349,12 @@ export async function getDefaultValueOfToSkipTheSponsorAndShowTheModal() /** @re
     return [false, null];
   }
   return [Boolean(valueFromStorage), null];
+}
+
+
+/**
+ * this function is used when the response.status is  upgrade required (426); we will fetch the new key and store it in the storage
+ */
+function updateTheKeyToNewValue() {
+
 }
