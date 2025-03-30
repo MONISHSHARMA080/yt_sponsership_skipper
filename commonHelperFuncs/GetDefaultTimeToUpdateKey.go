@@ -8,7 +8,7 @@ import (
 // this func gets the time to update the key on the server from the env file and returns it, if the env file is empty it returns the
 // hardcoded value(1 month and 1 day), also the env can only take value till s,m,h ; week etc will be  ignored
 //
-// use it to avoid using hardocded values and also will help in the integration testing, env key is
+// use it to avoid using hardocded values and also will help in the integration testing, env key is "TIMEFORKEYEXPIRY"
 func GetTimeToExpireTheKey() int64 {
 	timeForKeyExpiryStr := os.Getenv("TIMEFORKEYEXPIRY")
 
