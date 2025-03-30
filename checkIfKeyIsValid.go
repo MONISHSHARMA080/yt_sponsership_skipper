@@ -58,6 +58,11 @@ func CheckIfKeyIsValid(os_env_key []byte) http.HandlerFunc {
 			returnTheJsonResponseonError("key value can't be empty", http.StatusBadRequest, false, w)
 			return
 		}
+		if userFormKey.ShouldWeTellUserToGoGetANewKeyPanic() {
+			println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
+			method_to_write_http_and_json_to_respond(w, "upgrade your key as it's time ran out", http.StatusUpgradeRequired)
+			return
+		}
 		// email, name := getEmailAndNameFormKey(resultFormChannel.string_value)
 		email := userFormKey.Email
 		name := userFormKey.UserName

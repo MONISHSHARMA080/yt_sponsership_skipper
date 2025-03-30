@@ -49,17 +49,23 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "can't decode key send by you or ", http.StatusBadRequest)
 			return
 		}
-		resutFromKeyDecryption := <- channelForRes
-		if resutFromKeyDecryption.Error != nil{
-			println("error in key decoidng ->", err.Error())
+		resutFromKeyDecryption := <-channelForRes
+		if resutFromKeyDecryption.Error != nil {
+			println("error in key decoidng ->", resutFromKeyDecryption.Error.Error())
 			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "can't decode key send by you or ", http.StatusBadRequest)
 			return
 		}
-		
-	email, name, isPaidUser := userFromTheRequest.Email, userFromTheRequest.UserName, userFromTheRequest.IsUserPaid
-	infoHolder.Email = email
-	infoHolder.Name = name
-	infoHolder.IsPaidUser = isPaidUser
+
+		if userFromTheRequest.ShouldWeTellUserToGoGetANewKeyPanic() {
+			println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
+			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "upgrade your key as it's time ran out", http.StatusUpgradeRequired)
+			return
+		}
+
+		email, name, isPaidUser := userFromTheRequest.Email, userFromTheRequest.UserName, userFromTheRequest.IsUserPaid
+		infoHolder.Email = email
+		infoHolder.Name = name
+		infoHolder.IsPaidUser = isPaidUser
 
 		println("email ->", infoHolder.Email)
 		// println("price ->", infoHolder.Price)
@@ -70,7 +76,6 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		oneTimeChannel := make(chan common.ErrorAndResultStruct[string])
 		var RazorpayOrderForRecurring structs.RazorpayOrderResponse
 		var RazorpayOrderForOneTime structs.RazorpayOrderResponse
-		
 
 		fmt.Printf("\n\n----------the useKey struct's decrypted key is -> %s ---------\n\n", userFromTheRequest.GetDecryptedStringInTheStruct())
 		fmt.Printf("\n\n----------the useKey struct is -> %v ---------\n\n", userFromTheRequest)

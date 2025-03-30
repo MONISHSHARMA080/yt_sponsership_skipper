@@ -205,6 +205,12 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			fmt.Printf("resultForUserKeyChannel: %v\n", resultForUserKeyChannel.Result)
 		}
 
+		if userFormKey.ShouldWeTellUserToGoGetANewKeyPanic() {
+			println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
+			method_to_write_http_and_json_to_respond(w, "upgrade your key as it's time ran out", http.StatusUpgradeRequired)
+			return
+		}
+
 		// if result_for_user_details.err != nil {
 		//
 		// 	method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)

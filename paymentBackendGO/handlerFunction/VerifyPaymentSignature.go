@@ -48,8 +48,9 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 		if userFormKey.ShouldWeTellUserToGoGetANewKeyPanic() {
-			println("we should tell the user to update the key")
-			// return the response for key updating
+			println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
+			response.ReturnTheErrorInJsonResponse(w, r, "upgrade your key as it's time ran out", "", http.StatusUpgradeRequired, false)
+			return
 		}
 
 		// checking if the email sent by user matches the email in the key, if not then here is a error
