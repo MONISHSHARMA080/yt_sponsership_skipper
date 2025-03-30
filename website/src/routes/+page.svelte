@@ -7,6 +7,7 @@
 	import { checkIfKeyIsValidAndUpdateTheState } from '$lib/utils/seeIfTheKeyIsValidByBackend';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
+	import {  keyUpdatedState } from '$lib/sharedState/updatedKeyReceived.svelte';
 	
 		// Commented extension code preserved as in original
 		// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
@@ -71,6 +72,21 @@
 		// 		return
 		// 	}
 		// })
+
+		let keyUpdatedObj = $derived(keyUpdatedState)
+		$effect(()=>{
+			if (keyUpdatedObj.newKeyReceived && keyFromChromeExtensionState.key ){
+				// the key is updated and we are sending it to the chrome extension
+				const sendNewKeyClass = new sendChromeExtensionNewKey(keyFromChromeExtensionState.key)
+				sendNewKeyClass.sendKey().then(([error, didWeCorrectlySendIt])=>{
+					console.log(`did we correctly send the new key to the chrome extension ->${didWeCorrectlySendIt}, and errors here is ->${error}`);
+					if (error === null){
+						keyUpdatedObj.newKeyReceived = false
+					}
+						sendNewKeyClass.clearEventListener()
+				})
+			}
+		})
 
 		$effect(()=>{
 			console.log(`the razor pay id is ->`, razorpayOrderId.orderIdForOnetime, razorpayOrderId.orderIdForRecurring);

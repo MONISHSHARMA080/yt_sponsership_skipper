@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AsyncRequestQueue } from "../newAsyncRequestQueue";
 import { didUserSelectOneTimePayment } from "$lib/sharedState/didUserSeletctOneTimePayment.svelte";
 import { KeyUpdate } from "../updateKey";
+import { keyUpdatedState } from "$lib/sharedState/updatedKeyReceived.svelte";
 
 const RazorpayPaymentSchema = z.object({
   razorpay_payment_id: z.string(),
@@ -99,7 +100,7 @@ export async function validateCompletedPayment(
     let newKey = result[0].result?.new_key
     console.log(`the new key returned is ${newKey}`);
     
-    if (newKey === "" || newKey === null ){
+    if (newKey === "" || newKey === null || newKey === undefined ){
       return {
         success: false,
         message: "new key is not there"
@@ -107,7 +108,6 @@ export async function validateCompletedPayment(
     }
 
     let updateKeyClass = new KeyUpdate
-    //@ts-ignore
     let err= updateKeyClass.UpdateKey(newKey, true)
       console.log(`the error in saving the key to the storage is ${err}`);
     if (err !== null){
@@ -116,6 +116,10 @@ export async function validateCompletedPayment(
         message: "there is a error in saving the key to the storage"
       }
     }
+    keyUpdatedState.newKeyReceived = true// now send it to the chrome extension
+
+    // here make a global shared state that has int and boolean to it, when we get the new key we will set the state to true and usign effect we will 
+    // start to send the new key to the chrome extension
 
     // Return the successful response
     return result[0].result;

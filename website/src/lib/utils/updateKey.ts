@@ -21,6 +21,8 @@ export class KeyUpdate{
      * as we are assuming that the key is valid , and you would update it only if it comes form the backend
      * 
      * if the key on the object form the storage is "" we will just put it there 
+     * 
+     * also update the shared state outside of it 
      */
     public UpdateKey(newKey:string, isUserOnPaidTier:boolean = false):Error|null{
         if (!this.isKeyValid(newKey)){
