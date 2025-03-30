@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	// "time"
 	// commonstructs "youtubeAdsSkipper/commonStructs"
@@ -240,11 +241,32 @@ func (userKey *UserKey) EncryptTheUser(resultChannel chan common.ErrorAndResultS
 	}
 }
 
-// NOTE: it is not implemented yet
-func (userKey *UserKey) ShouldWeTellUserToGoGetANewKey() bool {
+// returns true if the user should update the key, compares the value to the current time
+// will not panic if the struct is  not initialized
+func (userKey *UserKey) ShouldWeTellUserToGoGetANewKey() (bool, error) {
 	// note if the user is in free tier return false as in DBfeild for it we are returning 0, if user in free tier
 	// we won't tell them to go get a new key ever and if not then we might, is the reason
-	return false
+	if userKey.IsMyStructEmpty() {
+		return false, fmt.Errorf("the struct is not initialized")
+	}
+	if userKey.UserTier == "free tier" {
+		return false, nil
+	}
+	return time.Now().Unix() >= userKey.CheckForKeyUpdateOn, nil
+}
+
+// returns true if the user should update the key, compares the value to the current time
+// will not  panic if the struct is  not initialized
+func (userKey *UserKey) ShouldWeTellUserToGoGetANewKeyPanic() bool {
+	// note if the user is in free tier return false as in DBfeild for it we are returning 0, if user in free tier
+	// we won't tell them to go get a new key ever and if not then we might, is the reason
+	if userKey.IsMyStructEmpty() {
+		panic("the struct is not initialized (userKey )")
+	}
+	if userKey.UserTier == "free tier" {
+		return false
+	}
+	return time.Now().Unix() >= userKey.CheckForKeyUpdateOn
 }
 
 //

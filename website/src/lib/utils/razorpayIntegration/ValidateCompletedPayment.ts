@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AsyncRequestQueue } from "../newAsyncRequestQueue";
 import { didUserSelectOneTimePayment } from "$lib/sharedState/didUserSeletctOneTimePayment.svelte";
+import { KeyUpdate } from "../updateKey";
 
 const RazorpayPaymentSchema = z.object({
   razorpay_payment_id: z.string(),
@@ -11,7 +12,9 @@ const RazorpayPaymentSchema = z.object({
 const responseFormApiCall = z.object({
   status_code: z.number(),
   success: z.boolean(),
-  message: z.string()
+  message: z.string(),
+  new_key: z.string().optional() // Add the new_key field that's returned from the server
+
 });
 
 type RazorpayPayment = z.infer<typeof RazorpayPaymentSchema>;
@@ -20,6 +23,7 @@ type ResponseFormApiCall = z.infer<typeof responseFormApiCall>;
 interface ValidationResponseType {
   status_code: number,
   success: boolean,
+new_key?: string,
   message: string
 }
 
@@ -32,6 +36,7 @@ interface RequestVerifyPaymentSignature {
   did_user_selected_one_time_payment: boolean;
 }
 
+/** function validated the payment completed and will save the new key in the local storage and in the state and also will send it to the chrome extension */
 export async function validateCompletedPayment(
   responseFromRazorpay: unknown,
   userKey: string,
@@ -91,6 +96,26 @@ export async function validateCompletedPayment(
         message: result[0].result?.message || "Error validating payment"
       };
     }
+    let newKey = result[0].result?.new_key
+    console.log(`the new key returned is ${newKey}`);
+    
+    if (newKey === "" || newKey === null ){
+      return {
+        success: false,
+        message: "new key is not there"
+      }
+    }
+
+    let updateKeyClass = new KeyUpdate
+    //@ts-ignore
+    let err= updateKeyClass.UpdateKey(newKey, true)
+      console.log(`the error in saving the key to the storage is ${err}`);
+    if (err !== null){
+      return {
+        success: false,
+        message: "there is a error in saving the key to the storage"
+      }
+    }
 
     // Return the successful response
     return result[0].result;
@@ -120,11 +145,14 @@ async function processIndividualPromise<T>(resp1: Promise<Response>): Promise<T>
     // Validate the response using Zod
     const validationSchema = z.object({
       status_code: z.number(),
-      success: z.boolean(),
-      message: z.string()
+      new_key: z.string().optional(),
+     success: z.boolean(),
+      message: z.string(),
     });
 
     const validationResult = validationSchema.safeParse(responseData);
+    console.log(`validating the json schema's result (in validating the payment) is ${validationResult.success
+      } and the result is ${JSON.stringify(validationResult)}`);
 
     if (!validationResult.success) {
       console.error("Invalid response format:", validationResult.error);

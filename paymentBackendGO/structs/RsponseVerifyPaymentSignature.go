@@ -9,20 +9,21 @@ type ResponseVerifyPaymentSignature struct {
 	Message    string `json:"message"`
 	StatusCode int    `json:"status_code"`
 	Success    bool   `json:"success"`
-	// NewKey     string  `json:"new_key"` // maybe we should return the key here
+	NewKey     string `json:"new_key"` // maybe we should return the key here
 }
 
-func (resp *ResponseVerifyPaymentSignature) FillTheStruct(Success bool, messageWeGot string, statusCode int) {
+func (resp *ResponseVerifyPaymentSignature) FillTheStruct(Success bool, messageWeGot, newKey string, statusCode int) {
 	resp.Message = messageWeGot
 	resp.StatusCode = statusCode
 	resp.Success = Success
+	resp.NewKey = newKey
 }
 
-func (resp *ResponseVerifyPaymentSignature) ReturnTheErrorInJsonResponse(w http.ResponseWriter, r *http.Request, messageWeGot string, statusCode int, success bool) error {
+func (resp *ResponseVerifyPaymentSignature) ReturnTheErrorInJsonResponse(w http.ResponseWriter, r *http.Request, messageWeGot, newKey string, statusCode int, success bool) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	resp.FillTheStruct(success, messageWeGot, statusCode)
+	resp.FillTheStruct(success, messageWeGot, newKey, statusCode)
 
 	err := json.NewEncoder(w).Encode(resp)
 	if err != nil {

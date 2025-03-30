@@ -49,7 +49,6 @@ func main() {
 
 	httpClient := http.Client{}
 	http.HandleFunc("/", getRoot)
-
 	// if need new token use this
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
 	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient))

@@ -11,6 +11,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
 
@@ -125,3 +127,15 @@ func GetGeneratedSignature(RazorpayOrderId, RazorpayPaymentId, razorpaySecretID 
 	return generatedSignature, nil
 }
 
+// make sure to not include the free tier, and also I am assuming it as the payment method is not for the free tier anyways
+func GetFakeKeyForAWhile(oldUserKey *commonstructs.UserKey, IsUserTierOneTime bool, resultChannel chan common.ErrorAndResultStruct[string]) {
+	if IsUserTierOneTime {
+		oldUserKey.UserTier = "one time"
+	} else {
+		oldUserKey.UserTier = "recurring"
+	}
+
+	oldUserKey.IsUserPaid = true
+	oldUserKey.CheckForKeyUpdateOn = time.Now().AddDate(0, 0, 1).Unix()
+	go oldUserKey.EncryptTheUser(resultChannel)
+}
