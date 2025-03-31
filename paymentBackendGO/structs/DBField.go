@@ -13,8 +13,7 @@ type TemporaryFieldToVerifyPaymentLater struct {
 
 // factoryFunction
 func CreateDBFieldForStoringTempOrderId(RecurringOrderID, OnetimeOrderID string) *TemporaryFieldToVerifyPaymentLater {
-	var dbFeild TemporaryFieldToVerifyPaymentLater = TemporaryFieldToVerifyPaymentLater{RecurringOrderID: RecurringOrderID, OnetimeOrderID: OnetimeOrderID}
-	return &dbFeild
+	return &TemporaryFieldToVerifyPaymentLater{RecurringOrderID: RecurringOrderID, OnetimeOrderID: OnetimeOrderID}
 }
 
 // this struct is small so that I can use it in my struct method and is not ment ot be used outside

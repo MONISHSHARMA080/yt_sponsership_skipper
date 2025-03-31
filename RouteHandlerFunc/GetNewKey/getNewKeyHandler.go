@@ -74,7 +74,7 @@ func GetNewKey() http.HandlerFunc {
 			println("the resultFromTheDB is false with no errr for the ", Request.EmailByRequestDoNotTrust, " meaning there is no message")
 			println("here we would give the user key and adjust it for the future time")
 			// set time on the key to be a month in the future, don't do DBStruct.UserTier as when the db does not return the field will be empty
-			resultForNewUser := routehandlerfunc.UpdateKeyWithOneMonthTimeExtension(&DBStruct, &oldUser)
+			resultForNewUser := routehandlerfunc.UpdateTheCheckForKeyUpdateToNewValue(&DBStruct, &oldUser)
 			if resultForNewUser.Error != nil {
 				println("error in gettting time to CheckForKeyUpdateOn ->", resultForNewUser.Error.Error())
 				response.ReturnJSONResponse(w, "", "something went wrong on our side in giving you your new key", http.StatusInternalServerError)

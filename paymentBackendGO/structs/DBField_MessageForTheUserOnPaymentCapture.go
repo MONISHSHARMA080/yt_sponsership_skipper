@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	commonhelperfuncs "youtubeAdsSkipper/commonHelperFuncs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
 
@@ -87,15 +88,21 @@ func (messageForUserOnPaymentCapture *MessageForUserOnPaymentCapture) Initialize
 	}
 	// make some sort of check to see if the UserTier is a string that DB will take
 	if !validTiers[UserTier] {
+		println("\n\n\n\n\n\n\n\n\n\n\\n\n\n\n\n\n\n\n\n\n\n\n=====================================================================================================")
+		println("we have a user tier that is not supposed to be , we should have crashed the program but we are setting the time to update still, tier is  ", UserTier)
+		println("\n\n\n\n\n\n\n\n\n\n\\n\n\n\n\n\n\n\n\n\n\n\n=====================================================================================================")
 		return fmt.Errorf("the UserTier string is not of a valid category")
 	}
-	timeToCheckForKeyUpdate, err := messageForUserOnPaymentCapture.GetTimeToCheckForKeyUpdateOn(UserTier)
-	if err != nil {
-		return fmt.Errorf("can't get the time to check for key on update")
-	}
+	// timeToCheckForKeyUpdate, err := messageForUserOnPaymentCapture.GetTimeToCheckForKeyUpdateOn(UserTier)
+	// if err != nil {
+	// 	return fmt.Errorf("can't get the time to check for key on update")
+	// }
 	// make some sort of check to see if the time here is more than the time on the server
+	timeToCheckForKeyUpdate := commonhelperfuncs.GetTimeToExpireTheKey()
+
 	if time.Now().Unix() >= timeToCheckForKeyUpdate {
-		return fmt.Errorf("the time should be less than CheckForKeyUpdateOn")
+		// if I am setting the time to be less than the currentTime then I should crash the program
+		panic(fmt.Errorf("the time should be less than CheckForKeyUpdateOn"))
 	}
 	println("the user account is by razorpay is ->", UserAccountID)
 	messageForUserOnPaymentCapture.UserTier = UserTier
@@ -129,11 +136,12 @@ func (msgForUser *MessageForUserOnPaymentCapture) GetTimeToCheckForKeyUpdateOn(U
 	}
 
 	// Calculate time one month and one day from now
-	currentTime := time.Now()
-	timeAfter1monthAnd1Day := currentTime.AddDate(0, 1, 1)
+	// currentTime := time.Now()
+	// timeAfter1monthAnd1Day := currentTime.AddDate(0, 1, 1)
 
+	timeToUpdateKeyOn := commonhelperfuncs.GetTimeToExpireTheKey()
 	// Convert to Unix timestamp
-	return timeAfter1monthAnd1Day.Unix(), nil
+	return timeToUpdateKeyOn, nil
 }
 
 // type DBChannelResult struct {

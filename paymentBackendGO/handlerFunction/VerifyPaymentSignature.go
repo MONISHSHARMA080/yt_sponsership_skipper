@@ -34,10 +34,6 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		go userFormKey.DecryptTheKey(request.UserKey, channelToDecryptUserKey)
 		go verifuPaymentLaterFromDB.GetTokens(db, request.Email, resultFromGettingTokensFromDbChann)
 		// get the email etc form the key
-		// userKey.EncryptedUserKey = request.UserKey
-		// channForKeyResult := make(chan common.ErrorAndResultStruct[string])
-
-		// go userKey.DecryptKey(envKeyAsByte, channForKeyResult)
 
 		// getting the order id form the db, use the request.email to get the order id we will check later to see if it is correct
 
@@ -61,9 +57,9 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		// 	response.ReturnTheErrorInJsonResponse(w, r, "error in getting information out of the key", http.StatusBadRequest, false)
 		// 	return
 		// }
-		if userFormKey.Email != "" && userFormKey.Email != request.Email {
+		if userFormKey.Email == "" || userFormKey.Email != request.Email {
 			println("the error is that the email in request is ->", request.Email, "<- and the one form the key is ->", userFormKey.Email, "<- and are they equal ->", userFormKey.Email != request.Email)
-			response.ReturnTheErrorInJsonResponse(w, r, "the email does not match the one in the key", "", http.StatusBadRequest, false)
+			response.ReturnTheErrorInJsonResponse(w, r, "the email sent in the request does not match the one in the key", "", http.StatusBadRequest, false)
 			return
 		}
 

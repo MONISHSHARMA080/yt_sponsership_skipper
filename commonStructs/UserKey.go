@@ -256,7 +256,7 @@ func (userKey *UserKey) ShouldWeTellUserToGoGetANewKey() (bool, error) {
 }
 
 // returns true if the user should update the key, compares the value to the current time
-// will not  panic if the struct is  not initialized
+// will panic if the struct is  not initialized
 func (userKey *UserKey) ShouldWeTellUserToGoGetANewKeyPanic() bool {
 	// note if the user is in free tier return false as in DBfeild for it we are returning 0, if user in free tier
 	// we won't tell them to go get a new key ever and if not then we might, is the reason
