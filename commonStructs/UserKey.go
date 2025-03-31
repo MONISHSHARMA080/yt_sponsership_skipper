@@ -59,6 +59,7 @@ func (userKey *UserKey) GetDecryptedStringInTheStruct() string {
 //
 // working: will take the encrypted key and get the decoded string out(JSON) and then try to decode the JSON string into the struct
 func (userKey *UserKey) DecryptTheKey(encryptedUserKeyToDecrypt string, resultChannel chan common.ErrorAndResultStruct[string]) {
+	startTime := time.Now()
 	userKey.encryptedUserKey = encryptedUserKeyToDecrypt
 
 	if userKey.encryptedUserKey == "" {
@@ -145,6 +146,7 @@ func (userKey *UserKey) DecryptTheKey(encryptedUserKeyToDecrypt string, resultCh
 		return
 	}
 
+	println("time taken in userKey decoding is ->", time.Since(startTime).Microseconds(), " Microseconds")
 	// Send result through the channel
 	resultChannel <- common.ErrorAndResultStruct[string]{
 		Result: userKey.decryptedUserKey,

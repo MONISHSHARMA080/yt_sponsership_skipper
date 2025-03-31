@@ -242,7 +242,7 @@ export function sayHi() {
 /**
  * @param {string} pathWithoutBackSlash - url path of the function
  * @param {"POST"|"GET"} method - request method
- * @param {Object} header - request header
+ * @param {Object} [header={ "Content-Type": "application/json" } ] - request header
  * @param {Object} bodyOBJ - request body
  *
  * @returns {() => Promise<Response>}
@@ -251,8 +251,8 @@ export function sayHi() {
 export function fetchFunctionBuilder(
   pathWithoutBackSlash,
   method,
-  header,
   bodyOBJ,
+  header = { "Content-Type": "application/json" },
 ) {
   return () => {
     return fetch(config.BACKEND_URL + "/" + pathWithoutBackSlash, {
@@ -353,8 +353,20 @@ export async function getDefaultValueOfToSkipTheSponsorAndShowTheModal() /** @re
 
 
 /**
- * this function is used when the response.status is  upgrade required (426); we will fetch the new key and store it in the storage
+ * run this function after the response is received if the response.status is 426(upgrade required) we will fetch the new key and store it in the storage 
+ * if it is alright we will return the response as it is 
+ *
+ * NOTE:  any other reponse than 200 or 426, will be treated same as 200 by us and the same repsonse will be returned, you have to gandle that case
+ *
+ * @argument {Response} response 
+ * @returns {Response}
+ *
  */
-function updateTheKeyToNewValue() {
+function updateTheKeyToNewValueIfUpgradeIsRequeired(response) {
+  if (response.status !== 426) {
+    return response
+  }
 
+  fetchFunctionBuilder("", "POST", {})
+  return response
 }

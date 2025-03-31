@@ -35,7 +35,6 @@ func GetNewKey() http.HandlerFunc {
 		db := helperfuncs.DbConnect()
 
 		go oldUser.DecryptTheKey(Request.UserKey, resultUserChannel)
-		go DBStruct.GetLatestMessageForTheUser(db, Request.EmailByRequestDoNotTrust, resultDBChannel)
 
 		userDecryptionResult := <-resultUserChannel
 		if userDecryptionResult.Error != nil {
@@ -45,11 +44,12 @@ func GetNewKey() http.HandlerFunc {
 		}
 		fmt.Printf("the user struct is -> %s \n", oldUser.GetDecryptedStringInTheStruct())
 
-		if Request.EmailByRequestDoNotTrust != oldUser.Email {
-			fmt.Printf("the email enterd by the user in req (%s) is not same as the one in the key (%s) we are returning the error \n\n", Request.EmailByRequestDoNotTrust, oldUser.Email)
-			response.ReturnJSONResponse(w, "", "you email in the request does not match the one in the key", http.StatusBadRequest)
-			return
-		}
+		go DBStruct.GetLatestMessageForTheUser(db, oldUser.Email, resultDBChannel)
+		// if Request.EmailByRequestDoNotTrust != oldUser.Email {
+		// 	fmt.Printf("the email enterd by the user in req (%s) is not same as the one in the key (%s) we are returning the error \n\n", Request.EmailByRequestDoNotTrust, oldUser.Email)
+		// 	response.ReturnJSONResponse(w, "", "you email in the request does not match the one in the key", http.StatusBadRequest)
+		// 	return
+		// }
 		timeNow := time.Now().Unix()
 
 		resultFromTheDB := <-resultDBChannel
@@ -71,7 +71,7 @@ func GetNewKey() http.HandlerFunc {
 		//  this means the message is not there in the DB
 		if !resultFromTheDB.Result {
 			// here change the key of the user and
-			println("the resultFromTheDB is false with no errr for the ", Request.EmailByRequestDoNotTrust, " meaning there is no message")
+			println("the resultFromTheDB is false with no errr for the ", oldUser.Email, " meaning there is no message")
 			println("here we would give the user key and adjust it for the future time")
 			// set time on the key to be a month in the future, don't do DBStruct.UserTier as when the db does not return the field will be empty
 			resultForNewUser := routehandlerfunc.UpdateTheCheckForKeyUpdateToNewValue(&DBStruct, &oldUser)
