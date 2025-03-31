@@ -2,15 +2,15 @@ package commonstructs
 
 import (
 	"fmt"
-	"time"
+	commonhelperfuncs "youtubeAdsSkipper/commonHelperFuncs"
 )
 
 // we are not checking if the user is free tier, this method just copies it and calls it a day, and will error if the user in db is empty,
 //
-//hard code values/assumptions: the user tier will be free and the version to be 0, and gthe time to check for update on is after 1 month and 1 day
-func  (userKey *UserKey) InitializeTheStructForNewUser(  userInDb UserInDb , primaryKeyOfTheUserReturnedFromTheDB int64)error{
+// hard code values/assumptions: the user tier will be free and the version to be 0, and gthe time to check for update on is after 1 month and 1 day
+func (userKey *UserKey) InitializeTheStructForNewUser(userInDb UserInDb, primaryKeyOfTheUserReturnedFromTheDB int64) error {
 	userInDb.AddUserToFreeTier()
-	if !userInDb.IsUserValid(){
+	if !userInDb.IsUserValid() {
 		return fmt.Errorf("the user struct is not valid ")
 	}
 	userKey.AccountID = userInDb.AccountID
@@ -20,6 +20,7 @@ func  (userKey *UserKey) InitializeTheStructForNewUser(  userInDb UserInDb , pri
 	userKey.UserTier = userInDb.UserTeir
 	userKey.Version = 0
 	userKey.IDPrimaryKey = primaryKeyOfTheUserReturnedFromTheDB
-	userKey.CheckForKeyUpdateOn = time.Now().AddDate(0,1,1).Unix()
+	userKey.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey()
 	return nil
 }
+
