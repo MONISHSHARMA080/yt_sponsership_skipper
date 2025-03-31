@@ -88,7 +88,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		}
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: &sponsorshipContent}
 	} else {
-		println("No choices in the groq response" )
+		println("No choices in the groq response")
 		printJson(groqApiResponse)
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: fmt.Errorf("no choices presesnt in the gorq response"), groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 	}
@@ -135,7 +135,7 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 	var err error
 	var number_ofKeys int64
 
-	if is_user_paid == true {
+	if is_user_paid {
 		numberOFEnvKeyAccordignToUserTeir := os.Getenv("NO_OF_KEYS_FOR_PAID_USER")
 		number_ofKeys, err = strconv.ParseInt(numberOFEnvKeyAccordignToUserTeir, 10, 32)
 	} else {
@@ -353,6 +353,7 @@ func getIndexOfSponserSubtitleFromAdjacentIndex2(transcript Transcripts, current
 		return matchingIndices[len(matchingIndices)-1]
 	}
 }
+
 func getIndexOfSponserSubtitleForEndFromAdjacentIndex(transcript Transcripts, currentIndex int, subtitleCaptionByGroq *string, returnBasedOnFirstWord bool, lengthOfSubtitle int) int {
 	firstWord, secondWord, err := getFirstTwoWords(subtitleCaptionByGroq)
 	if err != nil {
@@ -400,7 +401,6 @@ func getIndexOfSponserSubtitleForEndFromAdjacentIndex(transcript Transcripts, cu
 	// }
 	// println("can't find so returning the basic")
 	// return currentIndex // as a safe bet
-
 }
 
 func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error) {

@@ -262,12 +262,15 @@ func (userKey *UserKey) ShouldWeTellUserToGoGetANewKey() (bool, error) {
 func (userKey *UserKey) ShouldWeTellUserToGoGetANewKeyPanic() bool {
 	// note if the user is in free tier return false as in DBfeild for it we are returning 0, if user in free tier
 	// we won't tell them to go get a new key ever and if not then we might, is the reason
+	println("----++-- in the func to see if we should tell user to update the key")
 	if userKey.IsMyStructEmpty() {
 		panic("the struct is not initialized (userKey )")
 	}
 	if userKey.UserTier == "free tier" {
+		println("the user is on free tier")
 		return false
 	}
+	fmt.Printf("Time remaining until key update: %f\n", time.Until(time.Unix(userKey.CheckForKeyUpdateOn, 0)).Seconds())
 	return time.Now().Unix() >= userKey.CheckForKeyUpdateOn
 }
 

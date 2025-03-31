@@ -120,7 +120,8 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 				ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
 				w.Header().Set("Content-Type", "application/json")
 			}
-		case <-time.After(6 * time.Second): // Timeout after 6 seconds
+		case <-time.After(8 * time.Second): // Timeout after 6 seconds
+			println("timeout after 8 sec")
 			ResponseFromTheUserAuth.Message = "timeout while inserting you in the DB"
 			ResponseFromTheUserAuth.Success = false
 			ResponseFromTheUserAuth.Status_code = http.StatusInternalServerError

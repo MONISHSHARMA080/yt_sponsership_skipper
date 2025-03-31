@@ -11,7 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
+	commonhelperfuncs "youtubeAdsSkipper/commonHelperFuncs"
 	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 )
@@ -121,7 +121,6 @@ func GetGeneratedSignature(RazorpayOrderId, RazorpayPaymentId, razorpaySecretID 
 		// response.ReturnTheErrorInJsonResponse(w, r, "signature verification failed", http.StatusBadRequest, false)
 		return "", err
 	}
-	// println("the int returned is ->", intReturned)
 
 	generatedSignature := hex.EncodeToString(h.Sum(nil))
 	return generatedSignature, nil
@@ -136,6 +135,7 @@ func GetFakeKeyForAWhile(oldUserKey *commonstructs.UserKey, IsUserTierOneTime bo
 	}
 
 	oldUserKey.IsUserPaid = true
-	oldUserKey.CheckForKeyUpdateOn = time.Now().AddDate(0, 0, 1).Unix()
+	// oldUserKey.CheckForKeyUpdateOn = time.Now().AddDate(0, 0, 1).Unix()
+	oldUserKey.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey(true)
 	go oldUserKey.EncryptTheUser(resultChannel)
 }

@@ -98,7 +98,7 @@ func (messageForUserOnPaymentCapture *MessageForUserOnPaymentCapture) Initialize
 	// 	return fmt.Errorf("can't get the time to check for key on update")
 	// }
 	// make some sort of check to see if the time here is more than the time on the server
-	timeToCheckForKeyUpdate := commonhelperfuncs.GetTimeToExpireTheKey()
+	timeToCheckForKeyUpdate := commonhelperfuncs.GetTimeToExpireTheKey(false)
 
 	if time.Now().Unix() >= timeToCheckForKeyUpdate {
 		// if I am setting the time to be less than the currentTime then I should crash the program
@@ -139,7 +139,7 @@ func (msgForUser *MessageForUserOnPaymentCapture) GetTimeToCheckForKeyUpdateOn(U
 	// currentTime := time.Now()
 	// timeAfter1monthAnd1Day := currentTime.AddDate(0, 1, 1)
 
-	timeToUpdateKeyOn := commonhelperfuncs.GetTimeToExpireTheKey()
+	timeToUpdateKeyOn := commonhelperfuncs.GetTimeToExpireTheKey(false)
 	// Convert to Unix timestamp
 	return timeToUpdateKeyOn, nil
 }

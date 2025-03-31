@@ -15,7 +15,7 @@ func UpdateTheCheckForKeyUpdateToNewValue(DBStruct *structs.MessageForUserOnPaym
 	// 	// response.ReturnJSONResponse(w, "", "something went wrong on our side in giving you your new key", http.StatusInternalServerError)
 	// 	return common.ErrorAndResultStruct[string]{Result: "", Error: err}
 	// }
-	oldUser.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey()
+	oldUser.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey(false)
 
 	resultDBChannelForNewuser := make(chan common.ErrorAndResultStruct[string])
 	go oldUser.EncryptTheUser(resultDBChannelForNewuser)
@@ -24,7 +24,7 @@ func UpdateTheCheckForKeyUpdateToNewValue(DBStruct *structs.MessageForUserOnPaym
 }
 
 func DownGradeTheUserToFreeTierAndAlsoSetTheTimeAfterAMonth(DBStruct *structs.MessageForUserOnPaymentCapture, oldUser *commonstructs.UserKey) common.ErrorAndResultStruct[string] {
-	println("the UserTier is -> ", oldUser.UserTier)
+	println("the old User's Tier was -> ", oldUser.UserTier)
 	println("asseritng the UserTier is not free over here ->", oldUser.UserTier != "free tier")
 	oldUser.UserTier = "free tier"
 	return UpdateTheCheckForKeyUpdateToNewValue(DBStruct, oldUser)

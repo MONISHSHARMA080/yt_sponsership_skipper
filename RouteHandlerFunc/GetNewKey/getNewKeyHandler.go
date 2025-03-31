@@ -65,7 +65,7 @@ func GetNewKey() http.HandlerFunc {
 		// if the current time is less than the time to upgrade on  then do not give them a new key back
 		if timeNow < oldUser.CheckForKeyUpdateOn {
 			println("the user tier is valid and time has not came yet to update the key")
-			response.ReturnJSONResponse(w, "", "you don't need to update the key as you tier is still valid", http.StatusBadRequest)
+			response.ReturnJSONResponse(w, "", "you don't need to update the key as you tier is still valid", http.StatusForbidden)
 			return
 		}
 		//  this means the message is not there in the DB

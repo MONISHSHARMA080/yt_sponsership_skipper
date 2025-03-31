@@ -20,7 +20,6 @@ func (userKey *UserKey) InitializeTheStructForNewUser(userInDb UserInDb, primary
 	userKey.UserTier = userInDb.UserTeir
 	userKey.Version = 0
 	userKey.IDPrimaryKey = primaryKeyOfTheUserReturnedFromTheDB
-	userKey.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey()
+	userKey.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey(false)
 	return nil
 }
-
