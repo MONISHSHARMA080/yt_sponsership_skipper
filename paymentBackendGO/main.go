@@ -25,6 +25,7 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 
+		responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "incorrect method", http.StatusBadRequest)
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "something wrong with the body", http.StatusBadRequest)
