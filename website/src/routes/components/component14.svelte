@@ -12,7 +12,12 @@
 	import TestimonialsAndFaqs from '$lib/components/homepage/TestimonialsAndFaqs.svelte';
 	import type { RazorpayOptions } from '$lib/utils/razorpayIntegration/types/razorpayOption';
 	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
-	import { PUBLIC_CURRENCYTYPE, PUBLIC_ONETIMEPAYMENTPRICE, PUBLIC_RAZORPAY_KEY_ID, PUBLIC_RECURRINGPAYMENTPRICE } from '$env/static/public';
+	import {
+		PUBLIC_CURRENCYTYPE,
+		PUBLIC_ONETIMEPAYMENTPRICE,
+		PUBLIC_RAZORPAY_KEY_ID,
+		PUBLIC_RECURRINGPAYMENTPRICE
+	} from '$env/static/public';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 	import { validateCompletedPayment } from '$lib/utils/razorpayIntegration/ValidateCompletedPayment';
 	import { didUserSelectOneTimePayment } from '$lib/sharedState/didUserSeletctOneTimePayment.svelte';
@@ -20,7 +25,7 @@
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });
 
-		// for the skipping notification on the screen
+	// for the skipping notification on the screen
 	const springForFastForwardInVideo = new Tween(
 		{ x: 0, y: 0 },
 		{
@@ -32,7 +37,6 @@
 			})
 		}
 	);
-
 
 	onMount(() => {
 		// animating the >> in the skipping the sponsor message
@@ -63,118 +67,116 @@
 
 		animateShapes();
 
-		return () => {
-		};
+		return () => {};
 	});
 
+	async function paymentButtonClicked(textOnPaymentButton: string) {
+		try {
+			// Early return for the free tier
+			if (textOnPaymentButton === 'Install Now') {
+				console.log('Free tier selected, no payment needed');
+				return; // as this is free tier and don't have to do anything on it
+			}
 
+			// Create a local variable that will be captured by the closure
+			const isOneTimePayment = textOnPaymentButton === 'Try once';
+			console.log(
+				` is this a one time payment ->${isOneTimePayment} and the texxt on the button is ->${textOnPaymentButton}<- and ->${textOnPaymentButton === 'Try once'}`
+			);
 
-async function paymentButtonClicked(textOnPaymentButton: string) {
-    try {
-        // Early return for the free tier
-        if (textOnPaymentButton === "Install Now") {
-            console.log("Free tier selected, no payment needed");
-            return; // as this is free tier and don't have to do anything on it
-        }
-        
-        // Create a local variable that will be captured by the closure
-        const isOneTimePayment = textOnPaymentButton === "Try once";
-		console.log(` is this a one time payment ->${isOneTimePayment} and the texxt on the button is ->${textOnPaymentButton}<- and ->${textOnPaymentButton === "Try once"}`);
-		
-        
-        // Also update the state for other parts of the app
-        didUserSelectOneTimePayment.didUserSelectOneTimePayment = isOneTimePayment;
-        didUserSelectOneTimePayment.valueChangedByMe = true;
-        console.log(`Set one-time payment flag to: ${isOneTimePayment}`);
-        
-        // Get the appropriate order ID based on payment type
-        let orderId = isOneTimePayment ? 
-            razorpayOrderId.orderIdForOnetime : 
-            razorpayOrderId.orderIdForRecurring;
-            
-        // If order ID is not available, log error and return
-        if (!orderId) {
-            console.error("Order ID not found. Make sure it's fetched before payment.");
-            return;
-        }
-        
-        // Configure Razorpay options
-        const options: RazorpayOptions = {
-            key: PUBLIC_RAZORPAY_KEY_ID,
-            amount: isOneTimePayment ? 
-                PUBLIC_ONETIMEPAYMENTPRICE : 
-                PUBLIC_RECURRINGPAYMENTPRICE,
-            currency:PUBLIC_CURRENCYTYPE,
-            name: "Youtube Sponsorship Skipper",
-            description: isOneTimePayment ? "One-time payment" : "Premium subscription",
-            order_id: orderId,
-            handler: async function(response) {
-                console.log("Payment successful, validating payment...");
-                console.log(`Using payment type (one-time): ${isOneTimePayment}`);
-                
-                if (keyFromChromeExtensionState.email === null || keyFromChromeExtensionState.key === null) {
-                    return;
-                }
-                
-                // Validate the payment - using the local variable instead of the state
-                const validationResult = await validateCompletedPayment(
-                    response,
-                    keyFromChromeExtensionState.key,
-                    keyFromChromeExtensionState.email,
-                    isOneTimePayment  // Using the local variable that's captured in the closure
-                );
-                
-                if (validationResult !== null && validationResult.success) {
-                    console.log("Payment validation successful:", validationResult.message);
-					// console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
-					// razorpayOrderId.numberOfTimesKeyUsed++
-					// console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
-					askBackendForOrderId(keyFromChromeExtensionState)
-                    // Handle successful payment (e.g., update UI, redirect, etc.)
-                } else {
-                    console.error("Payment validation failed:", validationResult);
-					// Handle failed validation
-					// updating the keys as this one is used and will not be required and if I updated the numberOfTImesKeyused++ I am stuck in a recursive loop 
-					askBackendForOrderId(keyFromChromeExtensionState)
-					// console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
-					// razorpayOrderId.numberOfTimesKeyUsed++
-					// console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
-                }
-            },
-            prefill: {
-                email: keyFromChromeExtensionState.email || "",
-            },
-            theme: {
-                color: "#2c15bf"
-            },
-        };
-        
-        // Initialize Razorpay
-        const rzp = new (window as any).Razorpay(options);
-        
-        // Handle payment failures
-        rzp.on('payment.failed', function(response: any) {
-            console.error("Payment failed:", response.error);
-            // alert(`Payment failed: ${response.error.description}`);
+			// Also update the state for other parts of the app
+			didUserSelectOneTimePayment.didUserSelectOneTimePayment = isOneTimePayment;
+			didUserSelectOneTimePayment.valueChangedByMe = true;
+			console.log(`Set one-time payment flag to: ${isOneTimePayment}`);
 
-			// updating the razor pay state so that it can be updated for future use  
-			console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
-			razorpayOrderId.numberOfTimesKeyUsed++
-			console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
-        });
-        
-        // Open Razorpay payment modal
-        rzp.open();
-        
-    } catch (error) {
-        console.error("Error in payment button click handler:", error);
-        alert("An error occurred while processing your payment. Please try again.");
-    }
-}
+			// Get the appropriate order ID based on payment type
+			let orderId = isOneTimePayment
+				? razorpayOrderId.orderIdForOnetime
+				: razorpayOrderId.orderIdForRecurring;
 
+			// If order ID is not available, log error and return
+			if (!orderId) {
+				console.error("Order ID not found. Make sure it's fetched before payment.");
+				return;
+			}
 
+			// Configure Razorpay options
+			const options: RazorpayOptions = {
+				key: PUBLIC_RAZORPAY_KEY_ID,
+				amount: isOneTimePayment ? PUBLIC_ONETIMEPAYMENTPRICE : PUBLIC_RECURRINGPAYMENTPRICE,
+				currency: PUBLIC_CURRENCYTYPE,
+				name: 'Youtube Sponsorship Skipper',
+				description: isOneTimePayment ? 'One-time payment' : 'Premium subscription',
+				order_id: orderId,
+				handler: async function (response) {
+					console.log('Payment successful, validating payment...');
+					console.log(`Using payment type (one-time): ${isOneTimePayment}`);
 
-	
+					if (
+						keyFromChromeExtensionState.email === null ||
+						keyFromChromeExtensionState.key === null
+					) {
+						return;
+					}
+
+					// Validate the payment - using the local variable instead of the state
+					const validationResult = await validateCompletedPayment(
+						response,
+						keyFromChromeExtensionState.key,
+						keyFromChromeExtensionState.email,
+						isOneTimePayment // Using the local variable that's captured in the closure
+					);
+
+					if (validationResult !== null && validationResult.success) {
+						console.log('Payment validation successful:', validationResult.message);
+						// console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+						// razorpayOrderId.numberOfTimesKeyUsed++
+						// console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+						askBackendForOrderId(keyFromChromeExtensionState);
+						// Handle successful payment (e.g., update UI, redirect, etc.)
+					} else {
+						console.error('Payment validation failed:', validationResult);
+						// Handle failed validation
+						// updating the keys as this one is used and will not be required and if I updated the numberOfTImesKeyused++ I am stuck in a recursive loop
+						askBackendForOrderId(keyFromChromeExtensionState);
+						// console.log(` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+						// razorpayOrderId.numberOfTimesKeyUsed++
+						// console.log(` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `);
+					}
+				},
+				prefill: {
+					email: keyFromChromeExtensionState.email || ''
+				},
+				theme: {
+					color: '#2c15bf'
+				}
+			};
+
+			// Initialize Razorpay
+			const rzp = new (window as any).Razorpay(options);
+
+			// Handle payment failures
+			rzp.on('payment.failed', function (response: any) {
+				console.error('Payment failed:', response.error);
+				// alert(`Payment failed: ${response.error.description}`);
+
+				// updating the razor pay state so that it can be updated for future use
+				console.log(
+					` the razor pay number of times before updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `
+				);
+				razorpayOrderId.numberOfTimesKeyUsed++;
+				console.log(
+					` the razor pay number of times after updating -> ${razorpayOrderId.numberOfTimesKeyUsed} `
+				);
+			});
+
+			// Open Razorpay payment modal
+			rzp.open();
+		} catch (error) {
+			console.error('Error in payment button click handler:', error);
+			alert('An error occurred while processing your payment. Please try again.');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -243,7 +245,7 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
 	<HeroSection />
 
 	<!-- Features Section -->
-	 <FeatureSection />
+	<FeatureSection />
 
 	{#if keyFromChromeExtensionState.isPaidUser}
 		<PremiumBenfitsSectionForPermiumUsers />
@@ -263,104 +265,80 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
 					</p>
 				</div>
 				<div class="mx-auto grid max-w-7xl gap-9 md:grid-cols-3">
-    {#each [
-        { 
-            title: 'Free', 
-            price: '$0', 
-            period: 'forever', 
-            description: 'Basic sponsorship skipping for casual YouTube viewers', 
-            features: [
-                'Skip up to 50 sponsorships per month', 
-                'Basic sponsorship detection', 
-                'Time saved tracker', 
-                'Works on all YouTube videos'
-            ], 
-            buttonText: 'Install Now', 
-            buttonColor: 'bg-black text-white', 
-            messageOnTop: ""
-        },
-        { 
-            title: 'One time', 
-            price: '$3.99', 
-            period: 'once', 
-            description: 'Try premium features without recurring payments', 
-            features: [
-                '200 premium skips', 
-                'Advanced detection algorithm', 
-                'Basic custom skip rules', 
-                'Skip intros & outros',
-                'No recurring charges'
-            ], 
-            buttonText: 'Try once', 
-            buttonColor: 'bg-yellow-500 text-black', 
-            messageOnTop: "Try once"
-        },
-        { 
-            title: 'Recurring', 
-            price: '$4.99', 
-            period: 'per month', 
-            description: 'Unlimited skipping and advanced features for power users', 
-            features: [
-                'Unlimited sponsorship skipping', 
-                'Advanced detection algorithm', 
-                'Custom skip rules and preferences', 
-                'Skip intros, outros & reminders', 
-                'Detailed analytics dashboard', 
-                'Priority support'
-            ], 
-            buttonText: 'Go Premium', 
-            buttonColor: 'bg-purple-600 text-white', 
-            messageOnTop: "Popular"
-        }
-    ] as plan, index}
+					{#each [{ title: 'Free', price: '$0', period: 'forever', description: 'Basic sponsorship skipping for casual YouTube viewers', features: ['Skip up to 50 sponsorships per month', 'Basic sponsorship detection', 'Time saved tracker', 'Works on all YouTube videos'], buttonText: 'Install Now', buttonColor: 'bg-black text-white', messageOnTop: '' }, { title: 'One time', price: '$3.99', period: 'once', description: 'Try premium features without recurring payments', features: ['200 premium skips', 'Advanced detection algorithm', 'Basic custom skip rules', 'Skip intros & outros', 'No recurring charges'], buttonText: 'Try once', buttonColor: 'bg-yellow-500 text-black', messageOnTop: 'Try once' }, { title: 'Recurring', price: '$4.99', period: 'per month', description: 'Unlimited skipping and advanced features for power users', features: ['Unlimited sponsorship skipping', 'Advanced detection algorithm', 'Custom skip rules and preferences', 'Skip intros, outros & reminders', 'Detailed analytics dashboard', 'Priority support'], buttonText: 'Go Premium', buttonColor: 'bg-purple-600 text-white', messageOnTop: 'Popular' }] as plan, index}
+						<div
+							class="relative border-4 {plan.messageOnTop
+								? plan.messageOnTop === 'Popular'
+									? 'border-red-600'
+									: plan.messageOnTop === 'Try once'
+										? 'border-yellow-500'
+										: 'border-black'
+								: 'border-black'} flex flex-col bg-white p-8"
+							in:fade={{ duration: 500, delay: index * 100 }}
+						>
+							{#if plan.messageOnTop}
+								<div
+									class="absolute -top-4 -right-4 border-4 border-black {plan.messageOnTop ===
+									'Popular'
+										? 'bg-red-500'
+										: plan.messageOnTop === 'Try once'
+											? 'bg-yellow-400'
+											: 'bg-black'} px-4 py-1 font-bold text-black"
+								>
+									{plan.messageOnTop}
+								</div>
+							{/if}
+							<h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
+							<div class="mb-4 flex items-end">
+								<span class="text-4xl font-black">{plan.price}</span>
+								<span class="ml-1 text-gray-600">/{plan.period}</span>
+							</div>
+							<p class="mb-6 text-gray-600">{plan.description}</p>
+							<ul class="mb-8 flex-grow space-y-3">
+								{#each plan.features as feature}
+									<li class="flex items-start font-medium">
+										<div class="mr-2 rounded-sm bg-green-500 p-1 text-white">
+											<ChevronRight class="h-4 w-4" />
+										</div>
+										<span>{feature}</span>
+									</li>
+								{/each}
+							</ul>
 
-        
-    <div
-        class="relative border-4 {plan.messageOnTop ? (plan.messageOnTop === 'Popular' ? 'border-red-600' : (plan.messageOnTop === 'Try once' ? 'border-yellow-500' : 'border-black')) : 'border-black'} flex flex-col bg-white p-8"
-        in:fade={{ duration: 500, delay: index * 100 }}
-    >
-        {#if plan.messageOnTop}
-            <div
-                class="absolute -top-4 -right-4 border-4 border-black {plan.messageOnTop === 'Popular' ? 'bg-red-500' : (plan.messageOnTop === 'Try once' ? 'bg-yellow-400' : 'bg-black')} px-4 py-1 font-bold text-black"
-            >
-                {plan.messageOnTop}
-            </div>
-        {/if}
-        <h3 class="mb-2 text-3xl font-bold">{plan.title}</h3>
-        <div class="mb-4 flex items-end">
-            <span class="text-4xl font-black">{plan.price}</span>
-            <span class="ml-1 text-gray-600">/{plan.period}</span>
-        </div>
-        <p class="mb-6 text-gray-600">{plan.description}</p>
-        <ul class="mb-8 flex-grow space-y-3">
-            {#each plan.features as feature}
-                <li class="flex items-start font-medium">
-                    <div class="mr-2 bg-green-500 p-1 text-white rounded-sm">
-                        <ChevronRight class="h-4 w-4" />
-                    </div>
-                    <span>{feature}</span>
-                </li>
-            {/each}
-        </ul>
-        
-        {#if razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null}
-            <button
-                class=" bg-gray-200 text-black w-full flex items-center justify-center gap-2 transform border-3 border-black px-8 py-3 font-bold rounded-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-                on:click={() => {paymentButtonClicked(plan.buttonText); console.log("button clicked")}}
-            >
-                <Loader2 class="animate-spin h-5 w-5" /> 
-                <span>{plan.buttonText}</span>
-            </button>
-        {:else}
-            <button
-                class="{plan.buttonColor} w-full flex items-center justify-center transform border-3 border-black px-8 py-3 font-bold rounded-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-                on:click={() => {paymentButtonClicked(plan.buttonText); console.log("button clicked")}}
-            >
-                <span>{plan.buttonText}</span>
-            </button>
-        {/if}
-    </div>
-
+							{#if razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.fetchingStatus === 'fetching'}
+								<button
+									class=" flex w-full transform items-center justify-center gap-2 rounded-md border-3 border-black bg-gray-200 px-8 py-3 font-bold text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+									on:click={() => {
+										paymentButtonClicked(plan.buttonText);
+										console.log('button clicked');
+									}}
+								>
+									<Loader2 class="h-5 w-5 animate-spin" />
+									<span>{plan.buttonText}</span>
+								</button>
+							{:else if razorpayOrderId.fetchingStatus === 'error'}
+								<button
+									class=" flex w-full transform items-center justify-center gap-2 rounded-md border-3 border-black bg-red-600 px-8 py-3 font-bold text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+									on:click={() => {
+										paymentButtonClicked(plan.buttonText);
+										console.log('button clicked');
+									}}
+								>
+									<Loader2 class="h-5 w-5 animate-spin" />
+									<span>{plan.buttonText}</span>
+								</button>
+							{:else}
+								<button
+									class="{plan.buttonColor} flex w-full transform items-center justify-center rounded-md border-3 border-black px-8 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+									on:click={() => {
+										paymentButtonClicked(plan.buttonText);
+										console.log('button clicked');
+									}}
+								>
+									<span>{plan.buttonText}</span>
+								</button>
+							{/if}
+						</div>
 					{/each}
 				</div>
 				<div class="mt-16 text-center" in:fade={{ duration: 500 }}>
@@ -386,8 +364,7 @@ async function paymentButtonClicked(textOnPaymentButton: string) {
 	<TestimonialsAndFaqs />
 
 	<!-- CTA Section  and the Footer-->
-	 <CtaAndFooter />
-
+	<CtaAndFooter />
 </div>
 
 <style>

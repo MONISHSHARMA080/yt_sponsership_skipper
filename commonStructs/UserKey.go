@@ -270,7 +270,7 @@ func (userKey *UserKey) ShouldWeTellUserToGoGetANewKeyPanic() bool {
 		println("the user is on free tier")
 		return false
 	}
-	fmt.Printf("Time remaining until key update: %f\n", time.Until(time.Unix(userKey.CheckForKeyUpdateOn, 0)).Seconds())
+	fmt.Printf("Time remaining until key update: %f sec\n", time.Until(time.Unix(userKey.CheckForKeyUpdateOn, 0)).Seconds())
 	return time.Now().Unix() >= userKey.CheckForKeyUpdateOn
 }
 

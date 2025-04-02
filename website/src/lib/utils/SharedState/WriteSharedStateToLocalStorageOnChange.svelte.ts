@@ -60,39 +60,36 @@ export class WriteSharedStateToStorageWhenItChanges<T extends object> {
 
   /**
    * This method watches the value and will write it to storage when it changes
-   * @argument functoTellIfThisIsFirstTime - when this func determines(/returns true) we write state to the storage
+   * @argument functoTellWhenShouldYouUpdateIt - when this func determines(/returns true) we write state to the storage
    */
-  public wathcAndSaveOnChange(functoTellIfThisIsFirstTime: (sharedStateToGetAsACallback: T) => boolean) {
-    // make this func get a callback that will get the sharedStateToWriteToTheStorageOnChnage
+  public wathcAndSaveOnChange(functoTellWhenShouldYouUpdateIt: (sharedStateToGetAsACallback: T) => boolean) {
+    console.log(`in the wathcAndSaveOnChange`);
 
-    let keyFromStorage = this.getKeyObjFromTheStorage()
-
-    if (keyFromStorage instanceof Error) {
-      console.log(`there is a error in getting the key form the stoarage and we are returning ->${keyFromStorage}`);
-      return keyFromStorage
-    }
-    if (!this.validation(keyFromStorage)) {
-      return new Error(`the keyFromStorage dosen't match the schema of the shared state that you have provided `)
+    // Try to get from storage but don't fail if it's not there
+    let keyFromStorage = this.getKeyObjFromTheStorage();
+    if (!(keyFromStorage instanceof Error) && this.validation(keyFromStorage)) {
+      // If we have valid storage data, you could potentially merge it with state here
+      console.log("Found valid data in storage");
     }
 
+    // Set up the effect regardless of storage state
     let changedValue = $derived(this.sharedStateToWriteToTheStorage);
     $effect(() => {
-      if (functoTellIfThisIsFirstTime(this.sharedStateToWriteToTheStorage)) {
-        // usually shouldn't error but why not try catch will help
-        let newValueOfTheChangedObjInStr = JSON.stringify(changedValue)
-        console.log(`\n\n ++ this is not the first time to change the key ->${this.keyToWriteInTheStorage} and the new value is ${newValueOfTheChangedObjInStr} \n\n`);
-        let [success, err] = this.interactWithStorageClass.setInLocalStorage(this.keyToWriteInTheStorage, newValueOfTheChangedObjInStr)
+      if (functoTellWhenShouldYouUpdateIt(this.sharedStateToWriteToTheStorage)) {
+        let newValueOfTheChangedObjInStr = JSON.stringify(changedValue);
+        console.log(`Saving to storage: ${this.keyToWriteInTheStorage} = ${newValueOfTheChangedObjInStr}`);
+        let [success, err] = this.interactWithStorageClass.setInLocalStorage(
+          this.keyToWriteInTheStorage,
+          newValueOfTheChangedObjInStr
+        );
         if (err !== null || !success) {
-          console.log(`there is a error in settign the value of key in the localstorage, most likely a quota exception ->${err}`);
+          console.error(`Error saving to storage: ${err}`);
+        } else {
+          console.log(`Successfully saved to storage`);
         }
-        console.log(`successfully saved the value of the changed state into the storage , new value is -> ${newValueOfTheChangedObjInStr}  `);
-      } else {
-        console.log(`this is the first time so we are not changing the key ${this.keyToWriteInTheStorage} as the func returned true`);
-
       }
     });
   }
-
   /**
    * Validates that the stored object has the same structure as the shared state object using Zod
    * @param storedObj The object retrieved from local storage

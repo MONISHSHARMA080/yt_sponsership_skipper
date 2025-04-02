@@ -2,75 +2,81 @@ import { razorpayOrderId } from "$lib/sharedState/razorPayKey.svelte";
 import type { keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
 import { AsyncRequestQueue } from "../newAsyncRequestQueue";
 
-    
+
 
 interface requestType {
-    user_key:string
+  user_key: string
 }
-interface responseType{
-    order_id_for_recurring:string,
-    order_id_for_onetime:string,
-    message:string,
-    status_code:number,
-    // plan_type:"onetime"|"recurringpayment"
+interface responseType {
+  order_id_for_recurring: string,
+  order_id_for_onetime: string,
+  message: string,
+  status_code: number,
+  // plan_type:"onetime"|"recurringpayment"
 }
 
 /** this func is designed to run when the state changes(derived/effect), run the function and ask the bakend for the order Id and store it in the global state 
  * 
 */
-export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
+export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promise<boolean> {
   console.log(`1111`);
-  
-    try {
-        if( !keyStateObj.isValidatedThroughBackend  || keyStateObj.key ===""  || keyStateObj.key === null){
-          console.log(`the key is not validated or is empty or null we are returning ->`,keyStateObj.key);
-          
-            return 
-        }
-        // if we are validated 
-        let reqBody:requestType = { user_key:keyStateObj.key} 
-        let asyncReqQueue = new AsyncRequestQueue<Response,responseType>(10)
-        let promiseArray = [
-            fetch('/api/makeAPayment',{
-                headers:{'Content-Type': 'application/json'}
-                ,method:"POST",
-                body: JSON.stringify(reqBody)
-            }),
-            // fetch('/api/makeAPayment',{
-            //     headers:{'Content-Type': 'application/json'}
-            //     ,method:"POST",
-            //     body: JSON.stringify(reqBody)
-            // })
-        ]
-  console.log(`22222`);
-        let result = await asyncReqQueue.process(promiseArray,(promiseToProcess)=>processIndividualPromise<responseType>(promiseToProcess))
-        
-        // for (let index = 0; index < result.length; index++) {
-            let res = result[0]
-            if (res.error !== null) {
-                console.log(`there is a error in the result array at ${0} and is ->`,res.error, "\n and the message form the server is ->",res.result?.message);
-                return
-            }
-            console.log(`about to store the response in razorpay storage and it is -> ${res.result?.order_id_for_recurring} and the one time is ${res.result?.order_id_for_onetime}`);
-            
-          //  if (res.result?.order_id_for_onetime ){
-          //       razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime
-          //  }else if (res.result?.order_id_for_recurring ){
-          //       razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring
-          //  }
-        if (res.result?.order_id_for_onetime) {
-          razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime;
-        }
-        if (res.result?.order_id_for_recurring) {
-          razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring;
-        }
-        // }
-        console.log("\n\n\n\n\n result array is ->", result,"\n\n\n\n\n and the razor pay state is 1 time ", razorpayOrderId.orderIdForOnetime, " and recurr ", razorpayOrderId.orderIdForRecurring);
-        
-    } catch (error) {
-        console.log(`there is a error in asking backend for the order Id ->`,error);
-        return
+
+razorpayOrderId.fetchingStatus = "fetching"
+  try {
+    if (!keyStateObj.isValidatedThroughBackend || keyStateObj.key === "" || keyStateObj.key === null) {
+      console.log(`the key is not validated or is empty or null we are returning ->`, keyStateObj.key);
+
+      return false
     }
+    // if we are validated 
+    let reqBody: requestType = { user_key: keyStateObj.key }
+    let asyncReqQueue = new AsyncRequestQueue<Response, responseType>(10)
+    let promiseArray = [
+      fetch('/api/makeAPayment', {
+        headers: { 'Content-Type': 'application/json' }
+        , method: "POST",
+        body: JSON.stringify(reqBody)
+      }),
+      // fetch('/api/makeAPayment',{
+      //     headers:{'Content-Type': 'application/json'}
+      //     ,method:"POST",
+      //     body: JSON.stringify(reqBody)
+      // })
+    ]
+    let result = await asyncReqQueue.process(promiseArray, (promiseToProcess) => processIndividualPromise<responseType>(promiseToProcess))
+
+    // for (let index = 0; index < result.length; index++) {
+    let res = result[0]
+    if (res.error !== null || res.result === null) {
+      console.log(`there is a error in the result array at ${0} and is ->`, res.error, "\n and the message form the server is ->", res.result?.message);
+      return false
+    }
+    console.log(`about to store the response in razorpay storage and it is -> ${res.result?.order_id_for_recurring} and the one time is ${res.result?.order_id_for_onetime}`);
+    if (res.result.status_code !== 200) {
+      razorpayOrderId.fetchingStatus = "error"
+      return false
+    }
+    //  if (res.result?.order_id_for_onetime ){
+    //       razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime
+    //  }else if (res.result?.order_id_for_recurring ){
+    //       razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring
+    //  }
+      razorpayOrderId.fetchingStatus ="success"
+    if (res.result?.order_id_for_onetime) {
+      razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime;
+    }
+    if (res.result?.order_id_for_recurring) {
+      razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring;
+    }
+    // }
+    console.log("\n\n\n\n\n result array is ->", result, "\n\n\n\n\n and the razor pay state is 1 time ", razorpayOrderId.orderIdForOnetime, " and recurr ", razorpayOrderId.orderIdForRecurring);
+
+    return true
+
+  } catch (error) {
+    console.log(`there is a error in asking backend for the order Id ->`, error);
+    return false
+  }
 }
 
 // async function processIndividualPromise<T>(resp1:Promise<Response>):Promise<T>{
@@ -82,7 +88,7 @@ export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
 //         }
 //         resp.json().then((responseInJson)=>{
 //             console.log(`the json response is ->`,responseInJson);
-            
+
 //             if (validateResponseInJSONTOBeMyType(responseInJson)) {
 //                 // JSON is valid   
 //                 let respReceived:T = responseInJson
@@ -99,16 +105,16 @@ export async function askBackendForOrderId(keyStateObj:keyStateObject, ){
 async function processIndividualPromise<T>(resp1: Promise<Response>): Promise<T> {
   try {
     let resp = await resp1;
-    
+
     if (!resp.ok) {
       console.error("the response is not ok form the backend->", resp);
       throw new Error("the response is not ok bruh");
     }
-    
+
     // Parse the JSON first
     const responseInJson = await resp.json();
-    
-      console.log("the valid JSON is ->", responseInJson);
+
+    console.log("the valid JSON is ->", responseInJson);
     // Then validate it
     if (validateResponseInJSONTOBeMyType(responseInJson)) {
       // JSON is valid   
@@ -125,29 +131,29 @@ async function processIndividualPromise<T>(resp1: Promise<Response>): Promise<T>
 
 
 
-function validateResponseInJSONTOBeMyType(data:any):boolean {
-        // For responseType interface specifically:
-        try {
-            if (typeof data !== 'object' || data === null) return false;
-            // Check if the data has all required fields with correct types
-            if (typeof data.order_id_for_recurring !== 'string') return false;
-            console.log("---++----+++0000",data.plan_type);
-            if (typeof data.message !== 'string') return false;
-            console.log("-----message is string------",data.plan_type);
-            if (typeof data.order_id_for_onetime !== 'string') return false;
-            console.log("---++----+++0000",data.plan_type);
-            
-            if (typeof data.status_code !== 'number') return false;
-            console.log("---++----+++0000----");
-            console.log(`the data plan type ->${data.plan_type}`);
-            
-            
-            // if(data.plan_type !==  "onetime" &&  data.plan_type !== "recurringpayment") return false
-            console.log("\n\n we are returning true\n\n\n");
-            
-            return true;
-        } catch (error) {
-            console.log("error during checking json ->",error);
-            return false   
-        }
-    }
+function validateResponseInJSONTOBeMyType(data: any): boolean {
+  // For responseType interface specifically:
+  try {
+    if (typeof data !== 'object' || data === null) return false;
+    // Check if the data has all required fields with correct types
+    if (typeof data.order_id_for_recurring !== 'string') return false;
+    console.log("---++----+++0000", data.plan_type);
+    if (typeof data.message !== 'string') return false;
+    console.log("-----message is string------", data.plan_type);
+    if (typeof data.order_id_for_onetime !== 'string') return false;
+    console.log("---++----+++0000", data.plan_type);
+
+    if (typeof data.status_code !== 'number') return false;
+    console.log("---++----+++0000----");
+    console.log(`the data plan type ->${data.plan_type}`);
+
+
+    // if(data.plan_type !==  "onetime" &&  data.plan_type !== "recurringpayment") return false
+    console.log("\n\n we are returning true\n\n\n");
+
+    return true;
+  } catch (error) {
+    console.log("error during checking json ->", error);
+    return false
+  }
+}
