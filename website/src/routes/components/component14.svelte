@@ -305,7 +305,7 @@
 								{/each}
 							</ul>
 
-							{#if razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null || razorpayOrderId.fetchingStatus === 'fetching'}
+							{#if razorpayOrderId.fetchingStatus === 'fetching'}
 								<button
 									class=" flex w-full transform items-center justify-center gap-2 rounded-md border-3 border-black bg-gray-200 px-8 py-3 font-bold text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
 									on:click={() => {
@@ -317,16 +317,11 @@
 									<span>{plan.buttonText}</span>
 								</button>
 							{:else if razorpayOrderId.fetchingStatus === 'error'}
-								<button
-									class=" flex w-full transform items-center justify-center gap-2 rounded-md border-3 border-black bg-red-600 px-8 py-3 font-bold text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-									on:click={() => {
-										paymentButtonClicked(plan.buttonText);
-										console.log('button clicked');
-									}}
+								<div
+									class="flex w-full items-center justify-center gap-2 rounded-md border-3 border-black bg-red-600 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 								>
-									<Loader2 class="h-5 w-5 animate-spin" />
 									<span>{plan.buttonText}</span>
-								</button>
+								</div>
 							{:else}
 								<button
 									class="{plan.buttonColor} flex w-full transform items-center justify-center rounded-md border-3 border-black px-8 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"

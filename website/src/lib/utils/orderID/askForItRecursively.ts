@@ -1,38 +1,7 @@
 import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.svelte";
 import { askBackendForOrderId } from "../razorpayIntegration/AskBackendForOrderId";
 
-// let getOrderIdRecursively = () => {
-//   return askBackendForOrderId(keyFromChromeExtensionState)
-//     .then((val) => {
-//       console.log(`the order id from the backend's value is ->${val}`);
-//
-//       // If no value received, wait and try again
-//       if (!val) {
-//         console.log("No order ID received, retrying in 2 seconds...");
-//         return new Promise((resolve) => {
-//           setTimeout(() => {
-//             resolve(getOrderIdRecursively());
-//           }, 2000); // Retry after 2 seconds
-//         });
-//       }
-//
-//       // If we have a value, return it
-//       return val;
-//     })
-//     .catch((error) => {
-//       console.error("Error fetching order ID:", error);
-//       console.log("Retrying in 3 seconds due to error...");
-//
-//       // On error, wait and try again
-//       return new Promise((resolve) => {
-//         setTimeout(() => {
-//           resolve(getOrderIdRecursively());
-//         }, 3000); // Retry after 3 seconds on error
-//       });
-//     });
-// };
-//
- function getOrderIdRecursively(maxRetries = 6) {
+function getOrderIdRecursively(maxRetries = 6) {
   let retriesLeft = maxRetries;
   let succeeded = false;
 

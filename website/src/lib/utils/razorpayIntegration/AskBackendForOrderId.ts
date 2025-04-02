@@ -21,7 +21,7 @@ interface responseType {
 export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promise<boolean> {
   console.log(`1111`);
 
-razorpayOrderId.fetchingStatus = "fetching"
+  razorpayOrderId.fetchingStatus = "fetching"
   try {
     if (!keyStateObj.isValidatedThroughBackend || keyStateObj.key === "" || keyStateObj.key === null) {
       console.log(`the key is not validated or is empty or null we are returning ->`, keyStateObj.key);
@@ -49,10 +49,12 @@ razorpayOrderId.fetchingStatus = "fetching"
     let res = result[0]
     if (res.error !== null || res.result === null) {
       console.log(`there is a error in the result array at ${0} and is ->`, res.error, "\n and the message form the server is ->", res.result?.message);
+      razorpayOrderId.fetchingStatus = "error"
       return false
     }
     console.log(`about to store the response in razorpay storage and it is -> ${res.result?.order_id_for_recurring} and the one time is ${res.result?.order_id_for_onetime}`);
     if (res.result.status_code !== 200) {
+
       razorpayOrderId.fetchingStatus = "error"
       return false
     }
@@ -61,7 +63,7 @@ razorpayOrderId.fetchingStatus = "fetching"
     //  }else if (res.result?.order_id_for_recurring ){
     //       razorpayOrderId.orderIdForRecurring = res.result.order_id_for_recurring
     //  }
-      razorpayOrderId.fetchingStatus ="success"
+    razorpayOrderId.fetchingStatus = "success"
     if (res.result?.order_id_for_onetime) {
       razorpayOrderId.orderIdForOnetime = res.result.order_id_for_onetime;
     }
