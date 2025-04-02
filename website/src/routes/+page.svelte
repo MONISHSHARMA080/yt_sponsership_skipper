@@ -8,7 +8,7 @@
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 	import { razorpayOrderId } from '$lib/sharedState/razorPayKey.svelte';
 	import { keyUpdatedState } from '$lib/sharedState/updatedKeyReceived.svelte';
-	import getOrderIdRecursively from "$lib/utils/orderID/askForItRecursively"
+	import getOrderIdRecursively from '$lib/utils/orderID/askForItRecursively';
 	import { WriteSharedStateToStorageWhenItChanges } from '$lib/utils/SharedState/WriteSharedStateToLocalStorageOnChange.svelte';
 
 	// Commented extension code preserved as in original
@@ -50,7 +50,8 @@
 		//       if (!val){
 		//     }
 		// });
-		getOrderIdRecursively()
+		$inspect(razorpayOrderId);
+		getOrderIdRecursively();
 		// WriteSharedStateToStorageWhenItChanges
 		// write the keyFromChromeExtensionState in the storage when it changes
 		let writeTolocalStorageInChnage = new WriteSharedStateToStorageWhenItChanges(
