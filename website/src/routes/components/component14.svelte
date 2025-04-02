@@ -321,7 +321,10 @@
 								<div
 									class="flex w-full items-center justify-center gap-2 rounded-md border-3 border-black bg-red-600 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 								>
-									{console.log(`hi form the component -------------------------------`)}
+									<!-- {console.log(`hi form the component -------------------------------`)} -->
+									<ShowUserErrorMessage
+										message="there is a error that prevents you form making payment, redoing it "
+									/>
 									<span>{plan.buttonText}</span>
 									<!-- <ShowUserErrorMessage message="there is a error in getting to the backend " /> -->
 								</div>
