@@ -3,6 +3,7 @@ import { AsyncRequestQueue } from "../newAsyncRequestQueue";
 import { didUserSelectOneTimePayment } from "$lib/sharedState/didUserSeletctOneTimePayment.svelte";
 import { KeyUpdate } from "../updateKey";
 import { keyUpdatedState } from "$lib/sharedState/updatedKeyReceived.svelte";
+import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.svelte";
 
 const RazorpayPaymentSchema = z.object({
   razorpay_payment_id: z.string(),
@@ -24,7 +25,7 @@ type ResponseFormApiCall = z.infer<typeof responseFormApiCall>;
 interface ValidationResponseType {
   status_code: number,
   success: boolean,
-new_key?: string,
+  new_key?: string,
   message: string
 }
 
@@ -45,7 +46,7 @@ export async function validateCompletedPayment(
   didUserSelectOneTimePaymentMethod: boolean
 ) {
   console.log(`\n\n++++ user selected one time payemnt, value change by me is  ${didUserSelectOneTimePayment.valueChangedByMe} and the value is ${didUserSelectOneTimePayment.didUserSelectOneTimePayment}+++++++\n\n`);
-  console.log(`did the user selected one time payment (as a param) ->`,didUserSelectOneTimePayment);
+  console.log(`did the user selected one time payment (as a param) ->`, didUserSelectOneTimePayment);
 
   try {
     // Validate the incoming Razorpay response
@@ -99,23 +100,31 @@ export async function validateCompletedPayment(
     }
     let newKey = result[0].result?.new_key
     console.log(`the new key returned is ${newKey}`);
-    
-    if (newKey === "" || newKey === null || newKey === undefined ){
+
+    if (newKey === "" || newKey === null || newKey === undefined) {
       return {
         success: false,
         message: "new key is not there"
       }
     }
 
-    let updateKeyClass = new KeyUpdate
-    let err= updateKeyClass.UpdateKey(newKey, true)
-      console.log(`the error in saving the key to the storage is ${err}`);
-    if (err !== null){
-      return {
-        success: false,
-        message: "there is a error in saving the key to the storage"
-      }
-    }
+    // let updateKeyClass = new KeyUpdate
+    // let err= updateKeyClass.UpdateKey(newKey, true)
+    //   console.log(`the error in saving the key to the storage is ${err}`);
+    // if (err !== null){
+    //   return {
+    //     success: false,
+    //     message: "there is a error in saving the key to the storage"
+    //   }
+    // }
+
+
+    // now save the key to the global shared state as the watch class will watch it and write it to the storage automatically
+    keyFromChromeExtensionState.isPaidUser = true
+    console.log(`about to set the new that that we got form the backend`);
+
+    keyFromChromeExtensionState.key = newKey
+
     keyUpdatedState.newKeyReceived = true// now send it to the chrome extension
 
     // here make a global shared state that has int and boolean to it, when we get the new key we will set the state to true and usign effect we will 
@@ -150,7 +159,7 @@ async function processIndividualPromise<T>(resp1: Promise<Response>): Promise<T>
     const validationSchema = z.object({
       status_code: z.number(),
       new_key: z.string().optional(),
-     success: z.boolean(),
+      success: z.boolean(),
       message: z.string(),
     });
 
