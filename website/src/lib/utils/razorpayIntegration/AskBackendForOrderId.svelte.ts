@@ -59,8 +59,6 @@ export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promis
     return true
 
 
-    // first get/add a unifying return type  there such that(use generics) I get the razorpayOrderId here
-    // still have to return true or false
 
   } catch (error) {
     console.log(` error in the executeWithKeyRefresh.ts is  ->`, error);

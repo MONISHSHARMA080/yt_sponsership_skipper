@@ -82,7 +82,7 @@ async function getOrderIdRecursively() {
   let timeToWaitBeforeEachRequest = 2000;
   razorpayOrderId.fetchingStatus = "fetching"; // Set this ONCE at the beginning
 
-  let numberOfIter = 1.2
+  let numberOfIter = 3
   for (let index = 0; index < numberOfIter; index++) {
     console.log(`in the iteration ${index} of getOrderIdRecursively`);
 
