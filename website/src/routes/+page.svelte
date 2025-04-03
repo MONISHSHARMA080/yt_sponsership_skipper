@@ -92,16 +92,16 @@
 	});
 	// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
 
-	let val = $derived(keyFromChromeExtensionState);
-	$effect(() => {
-		console.log(
-			`asking backend for the order id and the key is -> ${keyFromChromeExtensionState.key}`
-		);
-		askBackendForOrderId(val).then((val) => {
-			console.log(`the svelte effect returned and the value is ->`, val);
-		});
-	});
-
+	// let val = $derived(keyFromChromeExtensionState);
+	// $effect(() => {
+	// 	console.log(
+	// 		`asking backend for the order id and the key is -> ${keyFromChromeExtensionState.key}`
+	// 	);
+	// 	askBackendForOrderId(val).then((val) => {
+	// 		console.log(`the svelte effect returned and the value is ->`, val);
+	// 	});
+	// });
+	//
 	// 	console.log(`\n\n\n----++----this log is form the plain log and not form effect when the keyFromChromeExtensionState changes val
 	// -->${JSON.stringify(val)}`);
 

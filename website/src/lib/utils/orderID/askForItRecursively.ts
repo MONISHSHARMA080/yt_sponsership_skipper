@@ -80,10 +80,10 @@ async function getOrderIdRecursively() {
   let timeToWaitBeforeEachRequest = 5000;
   razorpayOrderId.fetchingStatus = "fetching"; // Set this ONCE at the beginning
 
-  let numberOfIter = 4
+  let numberOfIter = 2
   for (let index = 0; index < numberOfIter; index++) {
     let res = await askBackendForOrderId(keyFromChromeExtensionState);
-    console.log(`the success is ${res} and we are on the loop iter ${index}`);
+    console.log(`!!!the success is ${res} !and we are on the loop iter ${index}`);
 
     if (res) {
       console.log(`we got the order id Successfully and will quit`);
