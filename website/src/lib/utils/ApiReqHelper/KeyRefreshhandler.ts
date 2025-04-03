@@ -172,7 +172,36 @@ export async function executeWithKeyRefresh<Response, R>(
             error: responseFromKeyUpdate
           };
         }
+        // now lets re run the same fetch again 
 
+        let result = await asyncQueue.process(funcToProcessIndividualPromise, promiseArray);
+
+        const value = result[0];
+        console.log(`the shape of the result object -> ${JSON.stringify(value)}`);
+        console.log(`the result form the re ran fetch is ${JSON.stringify(result[0])}`);
+        if (value.error !== null) {
+          console.log(`there is a error in re ran fetch and it is ->${value.error}`);
+          let resp = await value.ifErrorThenOriginalPromiseResponse
+          if (value.ifErrorThenOriginalPromiseResponse) {
+            // there is a error in fetching this time too so lets return
+            console.log(`(value.ifErrorThenOriginalPromiseResponse) is there `);
+            const response: Response = await value.ifErrorThenOriginalPromiseResponse;
+            try {
+              //@ts-ignore
+              console.log(`Response status: ${response.status}`);
+              //@ts-ignore
+              console.log(`Response ok: ${response.ok}`);
+              console.log(`Response is String is ${JSON.stringify(response)}`);
+            } catch (error) {
+              console.log(` error is in gettign the status of ifErrorThenOriginalPromiseResponse field ->`, error);
+            }
+            return {
+              success: false,
+              result: null,
+              error: new Error(`there is a error in getting the request after key fetch 2nd time so we are returning`)
+            };
+          }
+        }
         // Key update success, return success indicator
         return { success: true, result: null, error: null };
       }
@@ -180,7 +209,6 @@ export async function executeWithKeyRefresh<Response, R>(
       console.log(`the error is probably not there `);
       return { success: true, result: value.result, error: null };
     }
-
   } catch (error) {
     console.log(` error is ->`, error);
     return {

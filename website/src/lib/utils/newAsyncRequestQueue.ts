@@ -133,6 +133,7 @@ export class AsyncRequestQueue<T, R> {
         ` error in individual item at index ${indexOfPromise} is  ->`,
         error,
       );
+
       let errorInExecution =
         error instanceof Error
           ? error
