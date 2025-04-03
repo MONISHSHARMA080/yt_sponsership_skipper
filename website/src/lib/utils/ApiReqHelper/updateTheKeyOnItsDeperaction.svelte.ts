@@ -32,7 +32,7 @@ async function getNewKey(oldKey: string): Promise<[string, Error | null]> {
       body: JSON.stringify({ user_key: oldKey })
     }),
   ]
-  let result = await asyncReqQueue.process(promiseArray, (promiseToProcess) => processIndividualPromise<responseTypeForNewKey>(promiseToProcess))
+  let result = await asyncReqQueue.process((promiseToProcess) => processIndividualPromise<responseTypeForNewKey>(promiseToProcess), promiseArray)
   let res = result[0]
   if (res.error !== null || res.result === null) {
     console.log(`there is a error in getting new key from the backend ->${res.error}`);

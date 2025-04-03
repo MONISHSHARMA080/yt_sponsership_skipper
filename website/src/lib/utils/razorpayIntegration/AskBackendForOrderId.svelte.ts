@@ -30,9 +30,30 @@ export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promis
     }
     // if we are validated 
     let asyncReqQueue = new AsyncRequestQueue<Response, responseType>(10)
+
     // let reqBody: requestType = { user_key: keyStateObj.key }
     let promiseArray = factoryPromiseArrayForMakeAPayment(keyStateObj.key)
-    let result = await asyncReqQueue.process(promiseArray, (promiseToProcess) => processIndividualPromise<responseType>(promiseToProcess))
+
+
+    try {
+      let res = await executeWithKeyRefresh(keyStateObj, asyncReqQueue, processIndividualPromise, promiseArray)
+      console.log(` the rsult from the executeWithKeyRefresh is --- ${JSON.stringify(res)}`);
+      console.log(`the result.error is ${res.error}`);
+
+
+    } catch (error) {
+      console.log(` error in the executeWithKeyRefresh.ts is  ->`, error);
+    }
+
+
+
+
+
+
+
+
+
+    let result = await asyncReqQueue.process((promiseToProcess) => processIndividualPromise<responseType>(promiseToProcess), promiseArray)
 
     // for (let index = 0; index < result.length; index++) {
     let res = result[0]
@@ -60,7 +81,7 @@ export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promis
               return false
             }
             let promiseArray = factoryPromiseArrayForMakeAPayment(newKey)
-            let result = await asyncReqQueue.process(promiseArray, (promiseToProcess) => processIndividualPromise<responseType>(promiseToProcess))
+            let result = await asyncReqQueue.process((promiseToProcess) => processIndividualPromise<responseType>(promiseToProcess), promiseArray)
             let res = result[0]
             if (res.error !== null || res.result === null) {
               console.log(`there is a error in the result array after refetching the key at 0 and is ->`, res.error, "\n and the message form the server is ->", res.result?.message);

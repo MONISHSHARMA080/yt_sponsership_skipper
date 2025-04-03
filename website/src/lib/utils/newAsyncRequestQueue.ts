@@ -9,9 +9,10 @@ type processingQueue<T> = {
   promiseRunning: Promise<T>;
   indexOfThePromise: number;
 }[];
-type resultArray<T, R> = processResult<T, R>[];
+type resultArray<T, R
+> = processResult<T, R>[];
 /** @throws*/
-type funcToProcessIndividualPromise<T, R> = (value: Promise<T>) => Promise<R>;
+export type funcToProcessIndividualPromise<T, R> = (value: Promise<T>) => Promise<R>;
 
 /** there are 2 generics cause, take for eg fetch if I have it then I have a promise that returns response but let's say I want
  * it to return a thing in form of json  form the body, then I can do it
@@ -24,7 +25,7 @@ export class AsyncRequestQueue<T, R> {
   private resultArray: resultArray<T, R>;
   private processingQueue: processingQueue<T>;
   private promiseQueue: promiseArray<T>;
-  private promiseQueueSubmittedByUser: promiseArray<T>;
+  public promiseQueueSubmittedByUser: promiseArray<T>;
 
   constructor(concurrencyLimit: number = 5) {
     if (concurrencyLimit <= 0) {
@@ -37,14 +38,26 @@ export class AsyncRequestQueue<T, R> {
     this.promiseQueueSubmittedByUser = []
   }
 
-  public process(
+  /**
+   * k
+   */
+  public addToQueue(
     promiseArray: promiseArray<T>,
+  ) {
+    this.promiseQueue = [...promiseArray]
+
+  }
+
+  /** @throws*/
+  public process(
     funcToProcessIndividualPromise: funcToProcessIndividualPromise<T, R>,
+    promiseArray: promiseArray<T>,
   ): Promise<resultArray<T, R>> {
     return new Promise((resolve, reject) => {
+      // already created
       this.promiseQueue = [...promiseArray]; // Create a copy
       this.promiseQueueSubmittedByUser = promiseArray;
-      this.resultArray = new Array(promiseArray.length);
+      this.resultArray = new Array(this.promiseQueue.length);
       this.processAll(resolve, funcToProcessIndividualPromise);
     });
   }
