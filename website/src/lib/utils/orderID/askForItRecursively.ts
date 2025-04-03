@@ -1,6 +1,6 @@
 import { razorpayOrderId } from "$lib/sharedState/razorPayKey.svelte";
 import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.svelte";
-import { askBackendForOrderId } from "../razorpayIntegration/AskBackendForOrderId";
+import { askBackendForOrderId } from "../razorpayIntegration/AskBackendForOrderId.svelte";
 
 // function getOrderIdRecursively(maxRetries = 6) {
 //   let retriesLeft = maxRetries;

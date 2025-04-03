@@ -1,7 +1,7 @@
 type processResult<T, R> = {
   result: R | null;
   error: Error | null;
-  ifErrorThenOriginalPromise: Promise<T> | null;
+  ifErrorThenOriginalPromiseResponse: Promise<T> | null;
 };
 
 type promiseArray<T> = Promise<T>[];
@@ -10,6 +10,7 @@ type processingQueue<T> = {
   indexOfThePromise: number;
 }[];
 type resultArray<T, R> = processResult<T, R>[];
+/** @throws*/
 type funcToProcessIndividualPromise<T, R> = (value: Promise<T>) => Promise<R>;
 
 /** there are 2 generics cause, take for eg fetch if I have it then I have a promise that returns response but let's say I want
@@ -32,7 +33,7 @@ export class AsyncRequestQueue<T, R> {
     this.concurrencyLimit = concurrencyLimit;
     this.resultArray = [];
     this.processingQueue = [];
-    this.promiseQueue= []
+    this.promiseQueue = []
     this.promiseQueueSubmittedByUser = []
   }
 
@@ -81,14 +82,14 @@ export class AsyncRequestQueue<T, R> {
 
     const indexOfThePromise = this.promiseQueueSubmittedByUser.indexOf(promiseFromTheQueue);
 
-    this.processingQueue.push({promiseRunning:promiseFromTheQueue, indexOfThePromise:indexOfThePromise});
+    this.processingQueue.push({ promiseRunning: promiseFromTheQueue, indexOfThePromise: indexOfThePromise });
 
     this.processIndividualPromiseAndRemoveItFormTheProcessingQueue(
       promiseFromTheQueue,
       funcToProcessIndividualPromise,
       indexOfThePromise,
     ).finally(() => {
-      console.log( `promise number ${indexOfThePromise} was completed  and now recursing `);
+      console.log(`promise number ${indexOfThePromise} was completed  and now recursing `);
       this.processAll(resolveFunc, funcToProcessIndividualPromise);
     });
     this.processAll(resolveFunc, funcToProcessIndividualPromise);
@@ -105,14 +106,13 @@ export class AsyncRequestQueue<T, R> {
     );
 
     try {
-      let resultFormFunc =
-        await funcToProcessIndividualPromise(promiseToProcess);
+      let resultFormFunc = await funcToProcessIndividualPromise(promiseToProcess);
       console.log(" \n result for the func is ->", resultFormFunc);
 
       this.resultArray[indexOfPromise] = {
         result: resultFormFunc,
         error: null,
-        ifErrorThenOriginalPromise: null,
+        ifErrorThenOriginalPromiseResponse: null,
       };
       this.removeFromTheProcessingQueue(promiseToProcess, indexOfPromise);
     } catch (error) {
@@ -123,27 +123,26 @@ export class AsyncRequestQueue<T, R> {
       let errorInExecution =
         error instanceof Error
           ? error
-          : new Error("there is a error executing the function->"+ error);
+          : new Error("there is a error executing the function->" + error);
       this.resultArray[indexOfPromise] = {
         result: null,
         error: errorInExecution,
-        ifErrorThenOriginalPromise: promiseToProcess,
+        ifErrorThenOriginalPromiseResponse: promiseToProcess,
       };
       this.removeFromTheProcessingQueue(promiseToProcess, indexOfPromise);
     }
-
     console.log(` what do we have at this destination -> ${this.resultArray[indexOfPromise].result} `);
 
   }
 
-  private removeFromTheProcessingQueue(promiseToProcess: Promise<T>,indexOfPromise: number) {
-    let index = this.processingQueue.findIndex(  item => item.indexOfThePromise === indexOfPromise);
+  private removeFromTheProcessingQueue(promiseToProcess: Promise<T>, indexOfPromise: number) {
+    let index = this.processingQueue.findIndex(item => item.indexOfThePromise === indexOfPromise);
 
     if (index < 0) {
-      console.error("\nthe index of promise in the processing queue is <0 (the promise was not there), the index of promise in the promsie queue was --> ", indexOfPromise,"\n");
+      console.error("\nthe index of promise in the processing queue is <0 (the promise was not there), the index of promise in the promsie queue was --> ", indexOfPromise, "\n");
       return;
     }
-    this.processingQueue.splice(index,1);
-  
+    this.processingQueue.splice(index, 1);
+
   }
 }

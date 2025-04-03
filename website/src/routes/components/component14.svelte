@@ -18,10 +18,10 @@
 		PUBLIC_RAZORPAY_KEY_ID,
 		PUBLIC_RECURRINGPAYMENTPRICE
 	} from '$env/static/public';
-	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId';
 	import { validateCompletedPayment } from '$lib/utils/razorpayIntegration/ValidateCompletedPayment';
 	import { didUserSelectOneTimePayment } from '$lib/sharedState/didUserSeletctOneTimePayment.svelte';
 	import ShowUserErrorMessage from '$lib/components/showUserNotifications/ShowUserErrorMessage.svelte';
+	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId.svelte';
 
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });

@@ -156,14 +156,8 @@ async function processIndividualPromise<T>(resp1: Promise<Response>): Promise<T>
     const responseData = await resp.json();
 
     // Validate the response using Zod
-    const validationSchema = z.object({
-      status_code: z.number(),
-      new_key: z.string().optional(),
-      success: z.boolean(),
-      message: z.string(),
-    });
 
-    const validationResult = validationSchema.safeParse(responseData);
+    const validationResult = responseFormApiCall.safeParse(responseData);
     console.log(`validating the json schema's result (in validating the payment) is ${validationResult.success
       } and the result is ${JSON.stringify(validationResult)}`);
 
