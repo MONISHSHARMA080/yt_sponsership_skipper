@@ -10,6 +10,7 @@
 	import getOrderIdRecursively from '$lib/utils/orderID/askForItRecursively';
 	import { WriteSharedStateToStorageWhenItChanges } from '$lib/utils/SharedState/WriteSharedStateToLocalStorageOnChange.svelte';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId.svelte';
+	import { shouldWeGetOrderIdRecursively } from '$lib/sharedState/getOrderIdRecursively.svelte';
 
 	// Commented extension code preserved as in original
 	// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
@@ -51,7 +52,22 @@
 		//     }
 		// });
 		$inspect(razorpayOrderId);
-		getOrderIdRecursively();
+
+		// make it is global state as I want it to be like a like a message or reactive functions that fetches when the value is changed
+		// after the
+		//
+		// maybe I can do
+		let shouldWeGetOrderIdMultipleTimes = $derived(shouldWeGetOrderIdRecursively);
+		$effect(() => {
+			if (shouldWeGetOrderIdMultipleTimes.shouldWeDoIt === true) {
+				console.log(
+					`shouldWeGetOrderIdMultipleTimes.shouldWeDoIt us true fething the order id recursively`
+				);
+				getOrderIdRecursively();
+				shouldWeGetOrderIdRecursively.shouldWeDoIt = false;
+			}
+		});
+
 		// WriteSharedStateToStorageWhenItChanges
 		// write the keyFromChromeExtensionState in the storage when it changes
 		let writeTolocalStorageInChnage = new WriteSharedStateToStorageWhenItChanges(

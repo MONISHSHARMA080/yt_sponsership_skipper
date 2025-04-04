@@ -21,8 +21,6 @@ interface responseType {
 export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promise<boolean> {
   console.log(`1111--`);
 
-
-
   try {
     // razorpayOrderId.fetchingStatus = "fetching"
     if (!keyStateObj.isValidatedThroughBackend || keyStateObj.key === "" || keyStateObj.key === null) {

@@ -1,4 +1,5 @@
 import { PUBLIC_BACKEND_URL_WITHOUT_BACKSLASH } from "$env/static/public";
+import { shouldWeGetOrderIdRecursively } from "$lib/sharedState/getOrderIdRecursively.svelte";
 import { keyFromChromeExtensionState, type keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
 import { executeWithKeyRefresh } from "./ApiReqHelper/KeyRefreshhandler";
 import { AsyncRequestQueue } from "./newAsyncRequestQueue";
@@ -47,24 +48,24 @@ export class checkIfKeyIsValidAndUpdateTheState {
           },
           body: JSON.stringify({ key: key })
         })]
-      // let promiseQueue1 = (keyStateObject: keyStateObject) => [
-      //   fetch(`/api/checkIfKeyIsValid`, {
-      //     method: "POST",
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       'Access-Control-Allow-Origin': PUBLIC_BACKEND_URL_WITHOUT_BACKSLASH
-      //     },
-      //     body: JSON.stringify({ key: keyStateObject.key })
-      //   })]
+      let promiseQueue1 = (keyStateObject: keyStateObject) => [
+        fetch(`/api/checkIfKeyIsValid`, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': PUBLIC_BACKEND_URL_WITHOUT_BACKSLASH
+          },
+          body: JSON.stringify({ key: keyStateObject.key })
+        })]
       //
-      let res = await executeWithKeyRefresh<Response, ResponseData>(keyFromChromeExtensionState, asyncRequestQueue, this.processIndividualPromise, promiseQueue, key)
+      let res = await executeWithKeyRefresh<Response, ResponseData>(keyFromChromeExtensionState, asyncRequestQueue, this.processIndividualPromise, promiseQueue, key, promiseQueue1)
       console.log(`--+++==>>the result form checking the key is valid is ${JSON.stringify(res)}`);
 
       if (res.error !== null || res.success === false || res.result === null) {
         console.log(`the error we got is ${res.error}`);
         console.log(`is the error !== null -> ${res.error !== null} or res.success=== false ->${res.success === false} or res.result === null ->${res.result === null}`);
 
-        return { result: null, error: res.error instanceof Error ? res.error : Error("error executeWithKeyRefresh func  on the /api/checkIfKeyIsValid route and it is ->" + res.error) }
+        return { result: null, error: res.error instanceof Error ? res.error : Error("error executeWithKeyRefresh func  on the api/checkIfKeyIsValid route and it is ->" + res.error) }
       }
 
 
@@ -100,7 +101,8 @@ export class checkIfKeyIsValidAndUpdateTheState {
       // // this.updateTheLocalStorage(keyFromChromeExtensionState)
       // return { result: result[0].result, error: result[0].error }
       //
-      let error = ""
+      // as I want to refetch the order Id once it is done
+      shouldWeGetOrderIdRecursively.shouldWeDoIt = true
       return { result: res.result, error: null }
     } catch (error) {
       console.log("error occurred in the seeIfKeyISValidFunc ->", error)

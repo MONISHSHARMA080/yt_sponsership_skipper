@@ -23,6 +23,7 @@ const responseTypeForNewKeySchema = z.object({
 });
 
 
+// this func is not in the executeWithKeyRefresh as it is used there 
 async function getNewKey(oldKey: string): Promise<[string, Error | null]> {
   let asyncReqQueue = new AsyncRequestQueue<Response, responseTypeForNewKey>(10)
   let promiseArray = [

@@ -39,12 +39,7 @@ interface RequestVerifyPaymentSignature {
 }
 
 /** function validated the payment completed and will save the new key in the local storage and in the state and also will send it to the chrome extension */
-export async function validateCompletedPayment(
-  responseFromRazorpay: unknown,
-  userKey: string,
-  email: string,
-  didUserSelectOneTimePaymentMethod: boolean
-) {
+export async function validateCompletedPayment(responseFromRazorpay: unknown, userKey: string, email: string, didUserSelectOneTimePaymentMethod: boolean) {
   console.log(`\n\n++++ user selected one time payemnt, value change by me is  ${didUserSelectOneTimePayment.valueChangedByMe} and the value is ${didUserSelectOneTimePayment.didUserSelectOneTimePayment}+++++++\n\n`);
   console.log(`did the user selected one time payment (as a param) ->`, didUserSelectOneTimePayment);
 
@@ -85,8 +80,8 @@ export async function validateCompletedPayment(
     ];
 
     // Process the request using the AsyncRequestQueue
-    const result = await asyncReqQueue.process(promiseArray,
-      (promiseToProcess) => processIndividualPromise<ValidationResponseType>(promiseToProcess)
+    const result = await asyncReqQueue.process(
+      (promiseToProcess) => processIndividualPromise<ValidationResponseType>(promiseToProcess), promiseArray
     );
 
     // Check if there was an error in the response
