@@ -47,16 +47,17 @@ export class checkIfKeyIsValidAndUpdateTheState {
           },
           body: JSON.stringify({ key: key })
         })]
-      let promiseQueue1 = (keyStateObject: keyStateObject) => [
-        fetch(`/api/checkIfKeyIsValid`, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': PUBLIC_BACKEND_URL_WITHOUT_BACKSLASH
-          },
-          body: JSON.stringify({ key: keyStateObject.key })
-        })]
-      let res = await executeWithKeyRefresh<Response, ResponseData>(keyFromChromeExtensionState, asyncRequestQueue, this.processIndividualPromise, promiseQueue, key, promiseQueue1)
+      // let promiseQueue1 = (keyStateObject: keyStateObject) => [
+      //   fetch(`/api/checkIfKeyIsValid`, {
+      //     method: "POST",
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       'Access-Control-Allow-Origin': PUBLIC_BACKEND_URL_WITHOUT_BACKSLASH
+      //     },
+      //     body: JSON.stringify({ key: keyStateObject.key })
+      //   })]
+      //
+      let res = await executeWithKeyRefresh<Response, ResponseData>(keyFromChromeExtensionState, asyncRequestQueue, this.processIndividualPromise, promiseQueue, key)
       console.log(`--+++==>>the result form checking the key is valid is ${JSON.stringify(res)}`);
 
       if (res.error !== null || res.success === false || res.result === null) {
