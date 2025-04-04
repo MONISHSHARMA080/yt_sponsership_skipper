@@ -23,7 +23,7 @@ export async function executeWithKeyRefresh<Response, R>(
   funcToProcessIndividualPromise: funcToProcessIndividualPromise<Response, R>,
   promiseArray: Promise<Response>[],
   keyformTheChromeExtension?: string,
-  promiseArray2?: Promise<Response>[]
+  promiseArray2Function?: (keyStateObj: keyStateObject) => Promise<Response>[]
 ): Promise<{ success: boolean, result: R | null, error: Error | null }> {
   console.log(`in the executeWithKeyRefresh `);
 
@@ -96,6 +96,7 @@ export async function executeWithKeyRefresh<Response, R>(
         // let promiseArray2ndTime = promiseArray2 ? promiseArray2 : promiseArray
         // console.log(`the length of promise array 2 is ${promiseArray2?.length}`);
         // promiseArray2ndTime = [...promiseArray]
+        let promiseArray2ndTime = promiseArray2Function ? promiseArray2Function(keyStateObj) : promiseArray
 
 
         let result = await asyncQueue.process(funcToProcessIndividualPromise, promiseArray);
