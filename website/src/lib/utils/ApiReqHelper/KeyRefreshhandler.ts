@@ -21,11 +21,13 @@ export async function executeWithKeyRefresh<Response, R>(
   keyStateObj: keyStateObject,
   asyncQueue: AsyncRequestQueue<Response, R>,
   funcToProcessIndividualPromise: funcToProcessIndividualPromise<Response, R>,
-  promiseArray: Promise<Response>[]
+  promiseArray: Promise<Response>[],
+  keyformTheChromeExtension?: string,
+  promiseArray2?: Promise<Response>[]
 ): Promise<{ success: boolean, result: R | null, error: Error | null }> {
   console.log(`in the executeWithKeyRefresh `);
 
-  let oldKey = keyStateObj.key;
+  let oldKey = keyformTheChromeExtension ? keyformTheChromeExtension : keyStateObj.key;
   if (oldKey === null || oldKey === "") {
     console.log(`the oldKey11 is not there and returning`);
     return { success: false, result: null, error: new Error("Key is empty or null") };
@@ -90,6 +92,11 @@ export async function executeWithKeyRefresh<Response, R>(
           };
         }
         // now lets re run the same fetch again 
+        // console.log(`>> fetching the old fetch again===`);
+        // let promiseArray2ndTime = promiseArray2 ? promiseArray2 : promiseArray
+        // console.log(`the length of promise array 2 is ${promiseArray2?.length}`);
+        // promiseArray2ndTime = [...promiseArray]
+
 
         let result = await asyncQueue.process(funcToProcessIndividualPromise, promiseArray);
 

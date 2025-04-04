@@ -70,6 +70,7 @@ func CheckIfKeyIsValid(os_env_key []byte) http.HandlerFunc {
 		response := responseStruct{Message: "success", Status_code: http.StatusOK, Success: true, Email: email, Name: name, EncryptedKey: request.Key, IsUserPaidTier: userFormKey.IsUserPaid}
 		fmt.Printf("\n\n the user struct is -> %v \n\n", userFormKey)
 		println("the decoded json string is ->", userFormKey.GetDecryptedStringInTheStruct())
+		println("probally the user is valid")
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			returnTheJsonResponseonError("error encoding json", http.StatusInternalServerError, false, false, w)

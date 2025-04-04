@@ -266,10 +266,11 @@ func (userKey *UserKey) ShouldWeTellUserToGoGetANewKeyPanic() bool {
 	if userKey.IsMyStructEmpty() {
 		panic("the struct is not initialized (userKey )")
 	}
-	if userKey.UserTier == "free tier" {
-		println("the user is on free tier")
-		return false
-	}
+	// --- we are telling the user to re-new the key as this will prevent form stalling key ---
+	// if userKey.UserTier == "free tier" {
+	// 	println("the user is on free tier")
+	// 	return false
+	// }
 	fmt.Printf("Time remaining until key update: %f sec\n", time.Until(time.Unix(userKey.CheckForKeyUpdateOn, 0)).Seconds())
 	return time.Now().Unix() >= userKey.CheckForKeyUpdateOn
 }
