@@ -79,33 +79,41 @@ export default getOrderIdRecursively;
 // instead of this make a call to chromeExtensions background and if not there display the message to the user, now 
 // if there is a error we can just simply ask for the key and that way we wouldn't have diverging keys
 async function getOrderIdRecursively() {
-  let timeToWaitBeforeEachRequest = 2000;
-  razorpayOrderId.fetchingStatus = "fetching"; // Set this ONCE at the beginning
+  try {
+    let timeToWaitBeforeEachRequest = 2000;
+    razorpayOrderId.fetchingStatus = "fetching"; // Set this ONCE at the beginning
+    razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle = true
 
-  let numberOfIter = 3
-  for (let index = 0; index < numberOfIter; index++) {
-    console.log(`in the iteration ${index} of getOrderIdRecursively`);
+    let numberOfIter = 3
+    for (let index = 0; index < numberOfIter; index++) {
+      console.log(`in the iteration ${index} of getOrderIdRecursively`);
 
-    let res = await askBackendForOrderId(keyFromChromeExtensionState);
-    console.log(`!!!the success is ${res} !and we are on the loop iter ${index}`);
+      let res = await askBackendForOrderId(keyFromChromeExtensionState);
+      console.log(`!!!the success is ${res} !and we are on the loop iter ${index}`);
 
-    if (res) {
-      console.log(`we got the order id Successfully and will quit`);
-      razorpayOrderId.fetchingStatus = "success";
-      return;
+      if (res) {
+        console.log(`we got the order id Successfully and will quit`);
+        razorpayOrderId.fetchingStatus = "success";
+        razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle = false
+        return;
+      }
+
+      // Only set to error if we're on the final attempt OR before waiting
+      if (index === numberOfIter - 1) {
+        razorpayOrderId.fetchingStatus = "error";
+        razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle = false
+        return; // Exit after final attempt
+      } else {
+        razorpayOrderId.fetchingStatus = "error"; // Show error before waiting
+        console.log("Waiting for 4 seconds before retrying...");
+        await new Promise(resolve => setTimeout(resolve, timeToWaitBeforeEachRequest));
+        razorpayOrderId.fetchingStatus = "fetching"; // Set back to fetching for next attempt
+      }
     }
-
-    // Only set to error if we're on the final attempt OR before waiting
-    if (index === numberOfIter - 1) {
-      razorpayOrderId.fetchingStatus = "error";
-      return; // Exit after final attempt
-    } else {
-      razorpayOrderId.fetchingStatus = "error"; // Show error before waiting
-      console.log("Waiting for 4 seconds before retrying...");
-      await new Promise(resolve => setTimeout(resolve, timeToWaitBeforeEachRequest));
-      razorpayOrderId.fetchingStatus = "fetching"; // Set back to fetching for next attempt
-    }
+    console.log(`the fetching completed and the fetching status is ->${razorpayOrderId.fetchingStatus}`);
+    razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle = false
+  } catch (error) {
+    razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle = false
+    console.log(` error is in getOrderIdRecursively's try catch block ->`, error);
   }
-  console.log(`the fetching completed and the fetching status is ->${razorpayOrderId.fetchingStatus}`);
-
 }

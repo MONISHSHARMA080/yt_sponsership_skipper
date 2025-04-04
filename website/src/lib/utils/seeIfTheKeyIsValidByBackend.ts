@@ -83,7 +83,7 @@ export class checkIfKeyIsValidAndUpdateTheState {
       this.updateGlobalStateAndWriteToTheStorageIfKeysAreValid(res.result, key)
 
       // as I want to refetch the order Id once it is done, if the order id is not there as in case of the slow inernet connection this is a issue
-      if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null && razorpayOrderId.fetchingStatus !== "fetching") {
+      if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null && razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle === false) {
         console.log(`the ()()()()()))()()((_()()()()()()()razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null ${razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null} `);
         console.log(`and the one time is ${razorpayOrderId.orderIdForOnetime} and the recurring one is ${razorpayOrderId.orderIdForRecurring}`);
         console.log(`the object state is ${JSON.stringify(razorpayOrderId)}`);

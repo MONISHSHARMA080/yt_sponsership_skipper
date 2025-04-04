@@ -59,12 +59,16 @@
 		// maybe I can do
 		let shouldWeGetOrderIdMultipleTimes = $derived(shouldWeGetOrderIdRecursively);
 		$effect(() => {
-			if (shouldWeGetOrderIdMultipleTimes.shouldWeDoIt === true) {
+			if (
+				shouldWeGetOrderIdMultipleTimes.shouldWeDoIt === true &&
+				razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle === false
+			) {
 				console.log(
-					`shouldWeGetOrderIdMultipleTimes.shouldWeDoIt us true fething the order id recursively`
+					`shouldWeGetOrderIdMultipleTimes.shouldWeDoIt us true fething the order id recursively and are we still in fetching cycle ${razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle}`
 				);
 				getOrderIdRecursively();
 				shouldWeGetOrderIdRecursively.shouldWeDoIt = false;
+				console.log(`hope fully`);
 			}
 		});
 
