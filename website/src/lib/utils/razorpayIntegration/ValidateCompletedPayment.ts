@@ -4,6 +4,7 @@ import { didUserSelectOneTimePayment } from "$lib/sharedState/didUserSeletctOneT
 import { KeyUpdate } from "../updateKey";
 import { keyUpdatedState } from "$lib/sharedState/updatedKeyReceived.svelte";
 import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.svelte";
+import { executeWithKeyRefresh } from "../ApiReqHelper/KeyRefreshhandler";
 
 const RazorpayPaymentSchema = z.object({
   razorpay_payment_id: z.string(),
@@ -39,7 +40,7 @@ interface RequestVerifyPaymentSignature {
 }
 
 /** function validated the payment completed and will save the new key in the local storage and in the state and also will send it to the chrome extension */
-export async function validateCompletedPayment(responseFromRazorpay: unknown, userKey: string, email: string, didUserSelectOneTimePaymentMethod: boolean) {
+export async function validateCompletedPayment(responseFromRazorpay: unknown, userKey: string, email: string, didUserSelectOneTimePaymentMethod: boolean): Promise<{ status_code: number, success: boolean, message: string, responseFromApiCall: null | ResponseFormApiCall }> {
   console.log(`\n\n++++ user selected one time payemnt, value change by me is  ${didUserSelectOneTimePayment.valueChangedByMe} and the value is ${didUserSelectOneTimePayment.didUserSelectOneTimePayment}+++++++\n\n`);
   console.log(`did the user selected one time payment (as a param) ->`, didUserSelectOneTimePayment);
 
@@ -51,6 +52,7 @@ export async function validateCompletedPayment(responseFromRazorpay: unknown, us
       return {
         status_code: 400,
         success: false,
+        responseFromApiCall: null,
         message: "Invalid payment response format"
       };
     }
@@ -79,27 +81,44 @@ export async function validateCompletedPayment(responseFromRazorpay: unknown, us
       })
     ];
 
-    // Process the request using the AsyncRequestQueue
-    const result = await asyncReqQueue.process(
-      (promiseToProcess) => processIndividualPromise<ValidationResponseType>(promiseToProcess), promiseArray
-    );
 
-    // Check if there was an error in the response
-    if (result[0].error !== null) {
-      console.log(`There is an error in the result: ${result[0].error}, and the message from the server is: ${result[0].result?.message}`);
+    // makign sure the key will be refetched if there is 426
+
+    let res = await executeWithKeyRefresh<Response, ResponseFormApiCall>(keyFromChromeExtensionState, asyncReqQueue, processIndividualPromise, promiseArray)
+
+    if (res.error !== null || res.success === false || res.result === null) {
       return {
         status_code: 500,
         success: false,
-        message: result[0].result?.message || "Error validating payment"
+        responseFromApiCall: res.result,
+        message: res.result?.message || "Error validating payment"
+      }
+    }
+
+    // Process the request using the AsyncRequestQueue
+    // const result = await asyncReqQueue.process(
+    //   (promiseToProcess) => processIndividualPromise<ValidationResponseType>(promiseToProcess), promiseArray
+    // );
+
+    // Check if there was an error in the response
+    if (res.error !== null) {
+      console.log(`There is an error in the result: ${res.error}, and the message from the server is: ${res.result}`);
+      return {
+        status_code: 500,
+        success: false,
+        responseFromApiCall: res.result,
+        message: res.result?.message || "Error validating payment"
       };
     }
-    let newKey = result[0].result?.new_key
+    let newKey = res.result?.new_key
     console.log(`the new key returned is ${newKey}`);
 
     if (newKey === "" || newKey === null || newKey === undefined) {
       return {
         success: false,
-        message: "new key is not there"
+        message: "new key is not there",
+        responseFromApiCall: res.result,
+        status_code: 200
       }
     }
 
@@ -126,12 +145,17 @@ export async function validateCompletedPayment(responseFromRazorpay: unknown, us
     // start to send the new key to the chrome extension
 
     // Return the successful response
-    return result[0].result;
-
+    return {
+      success: true,
+      message: "success",
+      responseFromApiCall: res.result,
+      status_code: 200
+    }
   } catch (error) {
     console.error("Error validating payment:", error);
     return {
       status_code: 500,
+      responseFromApiCall: null,
       success: false,
       message: error instanceof Error ? error.message : "Unknown error occurred"
     };

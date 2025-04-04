@@ -1,5 +1,6 @@
 import { PUBLIC_BACKEND_URL_WITHOUT_BACKSLASH } from "$env/static/public";
 import { shouldWeGetOrderIdRecursively } from "$lib/sharedState/getOrderIdRecursively.svelte";
+import { razorpayOrderId } from "$lib/sharedState/razorPayKey.svelte";
 import { keyFromChromeExtensionState, type keyStateObject } from "$lib/sharedState/sharedKeyState.svelte";
 import { executeWithKeyRefresh } from "./ApiReqHelper/KeyRefreshhandler";
 import { AsyncRequestQueue } from "./newAsyncRequestQueue";
@@ -81,28 +82,15 @@ export class checkIfKeyIsValidAndUpdateTheState {
 
       this.updateGlobalStateAndWriteToTheStorageIfKeysAreValid(res.result, key)
 
+      // as I want to refetch the order Id once it is done, if the order id is not there as in case of the slow inernet connection this is a issue
+      if (razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null && razorpayOrderId.fetchingStatus !== "fetching") {
+        console.log(`the ()()()()()))()()((_()()()()()()()razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null ${razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null} `);
+        console.log(`and the one time is ${razorpayOrderId.orderIdForOnetime} and the recurring one is ${razorpayOrderId.orderIdForRecurring}`);
+        console.log(`the object state is ${JSON.stringify(razorpayOrderId)}`);
 
-      // const asyncRequestQueue = new AsyncRequestQueue<ResponseData>(10)
-      // asyncRequestQueue.addToQueue([
-      // () => 
-      //     .then(async (resp) => {
-      //       if (!resp.ok) {
-      //         throw new Error(`HTTP error! Status: ${resp.status} and body ->${resp.body}`);
-      //       }
-      //       return await resp.json();
-      //     })
-      //     .then(data => data as ResponseData)
-      // ]);
-      // let result = await asyncRequestQueue.processQueue()
-      // console.log("the result form the result is ->", result[0]);
-      // // updating the globalState and then the local storage
-      // // this one is deperecated as now writing to shared state will write to the storage
-      // this.updateGlobalStateAndWriteToTheStorageIfKeysAreValid(result[0], key)
-      // // this.updateTheLocalStorage(keyFromChromeExtensionState)
-      // return { result: result[0].result, error: result[0].error }
-      //
-      // as I want to refetch the order Id once it is done
-      shouldWeGetOrderIdRecursively.shouldWeDoIt = true
+        shouldWeGetOrderIdRecursively.shouldWeDoIt = true
+      }
+
       return { result: res.result, error: null }
     } catch (error) {
       console.log("error occurred in the seeIfKeyISValidFunc ->", error)
@@ -117,7 +105,7 @@ export class checkIfKeyIsValidAndUpdateTheState {
     let cloneObjOfSharedState = Object.assign({}, keyFromChromeExtensionState)
     cloneObjOfSharedState.isValidatedThroughBackend = true
     cloneObjOfSharedState.email = res.email
-    cloneObjOfSharedState.key = key
+    cloneObjOfSharedState.key = res.encrypted_key
     cloneObjOfSharedState.isPaidUser = res.is_user_on_paid_tier
     Object.assign(keyFromChromeExtensionState, cloneObjOfSharedState)
 

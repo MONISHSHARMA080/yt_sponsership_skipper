@@ -23,3 +23,5 @@ in the future add the key in the db to make sure that they are removed fr fr and
 -- make the AccountID field in the DB be string 
 
 -- in the forntend make for the razorpay id make a counter that when exceeds 1 for any of them reftech the order id as user  might need to do it 
+
+-- in the website the data flow (first start can be simplified such) that that I do not need to fetch the order id again and again(with the help of shared state), this is inefficient / hacked together and poorly thought through
