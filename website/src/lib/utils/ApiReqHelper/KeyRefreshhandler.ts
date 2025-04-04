@@ -33,7 +33,6 @@ export async function executeWithKeyRefresh<Response, R>(
     return { success: false, result: null, error: new Error("Key is empty or null") };
   }
 
-  console.log(`+1=1=1=1=1=1=1=1=1=1=1=1=1=1=1`);
 
   try {
     console.log(`11111111111111111111`);
@@ -98,8 +97,10 @@ export async function executeWithKeyRefresh<Response, R>(
         // promiseArray2ndTime = [...promiseArray]
         let promiseArray2ndTime = promiseArray2Function ? promiseArray2Function(keyStateObj) : promiseArray
 
+        console.log(`22222222222222nd time we go `);
 
-        let result = await asyncQueue.process(funcToProcessIndividualPromise, promiseArray);
+
+        let result = await asyncQueue.process(funcToProcessIndividualPromise, promiseArray2ndTime);
 
         const value = result[0];
         console.log(`the shape of the result object -> ${JSON.stringify(value)}`);
@@ -128,7 +129,7 @@ export async function executeWithKeyRefresh<Response, R>(
           }
         }
         // Key update success, return success indicator
-        return { success: true, result: null, error: null };
+        return { success: true, result: value.result, error: null };
       }
     } else {
       console.log(`the error is probably not there `);

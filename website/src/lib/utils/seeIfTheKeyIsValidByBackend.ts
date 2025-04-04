@@ -56,15 +56,29 @@ export class checkIfKeyIsValidAndUpdateTheState {
           },
           body: JSON.stringify({ key: keyStateObject.key })
         })]
-      let res = await executeWithKeyRefresh(keyFromChromeExtensionState, asyncRequestQueue, this.processIndividualPromise, promiseQueue, key, promiseQueue1)
+      let res = await executeWithKeyRefresh<Response, ResponseData>(keyFromChromeExtensionState, asyncRequestQueue, this.processIndividualPromise, promiseQueue, key, promiseQueue1)
       console.log(`--+++==>>the result form checking the key is valid is ${JSON.stringify(res)}`);
-      if (res.error !== null || res.success === false || res.result === null || res.result === undefined) {
-        console.log(`the error we got is ${res.error}`);
-        return { result: null, error: res.error instanceof Error ? res.error : Error("error executeWithKeyRefresh func  on the /api/checkIfKeyIsValid route and it is ->" + res.error) }
-      } else {
-        return { result: res.result, error: null, }
 
+      if (res.error !== null || res.success === false || res.result === null) {
+        console.log(`the error we got is ${res.error}`);
+        console.log(`is the error !== null -> ${res.error !== null} or res.success=== false ->${res.success === false} or res.result === null ->${res.result === null}`);
+
+        return { result: null, error: res.error instanceof Error ? res.error : Error("error executeWithKeyRefresh func  on the /api/checkIfKeyIsValid route and it is ->" + res.error) }
       }
+
+
+      if (res.result.status_code !== 200) {
+        try {
+          console.log(`the response form the see if the key is valid is ${JSON.stringify(res.result)}`);
+        } catch (error) {
+          console.log(` error is in jsin stringgifying the error is ->`, error);
+        }
+        return { result: res.result, error: new Error("the result.status_code is not 200 and we are returning") }
+      }
+      console.log(`the new key is ${res.result}`);
+
+      this.updateGlobalStateAndWriteToTheStorageIfKeysAreValid(res.result, key)
+
 
       // const asyncRequestQueue = new AsyncRequestQueue<ResponseData>(10)
       // asyncRequestQueue.addToQueue([
@@ -86,40 +100,35 @@ export class checkIfKeyIsValidAndUpdateTheState {
       // return { result: result[0].result, error: result[0].error }
       //
       let error = ""
-      return { result: null, error: error instanceof Error ? error : Error("error in checking if key is valid and updating it func and it is ->" + error) }
+      return { result: res.result, error: null }
     } catch (error) {
       console.log("error occurred in the seeIfKeyISValidFunc ->", error)
       return { result: null, error: error instanceof Error ? error : Error("error in checking if key is valid and updating it func and it is ->" + error) }
     }
   }
 
-  private updateGlobalStateAndWriteToTheStorageIfKeysAreValid(res: apiResponseAndError, key: string) {
-    if (res.error !== null && res.result === null) {
-      console.log(" the error form the backend is(and not updating the state) ->", res.error)
-      console.log(" the result is  ", res.result)
-      return
-    }
-    if (res.result === null) {
-      return
-    }
+  private updateGlobalStateAndWriteToTheStorageIfKeysAreValid(res: ResponseData, key: string) {
     // I do not want to write to the state multiple times, so that's why we are cloning it and will also then assing it 
+    console.log(`I am assing to the key state object----`);
+
     let cloneObjOfSharedState = Object.assign({}, keyFromChromeExtensionState)
     cloneObjOfSharedState.isValidatedThroughBackend = true
-    cloneObjOfSharedState.email = res.result.email
+    cloneObjOfSharedState.email = res.email
     cloneObjOfSharedState.key = key
-    cloneObjOfSharedState.isPaidUser = res.result.is_user_on_paid_tier
+    cloneObjOfSharedState.isPaidUser = res.is_user_on_paid_tier
     Object.assign(keyFromChromeExtensionState, cloneObjOfSharedState)
+
     // keyFromChromeExtensionState.isValidatedThroughBackend = true
     // keyFromChromeExtensionState.email = res.result.email
     // keyFromChromeExtensionState.name = res.result.name
     // keyFromChromeExtensionState.key = key
-    console.log("the key form the backend is ->", res.result.encrypted_key === key);
+    console.log("the key form the backend is ->", res.encrypted_key === key);
   }
   private async processIndividualPromise<T>(resp1: Promise<Response>): Promise<T> {
     try {
       let resp = await resp1;
 
-      console.log(`response come form the makeAPayment \n\n`);
+      console.log(`response come form the see if the key is valid \n\n`);
 
       if (!resp.ok) {
         console.error("the response is not ok form the backend and we are throwing a error in the async request queue process indivudual func->", resp);
@@ -131,7 +140,7 @@ export class checkIfKeyIsValidAndUpdateTheState {
 
       console.log("the valid JSON is ->", responseInJson);
       // Then validate it
-      if (this.validateResponseInJSONTOBeMyType(responseInJson)) {
+      if (validateResponseInJSONTOBeMyType(responseInJson)) {
         // JSON is valid   
         let respReceived: T = responseInJson;
         return respReceived;
@@ -144,10 +153,14 @@ export class checkIfKeyIsValidAndUpdateTheState {
     }
   }
 
-  private validateResponseInJSONTOBeMyType(response: any): boolean {
-    return ResponseDataSchema.safeParse(response).success
-  }
 
 
 
+}
+function validateResponseInJSONTOBeMyType(response: any): boolean {
+  console.log(`in the validateResponseInJSONTOBeMyType() `);
+
+  let result = ResponseDataSchema.safeParse(response).success
+  console.log(`the response form validating json is ->${JSON.stringify(result)}`);
+  return result
 }
