@@ -1,6 +1,7 @@
 package routehandlerfunc
 
 import (
+	"time"
 	commonhelperfuncs "youtubeAdsSkipper/commonHelperFuncs"
 	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
@@ -9,14 +10,12 @@ import (
 
 // the new value is same regardless the tier and is form the commonHelperfunc(env or hardcoded)
 func UpdateTheCheckForKeyUpdateToNewValue(DBStruct *structs.MessageForUserOnPaymentCapture, oldUser *commonstructs.UserKey) common.ErrorAndResultStruct[string] {
-	// newTimeToCheckForUpdateOn, err := DBStruct.GetTimeToCheckForKeyUpdateOn(oldUser.UserTier)
-	// if err != nil {
-	// 	println("error in gettting time to CheckForKeyUpdateOn ->", err.Error())
-	// 	// response.ReturnJSONResponse(w, "", "something went wrong on our side in giving you your new key", http.StatusInternalServerError)
-	// 	return common.ErrorAndResultStruct[string]{Result: "", Error: err}
-	// }
+	// false cause we are hardcoding
+	println("the old user key is ->", oldUser.CheckForKeyUpdateOn)
+	oldTimeToCheck := oldUser.CheckForKeyUpdateOn
 	oldUser.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey(false)
-
+	println("the old new key is ->", oldUser.CheckForKeyUpdateOn)
+	println("adding time to new key and it is after :=>", time.Until(time.Unix(oldTimeToCheck, 0)).Round(time.Minute), " min")
 	resultDBChannelForNewuser := make(chan common.ErrorAndResultStruct[string])
 	go oldUser.EncryptTheUser(resultDBChannelForNewuser)
 	resultForNewuser := <-resultDBChannelForNewuser

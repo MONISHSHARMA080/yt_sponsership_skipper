@@ -26,7 +26,7 @@ func GetTimeToExpireTheKey(isThisCallForFakeKey bool) int64 {
 	if err != nil {
 		return defaultExpiryTime
 	}
-	println(">>>>>>the time selected for the key is after ", timeForExpiry.Milliseconds(), "ms")
+	println(">>>>>>the time selected for the key is after ", timeForExpiry.Milliseconds(), "ms", " or ", timeForExpiry.Hours(), " hours or ", timeForExpiry.Minutes(), " min")
 	// make a assert here that if the time to skip the video is more than the (panic)
 	return time.Now().Add(timeForExpiry).Unix()
 }

@@ -52,7 +52,7 @@ export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promis
     }
 
     razorpayOrderId.orderIdForOnetime = oneTime
-    razorpayOrderId.orderIdForOnetime = recurring
+    razorpayOrderId.orderIdForRecurring = recurring
 
     return true
 

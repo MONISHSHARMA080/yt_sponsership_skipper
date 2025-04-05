@@ -103,7 +103,8 @@ export class checkIfKeyIsValidAndUpdateTheState {
 
     let cloneObjOfSharedState = Object.assign({}, keyFromChromeExtensionState)
     cloneObjOfSharedState.isValidatedThroughBackend = true
-    cloneObjOfSharedState.email = res.email
+    cloneObjOfSharedState.name = res.name,
+      cloneObjOfSharedState.email = res.email
     cloneObjOfSharedState.key = res.encrypted_key
     cloneObjOfSharedState.isPaidUser = res.is_user_on_paid_tier
     Object.assign(keyFromChromeExtensionState, cloneObjOfSharedState)
