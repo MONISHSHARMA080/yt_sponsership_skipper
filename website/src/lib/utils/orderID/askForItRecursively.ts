@@ -79,6 +79,8 @@ export default getOrderIdRecursively;
 // instead of this make a call to chromeExtensions background and if not there display the message to the user, now 
 // if there is a error we can just simply ask for the key and that way we wouldn't have diverging keys
 async function getOrderIdRecursively() {
+
+  console.log("((((((((((((((((----Are we Already in fetch cycle,", JSON.stringify(razorpayOrderId));
   try {
     let timeToWaitBeforeEachRequest = 2000;
     razorpayOrderId.fetchingStatus = "fetching"; // Set this ONCE at the beginning
