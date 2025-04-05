@@ -1,3 +1,4 @@
+import { shouldWeGetOrderIdRecursively } from "$lib/sharedState/getOrderIdRecursively.svelte";
 import { razorpayOrderId } from "$lib/sharedState/razorPayKey.svelte";
 import { keyFromChromeExtensionState } from "$lib/sharedState/sharedKeyState.svelte";
 import { askBackendForOrderId } from "../razorpayIntegration/AskBackendForOrderId.svelte";
@@ -8,7 +9,7 @@ export default getOrderIdRecursively;
 // -----------f it writing one myself
 // instead of this make a call to chromeExtensions background and if not there display the message to the user, now 
 // if there is a error we can just simply ask for the key and that way we wouldn't have diverging keys
-async function getOrderIdRecursively() {
+async function getOrderIdRecursively(callerName: String) {
 
   console.log("((((((((((((((((----Are we Already in fetch cycle,", JSON.stringify(razorpayOrderId));
   try {
@@ -18,7 +19,7 @@ async function getOrderIdRecursively() {
 
     let numberOfIter = 4
     for (let index = 0; index < numberOfIter; index++) {
-      console.log(`in the iteration ${index} of getOrderIdRecursively`);
+      console.log(`in the iteration ${index} of getOrderIdRecursively and the caller is ${callerName}`);
 
       let res = await askBackendForOrderId(keyFromChromeExtensionState);
       console.log(`!!!the success is ${res} !and we are on the loop iter ${index}`);
@@ -27,12 +28,14 @@ async function getOrderIdRecursively() {
         console.log(`we got the order id Successfully and will quit`);
         razorpayOrderId.fetchingStatus = "success";
         razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle = false
+        shouldWeGetOrderIdRecursively.shouldWeDoIt = false
         return;
       } else {
         console.log(`order id is not received form the loop`);
 
       }
 
+      razorpayOrderId.fetchingStatus = "fetching"; // Set back to fetching for next attempt
       // Only set to error if we're on the final attempt OR before waiting
       if (index === numberOfIter - 1) {
         razorpayOrderId.fetchingStatus = "error";
@@ -47,7 +50,6 @@ async function getOrderIdRecursively() {
         }, timeToWaitBeforeEachRequest));
         console.log(`!!++!!the waiting finished`);
 
-        razorpayOrderId.fetchingStatus = "fetching"; // Set back to fetching for next attempt
       }
     }
     console.log(`the fetching completed and the fetching status is ->${razorpayOrderId.fetchingStatus}`);
