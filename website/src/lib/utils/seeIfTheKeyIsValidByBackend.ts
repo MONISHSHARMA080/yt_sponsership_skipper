@@ -87,7 +87,6 @@ export class checkIfKeyIsValidAndUpdateTheState {
         console.log(`the ()()()()()))()()((_()()()()()()()razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null ${razorpayOrderId.orderIdForOnetime === null || razorpayOrderId.orderIdForRecurring === null} `);
         console.log(`and the one time is ${razorpayOrderId.orderIdForOnetime} and the recurring one is ${razorpayOrderId.orderIdForRecurring}`);
         console.log(`the object state is ${JSON.stringify(razorpayOrderId)}`);
-
         shouldWeGetOrderIdRecursively.shouldWeDoIt = true
       }
 
