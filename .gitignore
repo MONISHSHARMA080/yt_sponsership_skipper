@@ -8,3 +8,5 @@ manifest.json
 node_module/
 .idea/
 chromeExtension/node_modules/
+chrome-test-profile-doNotTouch/
+node_modules/

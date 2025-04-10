@@ -28,6 +28,10 @@ export async function askBackendForOrderId(keyStateObj: keyStateObject,): Promis
 
       return false
     }
+    // if the key is valid and the user is on free tier and do not fetch it again
+    if (keyStateObj.isPaidUser && keyStateObj.isValidatedThroughBackend) {
+      return true
+    }
     // if we are validated 
     let asyncReqQueue = new AsyncRequestQueue<Response, responseType>(10)
 

@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@types/chrome-remote-interface": "^0.31.14"
+  }
+}

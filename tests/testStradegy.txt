@@ -1,0 +1,6 @@
+ 
+ / ------------------------------ /
+  test :see if we are able to upgrade user to the paid tier (UI test)
+  stradegy: 
+          use code gen to test the website -> generate the code by clicking on the ui
+ / ------------------------------ /
