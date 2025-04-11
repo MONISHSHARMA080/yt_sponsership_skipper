@@ -122,10 +122,21 @@ func DbConnect() *sql.DB {
 	// println(os.Getenv("TURSO_DATABASE_URL"),os.Getenv("TURSO_AUTH_TOKEN"))
 	// url := "libsql://["+os.Getenv("TURSO_DATABASE_URL")+"].turso.io?authToken=["+os.Getenv("TURSO_AUTH_TOKEN")+"]"
 	// url := os.Getenv("TURSO_DATABASE_URL")+".?authToken="+os.Getenv("TURSO_AUTH_TOKEN")
-	dbURL := os.Getenv("TURSO_DATABASE_URL")
-	authToken := os.Getenv("TURSO_AUTH_TOKEN")
 
-	url := fmt.Sprintf("%s?authToken=%s", dbURL, authToken)
+	url := ""
+	dbURL := ""
+	authToken := ""
+	isThisTestingEnv := os.Getenv("IS_THIS_TESTING_ENVIRONMENT")
+	if isThisTestingEnv == "true" {
+		dbURL = os.Getenv("TURSO_DATABASE_URL")
+		url = dbURL
+	} else {
+		// in any case we are in prod
+		dbURL = os.Getenv("TURSO_DATABASE_URL")
+		authToken = os.Getenv("TURSO_AUTH_TOKEN")
+		url = fmt.Sprintf("%s?authToken=%s", dbURL, authToken)
+	}
+
 	// println(url,"\n\n")
 	db, err := sql.Open("libsql", url)
 	if err != nil {
