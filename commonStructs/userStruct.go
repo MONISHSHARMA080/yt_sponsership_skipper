@@ -24,7 +24,7 @@ func (UserInDb *UserInDb) AddUserToFreeTier() {
 	UserInDb.UserTeir = "free tier" // taken form the DB
 }
 
-// method to insert New User in Db
+// method to insert New User in Db, will be in the new tier
 func (UserInDb *UserInDb) InsertNewUserInDb(db *sql.DB, resultChannel chan common.ErrorAndResultStruct[int64]) {
 	UserInDb.AddUserToFreeTier()
 	if !UserInDb.IsUserValid() {

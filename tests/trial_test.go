@@ -5,7 +5,11 @@ import (
 	"log"
 	"testing"
 	"time"
+	"youtubeAdsSkipper/paymentBackendGO/common"
+	"youtubeAdsSkipper/tests/helperPackages/DB"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
+	userindb "youtubeAdsSkipper/tests/helperPackages/userInDb"
+	userkey "youtubeAdsSkipper/tests/helperPackages/userKey"
 
 	helperfunc1_test "youtubeAdsSkipper/tests/helperFunc1"
 
@@ -17,7 +21,9 @@ const (
 	keyForStorageInChromeExtension = "key"
 )
 
-func TestTesticale(t *testing.T) {
+func TestMain(t *testing.T) {
+	// get the key
+
 	ctx, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
 	if err != nil {
 		t.Fatal(err)
@@ -27,14 +33,25 @@ func TestTesticale(t *testing.T) {
 	if err := chromedp.Run(ctx); err != nil {
 		log.Fatal("Failed to start browser:", err)
 	}
+	DB := DB.DbConnect()
 
+	userInDb := userindb.Userindb{}
+	getUserIdChann := make(chan common.ErrorAndResultStruct[int64])
+	go userInDb.GenerateSpamUserAndSaveItInDB(DB, getUserIdChann)
+	userInDBChannResult := <-getUserIdChann
+	if userInDBChannResult.Error != nil {
+		t.Fatal("there is a error in getting the user in the DB and it is ->" + userInDBChannResult.Error.Error())
+	}
+	println("the user's id is ->", userInDBChannResult.Result)
+
+	userKey := userkey.UserKey{}
 	println("browser started")
 	// Get the extension ID
 	// if err := getExtensionID(ctx, &extensionID); err != nil {
 	// 	log.Fatal("Failed to get extension ID:", err)
 	// }
 	fmt.Printf("Extension ID: %s\n", extensionID)
-	newKeyForNow := "IamAGod"
+	newKeyForNow := "IamAGod100"
 
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 
@@ -44,6 +61,5 @@ func TestTesticale(t *testing.T) {
 		t.Fatal(err)
 	}
 	println("we were able to successfully set the value in the local storage and get the same value back")
-
-	time.Sleep(4 * time.Minute)
+	time.Sleep(time.Minute * 2)
 }
