@@ -1,19 +1,74 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Youtube Sponsorship Skipper</title>
-    </head>
-    <body>
-        <h3>--==--</h3>
-        <h1>Hello</h1>
-        <h3>--==--</h3>
+<!-- <!doctype html> -->
+<!-- <html lang="en"> -->
+<!--     <head> -->
+<!--         <meta charset="UTF-8" /> -->
+<!--         <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+<!--         <title>Youtube Sponsorship Skipper</title> -->
+<!--     </head> -->
+<!--     <body> -->
+<!--         <h3>--==--</h3> -->
+<!--         <h1>Hello</h1> -->
+<!--         <h3>--==--</h3> -->
+<!---->
+<!--         <button id="status">Send Message</button> -->
+<!--         <button id="websiteButton">open website</button> -->
+<!---->
+<!--     </body> -->
+<!-- </html> -->
 
-        <button id="status">Send Message</button>
-        <button id="websiteButton">open website</button>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upgrade</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      width: 200px;
+      height: 100px;
+      border: 2px solid black;
+      border-radius: 22px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #E5f5f5;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .upgrade-button {
+      background-color: #ff3e30;
+      color: white;
+      border: 3px solid black;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 5px 5px 0px #000;
+      transform: translateY(0);
+      transition: transform 0.1s, box-shadow 0.1s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .upgrade-button:hover {
+      background-color: #ff5a4f;
+    }
+
+    .upgrade-button:active {
+      transform: translateY(3px);
+      box-shadow: 2px 2px 0px #000;
+    }
+  </style>
+</head>
+<body>
+  <button class="upgrade-button" id="websiteButton">Go To Website</button>
 
         <script src="index.js"></script>
         <script src="config.js"></script>
-    </body>
+</body>
 </html>
+

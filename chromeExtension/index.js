@@ -2,36 +2,34 @@
 /// <reference types="chrome" />
 console.log("hi form the index.js");
 
-try {
-  let element = document.getElementById("status");
-  if (element !== null) {
-    element.addEventListener("click", async function a() {
-      let [key, error] = await getKeyFromStorageOrBackend();
-      if (error) {
-        console.log(
-          "error is there in getting the key and it is -->",
-          error,
-          "\n\n the key is",
-          key,
-        );
-        return;
-      }
-      console.log("the key is -->", key);
-    });
-  }
-} catch (e) {
-  console.log("error in the index.js ", e);
-}
+// try {
+//   let element = document.getElementById("status");
+//   if (element !== null) {
+//     element.addEventListener("click", async function a() {
+//       let [key, error] = await getKeyFromStorageOrBackend();
+//       if (error) {
+//         console.log(
+//           "error is there in getting the key and it is -->",
+//           error,
+//           "\n\n the key is",
+//           key,
+//         );
+//         return;
+//       }
+//       console.log("the key is -->", key);
+//     });
+//   }
+// } catch (e) {
+//   console.log("error in the index.js ", e);
+// }
 
 try {
   let element = document.getElementById("websiteButton");
-  if (element === null) {
-    // @ts-ignore
-    return;
+  if (element !== null) {
+    element.addEventListener("click", (event) => {
+      let response = chrome.runtime.sendMessage({ action: "navigateToWebsite" })
+    })
   }
-  element.addEventListener("click", (event)=>{
-    chrome
-  })
 
 } catch (error) {
   console.log("there is a error in the index.js in the website button ->", error);

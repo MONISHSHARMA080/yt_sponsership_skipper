@@ -355,3 +355,21 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
+
+
+//@ts-ignore
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "navigateToWebsite") {
+    try {
+      console.log(`the user send us a action to go to our website`)
+      // Create a new tab with the specified URL
+      chrome.tabs.create({ url: config.websiteURL });
+      sendResponse({ success: true });
+    } catch (error) {
+      console.log(`the error in sending user to the new page is ${error}`)
+      sendResponse({ success: false, error: error })
+    }
+  }
+  // Return true to indicate you'll send a response asynchronously
+  return true;
+});

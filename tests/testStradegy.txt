@@ -1,4 +1,3 @@
- 
  / ------------------------------ /
   test :see if we are able to upgrade user to the paid tier (UI test)
   stradegy: 
