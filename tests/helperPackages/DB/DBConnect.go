@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	_ "github.com/tursodatabase/go-libsql"
 )
 
 func DbConnect() *sql.DB {
