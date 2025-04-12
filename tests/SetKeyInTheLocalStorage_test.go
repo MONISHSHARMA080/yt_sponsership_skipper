@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"time"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
@@ -81,4 +82,5 @@ func TestMain(t *testing.T) {
 		t.Fatal(err)
 	}
 	println("we were able to successfully set the value in the local storage and get the same value back")
+	time.Sleep(time.Hour * 2)
 }

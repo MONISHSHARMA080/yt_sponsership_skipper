@@ -1,6 +1,7 @@
 package userkey
 
 import (
+	commonhelperfuncs "youtubeAdsSkipper/commonHelperFuncs"
 	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	userindb "youtubeAdsSkipper/tests/helperPackages/userInDb"
@@ -24,7 +25,7 @@ func (uk *UserKey) InitializeTheStruct(userInDb userindb.GetUserDetailsOutInterf
 	uk.User.Version = 0 //
 
 	uk.User.IDPrimaryKey = primaryKey
-	uk.User.CheckForKeyUpdateOn = 1
+	uk.User.CheckForKeyUpdateOn = commonhelperfuncs.GetTimeToExpireTheKey(false)
 	return nil
 }
 
