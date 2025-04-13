@@ -102,7 +102,12 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("enable-features", "PasswordImport"),
 		chromedp.Flag("disable-features", "PasswordExport,Signin"),
 
-		chromedp.UserDataDir(filepath.Join(cwd, "../chrome-test-profile-doNotTouch/")),
+		chromedp.Flag("account-consistency", "disabled"),
+		chromedp.Flag("disable-features", "PasswordExport,Signin,IdentityManager"),
+
+		chromedp.Flag("unlimited-storage", true),
+		chromedp.Flag("allow-unlimited-local-storage", true),
+		// chromedp.UserDataDir(filepath.Join(cwd, "../chrome-test-profile-doNotTouch/")),
 	)
 
 	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)

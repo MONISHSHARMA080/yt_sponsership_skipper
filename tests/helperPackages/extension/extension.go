@@ -57,9 +57,11 @@ func (extension *ChromeExtension) SetAndtestExtensionStorage(ctx context.Context
 	if err != nil {
 		println("the error in getting the storage in the chrome extension -->", err.Error())
 		return err
-	} else if valueAtTheKey == "" {
-		return fmt.Errorf("the value of the key form the local storage is a empty string ")
 	}
+	// commented as the first value can be ""
+	//  else if valueAtTheKey == "" {
+	// 	return fmt.Errorf("the value of the key form the local storage is a empty string ")
+	// }
 	println("the value we got form local storage in the beginning (before setting) is ->", valueAtTheKey)
 	success, err := extension.SetKeysValueFormStorage(ctx, newValueForKey)
 	if err != nil {

@@ -18,6 +18,7 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context) error {
 		println("there is not add in the youtube video")
 		return nil
 	}
+	println("there is a add in the youtube video")
 	// if the add go more than 4 min then we will fail as a ad will not be more than 4 min
 	err = e.WaitForAdToFinish(ctx, time.Minute*4)
 	if err != nil {
@@ -64,6 +65,31 @@ func (e *ChromeExtension) WaitForAdToFinish(ctx context.Context, timeout time.Du
 			return fmt.Errorf("timeout waiting for ad to finish")
 		}
 	}
+}
+
+// note makse sure to close the channel form the outside
+func (e *ChromeExtension) EnsureVideoIsPlayingPeriodically(ctx context.Context, intervalToCheckTheVideoPlayingAt time.Duration, stopChan <-chan struct{}, shouldWeStopOnError bool) {
+	ticker := time.NewTicker(intervalToCheckTheVideoPlayingAt)
+	go func() {
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				err := e.MakeSureTheVideoIsPlaying(ctx)
+				if err != nil {
+					fmt.Printf("Error in ensuring video periodically is : %v", err)
+					if shouldWeStopOnError {
+						println("returning as the making sure the video is playing func returend a error")
+						return
+					}
+				}
+			case <-stopChan:
+				fmt.Println("Stopping periodic video check")
+				return
+			}
+		}
+	}()
 }
 
 // if the video is not playing then we will play it, if it is then return

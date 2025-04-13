@@ -63,7 +63,8 @@ func TestSetKeyInTheLocalStorage(t *testing.T) {
 	// Test setting and getting local storage in the service worker
 	err := chromeExtension.SetAndtestExtensionStorage(ctx, newKeyForNow)
 	if err != nil {
+		println("\n\n >>> the test for seeing  if we can write the user key in the strorage failled and the error is  " + err.Error() + "  <<< \n\n ")
 		t.Fatal(err)
 	}
-	println("we were able to successfully set the value in the local storage and get the same value back")
+	println("<<--we were able to successfully set the value in the local storage and get the same value back <<--\n\n")
 }

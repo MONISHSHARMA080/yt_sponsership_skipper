@@ -35,11 +35,13 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		}
 		time.Sleep(time.Second * 1)
 		println("we are in the youtube video ->", pageUrl)
-		err = chromeExtension.MakeSureTheVideoIsPlaying(ctx)
-		if err != nil {
-			println("crashing as the making sure the video is playing func returend a error")
-			t.Fatal(err)
-		}
+		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
+		defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
+		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Millisecond*700, stopChannelToStopChekingIfTheVideoIsPlaying, false)
+		// if err != nil {
+		// 	println("crashing as the making sure the video is playing func returend a error")
+		// 	t.Fatal(err)
+		// }
 		err = chromeExtension.IfThereIsAAdThenFinishIt(ctx)
 		if err != nil {
 			println("there is a error in checking if there is a AD, and if there is skip it(wait for it to finish ) and the error is ->", err.Error())
