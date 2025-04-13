@@ -121,7 +121,7 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	)
 
 	// Create a timeout for the entire operation
-	ctx, cancel := context.WithTimeout(ctx, 130*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 430*time.Second)
 
 	// Navigate to the target URL
 
