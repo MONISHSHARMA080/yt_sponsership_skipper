@@ -10,11 +10,11 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func GetNewBrowserForChromeExtension(extensionID string) (context.Context, context.CancelFunc, error) {
+func GetNewBrowserForChromeExtension(extensionID string) (context.Context, context.CancelFunc, context.CancelFunc, error) {
 	// var opts []chromedp.ExecAllocatorOption
 	cwd, err := os.Getwd()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	extensionPath := filepath.Join(cwd, "../chromeExtension")
 	println("the chrome extensionPath is ->", extensionPath)
@@ -94,13 +94,13 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("disable-extensions-except", extensionPath),
 		chromedp.Flag("disable-popup-blocking", true),
 		chromedp.Flag("disable-sync", true),
-		chromedp.Flag("safebrowsing-disable-extension-blacklist", true),
 		//---
 		chromedp.Flag("disable-sync", true),
 		chromedp.Flag("disable-signin-promo", true),
 		chromedp.Flag("disable-sync-credential-backend", true),
 		chromedp.Flag("enable-features", "PasswordImport"),
 		chromedp.Flag("disable-features", "PasswordExport,Signin"),
+		chromedp.Flag("safebrowsing-disable-extension-blacklist", true),
 
 		chromedp.Flag("account-consistency", "disabled"),
 		chromedp.Flag("disable-features", "PasswordExport,Signin,IdentityManager"),
@@ -110,7 +110,7 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		// chromedp.UserDataDir(filepath.Join(cwd, "../chrome-test-profile-doNotTouch/")),
 	)
 
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
 
 	// Create context
 	ctx, _ := chromedp.NewContext(
@@ -121,9 +121,9 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	)
 
 	// Create a timeout for the entire operation
-	ctx, cancel = context.WithTimeout(ctx, 130*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 130*time.Second)
 
 	// Navigate to the target URL
 
-	return ctx, cancel, nil
+	return ctx, cancel, cancel1, nil
 }

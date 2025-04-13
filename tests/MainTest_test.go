@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	ctx, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
+	ctx, cancelFunc0, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
 	if err != nil {
 		panic(err)
 	}
@@ -35,6 +35,7 @@ func TestMain(m *testing.M) {
 	commonstateacrosstest.CancelFunc = cancelFunc
 
 	defer cancelFunc()
+	defer cancelFunc0()
 
 	code := m.Run()
 
