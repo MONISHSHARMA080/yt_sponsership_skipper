@@ -1,0 +1,44 @@
+package tests
+
+import (
+	"fmt"
+	"os"
+	"testing"
+	"youtubeAdsSkipper/tests/helperPackages/DB"
+	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
+
+	helperfunc1_test "youtubeAdsSkipper/tests/helperFunc1"
+
+	"github.com/joho/godotenv"
+)
+
+// 	extensionID                    = "dpkehfkmkhmbmbofjaikccklcdpdmhpl"
+// const (
+// 	keyForStorageInChromeExtension = "key"
+// )
+
+func TestMain(m *testing.M) {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+		panic(err)
+	}
+	err = DB.CreateDBForTest()
+	if err != nil {
+		panic(err)
+	}
+	ctx, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
+	if err != nil {
+		panic(err)
+	}
+	commonstateacrosstest.BrowserContext = ctx
+	commonstateacrosstest.CancelFunc = cancelFunc
+
+	defer cancelFunc()
+
+	code := m.Run()
+
+	os.Exit(code)
+}
+
+// here load env and set the chrome context in the global state and let other runs

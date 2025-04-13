@@ -18,6 +18,7 @@ func GetTimeToExpireTheKey(isThisCallForFakeKey bool) int64 {
 		defaultExpiryTime = time.Now().AddDate(0, 0, 1).Unix()
 	}
 	if timeForKeyExpiryStr == "" {
+		println("\n\n--- there is nothing in the env so we are returing the default expiry time---\n\n")
 		return defaultExpiryTime
 	}
 

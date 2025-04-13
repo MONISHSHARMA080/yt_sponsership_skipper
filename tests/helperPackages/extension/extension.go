@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
@@ -14,6 +15,21 @@ type ChromeExtension struct {
 
 func (e *ChromeExtension) isTheStructEmpty() bool {
 	return e.ExtensionId == ""
+}
+
+// if the thing to search is a class use . or id then use #, treat it like document.getQuerySelector()
+func (e *ChromeExtension) IsTheElementVisible(thingToSearch string, ctx context.Context) (bool, error) {
+	// Check if element with class exists and is visible using DOM.getBoxModel
+	// var IsTheElementVisible bool
+	var nodes []*cdp.Node
+	err := chromedp.Run(ctx,
+		chromedp.Nodes(thingToSearch, &nodes, chromedp.ByQueryAll, chromedp.NodeVisible),
+	)
+	if err != nil {
+		return false, err
+	} else {
+		return len(nodes) > 0, nil
+	}
 }
 
 // this function is there to set the key in the local storage and verify that it is same; will return error as nil if the error is false
@@ -32,7 +48,8 @@ func (extension *ChromeExtension) SetAndtestExtensionStorage(ctx context.Context
 	// serviceWorkerURL := fmt.Sprintf("chrome-extension://%s/service-worker.js", extensionID)
 	// Navigate to the service worker's devtools page
 	// serviceWorkerDebugURL := fmt.Sprintf("chrome://inspect/#extensions")
-	err := extension.GoToExtensionPopupPage(ctx)
+	pageUrl := fmt.Sprintf("chrome-extension://%s/index.html", extension.ExtensionId)
+	err := extension.NavigateToAWebPage(ctx, pageUrl)
 	if err != nil {
 		return err
 	}
@@ -66,14 +83,13 @@ func (extension *ChromeExtension) SetAndtestExtensionStorage(ctx context.Context
 	return nil
 }
 
-func (extension *ChromeExtension) GoToExtensionPopupPage(ctx context.Context) error {
+func (extension *ChromeExtension) NavigateToAWebPage(ctx context.Context, pageUrl string) error {
 	if extension.isTheStructEmpty() {
 		return fmt.Errorf("the extension is un initialized as the id is a empty string ")
 	}
-	fmt.Println("Opening extension popup...")
-	popupURL := fmt.Sprintf("chrome-extension://%s/index.html", extension.ExtensionId)
-	println("the poput url is ->", popupURL)
-	return chromedp.Run(ctx, chromedp.Navigate(popupURL))
+	fmt.Println("going to the a webpage with url ->", pageUrl, " and waiting for the page to load")
+
+	return chromedp.Run(ctx, chromedp.Navigate(pageUrl), chromedp.WaitReady("body", chromedp.ByQuery))
 }
 
 // note we are not going to the index.html of the extension here, you have to do that
