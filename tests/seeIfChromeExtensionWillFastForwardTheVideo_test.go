@@ -23,7 +23,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	ctx := commonstateacrosstest.BrowserContext
-	youtubeUrl := []string{"https://www.youtube.com/watch?v=Fndo8vzTPoM", "https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
+	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=Fndo8vzTPoM", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	success := false
 	for i, pageUrl := range youtubeUrl {
@@ -38,23 +38,23 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
 		defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
 		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Millisecond*700, stopChannelToStopChekingIfTheVideoIsPlaying, false)
-		// if err != nil {
-		// 	println("crashing as the making sure the video is playing func returend a error")
-		// 	t.Fatal(err)
-		// }
-		err = chromeExtension.IfThereIsAAdThenFinishIt(ctx)
-		if err != nil {
-			println("there is a error in checking if there is a AD, and if there is skip it(wait for it to finish ) and the error is ->", err.Error())
-			t.Fatal(err)
-		}
-		err = chromeExtension.MakeSureTheVideoIsPlaying(ctx)
-		if err != nil {
-			println("crashing as the making sure the video is playing func returend a error")
-			t.Fatal(err)
-		}
+		println("checking if the ad have finsished and we return after it (calling the func) ")
 
-		// if we have a ad it will be visible by this ->ytp-ad-player-overlay-layout class
-		// see if the ad is visible if it is not then get the js to
+		//
+		// or) may be just get the U-block lite and let it skip the ads instead
+		//
+		//
+		// or in the js we can take the duration of the video if it keeps changing then we will know that we have encountoured an ad and we will take the last one
+		// we will not need this level of autism
+		//
+		//or
+		//
+		//run it for 2 min and then in a
+
+		// now get the current time array and see if we have skipped the video
+
+		println("the first video in the array has ended and we are about to go to the new one")
+		time.Sleep(time.Minute * 6)
 	}
 
 	// if after all we are not able to success fully predict one of them then fail: all the videos have ads so we should be able to predict one of them

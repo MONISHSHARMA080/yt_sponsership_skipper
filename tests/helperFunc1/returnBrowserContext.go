@@ -18,6 +18,8 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	}
 	extensionPath := filepath.Join(cwd, "../chromeExtension")
 	println("the chrome extensionPath is ->", extensionPath)
+	ublockPath := filepath.Join(cwd, "u-block")
+	println("the ublockPath extensionPath is ->", ublockPath)
 
 	// // Common options for both modes
 	// baseOpts := []chromedp.ExecAllocatorOption{
@@ -84,14 +86,18 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("headless", false),          // Important: We don't want headless mode
 		chromedp.Flag("enable-automation", false), // Disable the automation banner
 
-		// chromedp.Flag("extensions-on-chrome-urls", true),
-		chromedp.Flag("disable-extensions-except", extensionID),
+		chromedp.Flag("extensions-on-chrome-urls", true),
+		// chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath),
+
+		// chromedp.Flag("disable-extensions-except", extensionID),
 		chromedp.Flag("load-extension", extensionPath),
 
 		chromedp.Flag("disable-client-side-phishing-detection", true),
 		chromedp.Flag("disable-web-security", true),
-		chromedp.Flag("load-extension", extensionPath),
-		chromedp.Flag("disable-extensions-except", extensionPath),
+		// chromedp.Flag("load-extension", extensionPath),
+		chromedp.Flag("load-extension", extensionPath+","+ublockPath),            // Load both extensions
+		chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath), // Optional: disable other extensions
+		// chromedp.Flag("disable-extensions-except", extensionPath),
 		chromedp.Flag("disable-popup-blocking", true),
 		chromedp.Flag("disable-sync", true),
 		//---
