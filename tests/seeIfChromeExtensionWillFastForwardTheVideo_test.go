@@ -38,7 +38,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
 		defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
 		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Millisecond*700, stopChannelToStopChekingIfTheVideoIsPlaying, false)
-		println("checking if the ad have finsished and we return after it (calling the func) ")
+		chromeExtension.IfThereIsAAdThenFinishIt(ctx, time.Millisecond*800, false)
 
 		//
 		// or) may be just get the U-block lite and let it skip the ads instead

@@ -95,9 +95,9 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("disable-client-side-phishing-detection", true),
 		chromedp.Flag("disable-web-security", true),
 		// chromedp.Flag("load-extension", extensionPath),
-		chromedp.Flag("load-extension", extensionPath+","+ublockPath),            // Load both extensions
-		chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath), // Optional: disable other extensions
-		// chromedp.Flag("disable-extensions-except", extensionPath),
+		chromedp.Flag("load-extension", extensionPath+","+ublockPath), // Load both extensions
+		// chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath), // Optional: disable other extensions
+		chromedp.Flag("disable-extensions-except", extensionPath),
 		chromedp.Flag("disable-popup-blocking", true),
 		chromedp.Flag("disable-sync", true),
 		//---

@@ -16,20 +16,21 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context, interval
 	ticker := time.NewTicker(intervalToKeepCheckingIfWeAreStillInAAD)
 	defer ticker.Stop()
 	errorsCollectedInCheckingIFWeAreInAAD := []error{}
-	firstTimeTheADIsOver := true
 	// recheckForAdAfterFirstTimeADFinish := time.Second * 3
 	done := make(chan struct{})
 
 	go func() {
-		defer close(done) // Signal when goroutine completes
+		// defer close(done) // Signal when goroutine completes
+		defer println("the go func to keep checking for checking if we in a AD has closed")
 		for range ticker.C {
-			println("checking if the ad is playing and is this the first time the AD is over -> ", firstTimeTheADIsOver)
+			println("checking if the ad is playing   ")
 			areWeInAAd, err := e.IsTheYoutubeVideoPlayingAnAd(ctx)
 			println("got the value form id the AD is over func and it is ->", areWeInAAd, " and the err is nil->", err == nil)
 			if err != nil {
 				println("there is a error in checking if the AD is palying and it is ->", err.Error())
 				errorsCollectedInCheckingIFWeAreInAAD = append(errorsCollectedInCheckingIFWeAreInAAD, err)
 				if stopCheckingOnError {
+					close(done)
 					return
 				}
 				// else keep going
@@ -37,22 +38,14 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context, interval
 			}
 			println("are we still in a AD ->", areWeInAAd)
 			if !areWeInAAd {
-				if firstTimeTheADIsOver {
-					// of this is the first thme ad is over then we will set it to false
-					firstTimeTheADIsOver = false
-					println("this was the first time when the ad was over and we are resetting the ticker ")
-					// now wait for 5 sec to check if there is not additional add
-					// ticker.Reset(recheckForAdAfterFirstTimeADFinish)
-					// now sleep for 5 sec and then run the func  again
-					time.Sleep(time.Second * 4)
-
-				} else {
-					// if  firstTimeTheADIsOver is false then we have spend our 5 sec to see if there is no additional AD, and now we exit
-					println(" this was the 2nd time that the ads skipped value was true ")
-					return
-				}
+				// of this is the first thme ad is over then we will set it to false
+				println("this was the first time when the ad was over and we are resetting the ticker ")
+				// now wait for 5 sec to check if there is not additional add
+				// ticker.Reset(recheckForAdAfterFirstTimeADFinish)
+				// now sleep for 5 sec and then run the func  again
 				// IDK why is this for, this is causing the ticker to return
-				// return
+				close(done)
+				return
 			} else {
 				println("we are still in a AD")
 			}
@@ -82,9 +75,17 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context, interval
 
 // note: run this func after the page visible one as this will not make sure that the page is loaded
 func (e *ChromeExtension) IsTheYoutubeVideoPlayingAnAd(ctx context.Context) (bool, error) {
-	adPlayerClass := ".ytp-ad-player-overlay-layout"
-	// assume the page is loaded , now we are going to see if the add one is visible
-	return e.IsTheElementVisible(adPlayerClass, ctx)
+	script := `
+      (function(){
+          const player = document.querySelector('.html5-video-player');
+          return player ? player.classList.contains('ad-showing') : false;
+      })()
+    `
+	var isAd bool
+	err := chromedp.Run(ctx,
+		chromedp.Evaluate(script, &isAd),
+	)
+	return isAd, err
 }
 
 // --------removed it as we do not need it and the above(3rd ish) method is bettor and not AI generated and suits my need
