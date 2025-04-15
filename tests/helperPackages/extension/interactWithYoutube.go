@@ -16,7 +16,9 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context, interval
 	ticker := time.NewTicker(intervalToKeepCheckingIfWeAreStillInAAD)
 	defer ticker.Stop()
 	errorsCollectedInCheckingIFWeAreInAAD := []error{}
-	// recheckForAdAfterFirstTimeADFinish := time.Second * 3
+	sleepAndCheckForADAgain := time.Second * 3
+	// this is here so that if there are 2 ads then we need to skip both of them
+	ifThisTheFirstTimeADIsOver := true
 	done := make(chan struct{})
 
 	go func() {
@@ -38,16 +40,22 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context, interval
 			}
 			println("are we still in a AD ->", areWeInAAd)
 			if !areWeInAAd {
-				// of this is the first thme ad is over then we will set it to false
 				println("this was the first time when the ad was over and we are resetting the ticker ")
 				// now wait for 5 sec to check if there is not additional add
-				// ticker.Reset(recheckForAdAfterFirstTimeADFinish)
-				// now sleep for 5 sec and then run the func  again
-				// IDK why is this for, this is causing the ticker to return
-				close(done)
-				return
+				if ifThisTheFirstTimeADIsOver {
+					// we will wait and check for the Second AD to finish/not appear by waiting for 4 sec
+					println("this is the first time the AD has finish we will sleep for some time and then re check it again to be for sure")
+					ifThisTheFirstTimeADIsOver = false
+					time.Sleep(sleepAndCheckForADAgain)
+					continue
+				} else {
+					// if not then there is no ad and we will return
+					println("there is not ad after the second time waiting for the ad  ")
+					close(done)
+					return
+				}
 			} else {
-				println("we are still in a AD")
+				println("--AD still running --")
 			}
 		}
 	}()
@@ -87,41 +95,6 @@ func (e *ChromeExtension) IsTheYoutubeVideoPlayingAnAd(ctx context.Context) (boo
 	)
 	return isAd, err
 }
-
-// --------removed it as we do not need it and the above(3rd ish) method is bettor and not AI generated and suits my need
-
-// WaitForAdToFinish waits until a YouTube ad finishes playing and returns
-// It takes a context and a timeout duration as parameters
-// Returns nil if the ad finishes successfully, or an error if timeout occurs or other issues
-// func (e *ChromeExtension) WaitForAdToFinish(ctx context.Context, timeout time.Duration) error {
-// 	// Create a context with the specified timeout
-// 	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
-// 	defer cancel()
-//
-// 	// Create a ticker to check for ad status periodically
-// 	ticker := time.NewTicker(600 * time.Millisecond)
-// 	defer ticker.Stop()
-//
-// 	for {
-// 		select {
-// 		case <-ticker.C:
-// 			// Check if the ad is still playing
-// 			isAdPlaying, err := e.IsTheYoutubeVideoPlayingAnAd(ctx)
-// 			if err != nil {
-// 				return err
-// 			}
-//
-// 			// If ad is no longer playing, return success
-// 			if !isAdPlaying {
-// 				return nil
-// 			}
-//
-// 		case <-timeoutCtx.Done():
-// 			// Context timeout or cancellation
-// 			return fmt.Errorf("timeout waiting for ad to finish")
-// 		}
-// 	}
-// }
 
 // note makse sure to close the channel form the outside
 func (e *ChromeExtension) EnsureVideoIsPlayingPeriodically(ctx context.Context, intervalToCheckTheVideoPlayingAt time.Duration, stopChan <-chan struct{}, shouldWeStopOnError bool) {
