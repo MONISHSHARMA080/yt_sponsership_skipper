@@ -1,10 +1,13 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 	"time"
+	commonchanneltype "youtubeAdsSkipper/tests/helperPackages/CommonChannelType"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
+	"youtubeAdsSkipper/tests/helperPackages/extension/types"
 )
 
 func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
@@ -23,7 +26,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	ctx := commonstateacrosstest.BrowserContext
-	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=Fndo8vzTPoM", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
+	youtubeUrl := []string{"https://www.youtube.com/watch?v=Fndo8vzTPoM", "https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	success := false
 	for i, pageUrl := range youtubeUrl {
@@ -37,8 +40,26 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		println("we are in the youtube video ->", pageUrl)
 		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
 		defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
+		resultChanForTrackingPlayBackTime := make(chan commonchanneltype.GenericResultChannel[*[]float64])
+		getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Millisecond*700, stopChannelToStopChekingIfTheVideoIsPlaying, false)
-		chromeExtension.IfThereIsAAdThenFinishIt(ctx, time.Millisecond*800, false)
+		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*20, getAPIResponseFromNetworkChann)
+		go chromeExtension.TrackVideoPlaybackTime(ctx, resultChanForTrackingPlayBackTime)
+		playBackTimeChan := <-resultChanForTrackingPlayBackTime
+		println("the playBakc result is here")
+		if playBackTimeChan.Err != nil {
+			t.Fatal("there is a error in getting the playBackTime[] and it is ->" + playBackTimeChan.Err.Error())
+		}
+		println("is the playBackTime array not nil->", playBackTimeChan.Result != nil, " and the array lenght is:", len(*playBackTimeChan.Result))
+		APIResponseFormNetwork := <-getAPIResponseFromNetworkChann
+		if APIResponseFormNetwork.Err != nil {
+			println("there is a error in getting the api respons form the NEtwork and it is ->", APIResponseFormNetwork.Err.Error())
+			t.Fatal(APIResponseFormNetwork.Err)
+		}
+		fmt.Printf("we got the API resp form the network and it is -> %v", APIResponseFormNetwork.Result)
+
+		// got UBLOCK so just focus on the video
+		// chromeExtension.IfThereIsAAdThenFinishIt(ctx, time.Millisecond*800, false)
 
 		//
 		// or) may be just get the U-block lite and let it skip the ads instead

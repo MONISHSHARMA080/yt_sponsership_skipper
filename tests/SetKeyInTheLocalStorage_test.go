@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"time"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
@@ -14,10 +15,10 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-const (
-	extensionID                    = "dpkehfkmkhmbmbofjaikccklcdpdmhpl"
-	keyForStorageInChromeExtension = "key"
-)
+// const (
+// 	extensionID                    = "dpkehfkmkhmbmbofjaikccklcdpdmhpl"
+// 	keyForStorageInChromeExtension = "key"
+// )
 
 func TestSetKeyInTheLocalStorage(t *testing.T) {
 	// get the key
@@ -29,6 +30,8 @@ func TestSetKeyInTheLocalStorage(t *testing.T) {
 	}
 	DB := DB.DbConnect()
 
+	println("s;eeping for 30 sec to see that did we get the sign in here ")
+	time.Sleep(time.Second * 3)
 	userKey := userkey.UserKey{}
 	userInDb := userindb.Userindb{}
 

@@ -4,10 +4,62 @@ import (
 	"context"
 	"fmt"
 	"time"
+	commonchanneltype "youtubeAdsSkipper/tests/helperPackages/CommonChannelType"
 
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
+
+// will store the time in Array in the js side and when the vide is completed, then we will return it
+func (ce *ChromeExtension) TrackVideoPlaybackTime(ctx context.Context, resultChannel chan commonchanneltype.GenericResultChannel[*[]float64]) {
+	// this will be a struct that will have result and error on it
+	var result struct {
+		Result []float64 `json:"result"`
+		Error  string    `json:"error"`
+	}
+	script := `
+async function getTheVideoPlaybackTimeForItsLife() {
+  try {
+    const videoPlayer = document.querySelector('video');
+    if (!videoPlayer) {
+      return { result: null, error: "The video player is not found" };
+    }
+
+  console.log("in the script form the chromedp")
+    let resultArray = [];
+    let i = 0;
+
+    videoPlayer.addEventListener("timeupdate", () => {
+      resultArray.push(videoPlayer.currentTime);
+      console.log("Adding currentTime to array, index:" + i);
+      i++
+    });
+
+    return await new Promise((resolve) => {
+      videoPlayer.addEventListener("ended", () => {
+        console.log("Video has ended, returning resultArray");
+        resolve({ result: resultArray, error: "" });
+      });
+    });
+  } catch (error) {
+    console.log("Error:", error);
+    return { result: null, error: "There was an error: " + error };
+  }
+}
+getTheVideoPlaybackTimeForItsLife()
+  `
+	err := chromedp.Run(ctx,
+		chromedp.Evaluate(script, &result, func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
+			return p.WithAwaitPromise(true)
+		}),
+	)
+	if err != nil {
+		resultChannel <- commonchanneltype.GenericResultChannel[*[]float64]{Result: nil, Err: fmt.Errorf("there is a error in running the script to get the videoPlayback time (array) out of the js exec and it is :->%s", err.Error())}
+		return
+	}
+	println("the results are here for the time array")
+	resultChannel <- commonchanneltype.GenericResultChannel[*[]float64]{Result: &result.Result, Err: nil}
+}
 
 // checks if we are still in the ad using ticker, if the StopCheckingOnError is true them we will return form the func on single eror
 // Prefer keeping stopCheckingOnError false
@@ -62,22 +114,6 @@ func (e *ChromeExtension) IfThereIsAAdThenFinishIt(ctx context.Context, interval
 	<-done
 	println("the for loop over the tiker finished")
 
-	// areWeInAAd, err := e.IsTheYoutubeVideoPlayingAnAd(ctx)
-	// println("checking if the ad is playing ")
-	// if err != nil {
-	// 	return err
-	// }
-	// println("is the video playing an ad ->", areWeInAAd)
-	// if !areWeInAAd {
-	// 	println("there is not add in the youtube video")
-	// 	return nil
-	// }
-	// println("there is a add in the youtube video")
-	// if the add go more than 4 min then we will fail as a ad will not be more than 4 min
-	// err := e.WaitForAdToFinish(ctx, time.Minute*4)
-	// if err != nil {
-	// 	return err
-	// }
 	return nil
 }
 

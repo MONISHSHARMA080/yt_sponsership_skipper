@@ -12,10 +12,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// 	extensionID                    = "dpkehfkmkhmbmbofjaikccklcdpdmhpl"
-// const (
-// 	keyForStorageInChromeExtension = "key"
-// )
+const (
+	extensionID                    = "dpkehfkmkhmbmbofjaikccklcdpdmhpl"
+	keyForStorageInChromeExtension = "key"
+)
 
 func TestMain(m *testing.M) {
 	err := godotenv.Load("../.env")

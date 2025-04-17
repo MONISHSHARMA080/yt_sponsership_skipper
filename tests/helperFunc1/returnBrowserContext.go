@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/chromedp/cdproto/emulation"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
 
@@ -21,64 +23,6 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	ublockPath := filepath.Join(cwd, "u-block")
 	println("the ublockPath extensionPath is ->", ublockPath)
 
-	// // Common options for both modes
-	// baseOpts := []chromedp.ExecAllocatorOption{
-	// 	chromedp.NoFirstRun,
-	// 	chromedp.NoDefaultBrowserCheck,
-	// 	// Disable security features that might block extension access
-	// 	chromedp.Flag("disable-web-security", true),
-	// 	// Disable content blocking features to prevent ERR_BLOCKED_BY_CLIENT
-	// 	chromedp.Flag("disable-client-side-phishing-detection", true),
-	// 	chromedp.Flag("disable-features", "BlockInsecurePrivateNetworkRequests,IsolateOrigins,site-per-process,SafeBrowsing"),
-	// 	// Allow extension access
-	// 	chromedp.Flag("silent-debugger-extension-api", false),
-	// 	chromedp.Flag("allow-file-access-from-files", true),
-	// 	// Create a user data directory to persist extension state
-	// 	chromedp.UserDataDir(filepath.Join(cwd, "chrome-test-profile")),
-	// 	chromedp.Flag("headless", false),          // Important: We don't want headless mode
-	// 	chromedp.Flag("enable-automation", false), // Disable the automation banner
-	// }
-	//
-	// if useExistingBrowser {
-	// 	// Connect to existing Chrome browser with remote debugging
-	// 	opts = append(baseOpts,
-	// 		chromedp.Flag("remote-debugging-port", "9222"),
-	// 		// Important: Make sure extensions are still enabled even in existing browser
-	// 		chromedp.Flag("load-extension", extensionPath),
-	// 		chromedp.Flag("disable-extensions-except", extensionPath),
-	// 		chromedp.Flag("disable-popup-blocking", true),
-	// 		chromedp.Flag("disable-sync", true),
-	// 		chromedp.Flag("safebrowsing-disable-extension-blacklist", true),
-	// 	)
-	// } else {
-	// 	// Create a new Chrome instance with the extension loaded
-	// 	opts = append(baseOpts,
-	// 		chromedp.DisableGPU,
-	// 		// Load the extension
-	// 		chromedp.Flag("load-extension", extensionPath),
-	// chromedp.Flag("disable-extensions-except", extensionPath),
-	// 		// Disable all browser filtering
-	// 		chromedp.Flag("disable-popup-blocking", true),
-	// 		chromedp.Flag("disable-sync", true),
-	// 		// Disable safe browsing blocking
-	// 		chromedp.Flag("safebrowsing-disable-extension-blacklist", true),
-	// 	)
-	// }
-	//
-	// // Append default options to our custom ones
-	// opts = append(chromedp.DefaultExecAllocatorOptions[:], opts...)
-	//
-	// // Create a new allocator context with the custom options
-	// allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
-	//
-	// // Create a browser context with standard logging (not debug)
-	// ctx, cancel2 := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
-	//
-	// // Create a context with timeout (2 minutes)
-	// ctx, cancel3 := context.WithTimeout(ctx, 120*time.Second)
-	//
-	// return ctx, cancel1, cancel2, cancel3, nil
-
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 
 		chromedp.NoFirstRun,
@@ -89,15 +33,20 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("extensions-on-chrome-urls", true),
 		// chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath),
 
+		chromedp.Flag("no-first-run", true),
+		// Disable default apps and extensions
+		chromedp.Flag("disable-default-apps", true),
 		// chromedp.Flag("disable-extensions-except", extensionID),
 		chromedp.Flag("load-extension", extensionPath),
 
+		chromedp.Flag("use-gl", "desktop"),
 		chromedp.Flag("disable-client-side-phishing-detection", true),
+		chromedp.Flag("enable-features", "DisableAccountConsistency"),
 		chromedp.Flag("disable-web-security", true),
 		// chromedp.Flag("load-extension", extensionPath),
-		chromedp.Flag("load-extension", extensionPath+","+ublockPath), // Load both extensions
-		// chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath), // Optional: disable other extensions
-		chromedp.Flag("disable-extensions-except", extensionPath),
+		chromedp.Flag("load-extension", extensionPath+","+ublockPath),            // Load both extensions
+		chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath), // Optional: disable other extensions
+		// chromedp.Flag("disable-extensions-except", extensionPath),
 		chromedp.Flag("disable-popup-blocking", true),
 		chromedp.Flag("disable-sync", true),
 		//---
@@ -113,7 +62,17 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 
 		chromedp.Flag("unlimited-storage", true),
 		chromedp.Flag("allow-unlimited-local-storage", true),
-		// chromedp.UserDataDir(filepath.Join(cwd, "../chrome-test-profile-doNotTouch/")),
+		chromedp.UserDataDir(filepath.Join(cwd, "../chrome-test-profile-doNotTouch/")),
+		// for youtube video to work and not get detected/block by automation software
+
+		chromedp.Flag("disable-blink-features", "AutomationControlled"),
+		chromedp.Flag("disable-web-security", true),
+		chromedp.Flag("disable-features", "IsolateOrigins,site-per-process"),
+		chromedp.Flag("ignore-certificate-errors", true),
+		chromedp.Flag("disable-extensions", true),
+		chromedp.Flag("no-sandbox", true),
+		chromedp.Flag("disable-infobars", true),
+		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"),
 	)
 
 	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
@@ -130,6 +89,47 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	ctx, cancel := context.WithTimeout(ctx, 430*time.Second)
 
 	// Navigate to the target URL
+	err = chromedp.Run(ctx, network.Enable())
+	if err != nil {
+		cancel()
+		cancel1()
+		return nil, nil, nil, err
+	}
+	err = chromedp.Run(ctx,
+		// Set realistic viewport
+		emulation.SetDeviceMetricsOverride(1920, 1080, 1.0, false),
+		// Clear JavaScript properties that might reveal automation
+		chromedp.Evaluate(`
+			// Overwrite navigator properties
+			Object.defineProperty(navigator, 'webdriver', {
+				get: () => false,
+			});
+			// Clear automation-related properties
+			delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+			delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+			delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+		`, nil),
+		// Load YouTube
+		// chromedp.Navigate("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+		// // Wait for video player
+		// chromedp.WaitVisible("video", chromedp.ByQuery),
+		// // Give video time to start
+		// chromedp.Sleep(5*time.Second),
+		// // Check if video is playing
+		// chromedp.Evaluate(`
+		// 	(() => {
+		// 		const video = document.querySelector('video');
+		// 		return video && !video.paused && video.currentTime > 0;
+		// 	})()
+		// `, nil),
+		// // Keep browser open for visual confirmation
+		// chromedp.Sleep(30*time.Second),
+	)
+	if err != nil {
+		cancel()
+		cancel1()
+		return nil, nil, nil, err
+	}
 
 	return ctx, cancel, cancel1, nil
 }
