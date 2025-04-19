@@ -62,7 +62,6 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 			}
 		}
 		println("the service workrer target id is ->", swTargetID)
-
 		println("sleeping for 4 sec to ensure that the we are able to intercept the message form the service worker")
 		time.Sleep(time.Second * 4)
 		err := chromeExtension.NavigateToAWebPage(ctx, pageUrl)
