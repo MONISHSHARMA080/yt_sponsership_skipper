@@ -92,7 +92,6 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		printJson(groqApiResponse)
 		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: fmt.Errorf("no choices presesnt in the gorq response"), groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 	}
-
 	println("||6")
 }
 

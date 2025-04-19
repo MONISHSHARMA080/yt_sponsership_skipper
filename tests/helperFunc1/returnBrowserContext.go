@@ -73,6 +73,11 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("no-sandbox", true),
 		chromedp.Flag("disable-infobars", true),
 		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"),
+		//
+
+		chromedp.Flag("auto-open-devtools-for-tabs", true),
+		// This ensures network events are captured
+		chromedp.Flag("enable-network-service", true),
 	)
 
 	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
@@ -86,7 +91,7 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	)
 
 	// Create a timeout for the entire operation
-	ctx, cancel := context.WithTimeout(ctx, 430*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 40*time.Minute)
 
 	// Navigate to the target URL
 	err = chromedp.Run(ctx, network.Enable())
@@ -109,21 +114,6 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 			delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
 			delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
 		`, nil),
-		// Load YouTube
-		// chromedp.Navigate("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
-		// // Wait for video player
-		// chromedp.WaitVisible("video", chromedp.ByQuery),
-		// // Give video time to start
-		// chromedp.Sleep(5*time.Second),
-		// // Check if video is playing
-		// chromedp.Evaluate(`
-		// 	(() => {
-		// 		const video = document.querySelector('video');
-		// 		return video && !video.paused && video.currentTime > 0;
-		// 	})()
-		// `, nil),
-		// // Keep browser open for visual confirmation
-		// chromedp.Sleep(30*time.Second),
 	)
 	if err != nil {
 		cancel()

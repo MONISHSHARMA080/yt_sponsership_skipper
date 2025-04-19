@@ -1,13 +1,19 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"strings"
 	"testing"
 	"time"
 	commonchanneltype "youtubeAdsSkipper/tests/helperPackages/CommonChannelType"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
 	"youtubeAdsSkipper/tests/helperPackages/extension/types"
+
+	"github.com/chromedp/cdproto/target"
+	"github.com/chromedp/chromedp"
 )
 
 func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
@@ -26,13 +32,37 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	ctx := commonstateacrosstest.BrowserContext
-	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
+	youtubeUrl := []string{"https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
 	for i, pageUrl := range youtubeUrl {
 		// go to the url
-		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*20, getAPIResponseFromNetworkChann)
+		// go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*20, getAPIResponseFromNetworkChann)
+
+		var infos []*target.Info
+		if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+			var err error
+			infos, err = target.GetTargets().Do(ctx)
+			return err
+		})); err != nil {
+			println(" we have error is ->", err.Error())
+			log.Fatal(err)
+		}
+
+		// 5. Find your extension’s service worker.
+		var swTargetID target.ID
+		prefix := "chrome-extension://" + extensionID
+		for i, ti := range infos {
+			println("index:", i, " and the ti title is ->", ti.Title, "ti's url is ->", ti.URL, "--and type is ", ti.Type)
+
+			if ti.Type == "service_worker" && strings.HasPrefix(ti.URL, prefix) {
+				swTargetID = ti.TargetID
+				break
+			}
+		}
+		println("the service workrer target id is ->", swTargetID)
+
 		println("sleeping for 4 sec to ensure that the we are able to intercept the message form the service worker")
 		time.Sleep(time.Second * 4)
 		err := chromeExtension.NavigateToAWebPage(ctx, pageUrl)
