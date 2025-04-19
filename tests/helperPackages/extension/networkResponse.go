@@ -3,7 +3,7 @@ package extension
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 	"strings"
 	"time"
 
@@ -21,125 +21,133 @@ import (
 //
 // Note: you should check to see wether this func has reuslted in the result, if not then we probally have soem error and you should proceed as error and return
 func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Context, timeToKeepLookingForNetworkResponse time.Duration, resultChannel chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]) {
-	// Create a timeout context for the entire operation, including finding the target
-	chromePopulUrl := "chrome-extension://dpkehfkmkhmbmbofjaikccklcdpdmhpl/index.html"
-	newTabCtx, cancelFuncTab, CancelFuncTimeout, err := ce.getNewTab(ctx, timeToKeepLookingForNetworkResponse, chromePopulUrl)
-	if err != nil {
-		println("there is a error in creatign new tab ->", err.Error())
-		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Err: newTabCtx.Err()}
+	println("getting context without timepout")
+	ctx, cancelFunc := context.WithTimeout(ctx, timeToKeepLookingForNetworkResponse)
+	// if err != nil {
+	//    println("the error in getting the ")
+	// 	resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: nil}
+	// 	return
+	// }
+	defer cancelFunc()
+	var infos []*target.Info
+	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+		var err error
+		infos, err = target.GetTargets().Do(ctx)
+		return err
+	})); err != nil {
+		println(" we have error in getting the targets ->", err.Error())
+		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: nil}
 		return
 	}
 
-	// set up a channel, so we can block later while we monitor the download
-	// progress
-	// done := make(chan bool)
-	// var requestID network.RequestID
+	// 5. Find your extension’s service worker.
+	var swTargetID target.ID
+	prefix := "chrome-extension://" + ce.ExtensionId
+	for i, ti := range infos {
+		println("index:", i, " and the ti title is ->", ti.Title, "ti's url is ->", ti.URL, "--and type is ", ti.Type)
 
-	defer cancelFuncTab()
-	defer CancelFuncTimeout()
-	responeFromYoutubeApiSuccessfullyReceivedChan := make(chan *types.YouTubeVideoResponse)
-	println("listening to the network req form the service worker")
+		if ti.Type == "service_worker" && strings.HasPrefix(ti.URL, prefix) {
+			println("found the service worker with the id ->", ti.TargetID)
+			swTargetID = ti.TargetID
+			break
+		}
+	}
+	if swTargetID == "" {
+		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: fmt.Errorf("the taerget ID of the service worker is empty")}
+		return
+	}
+	println("the target ID of the service worker is ->", swTargetID)
 
-	var targetReqID network.RequestID
+	swCtx, swCancel := chromedp.NewContext(ctx, chromedp.WithTargetID(swTargetID))
+	defer swCancel()
 
-	// get the network response form it
+	// Create a channel to receive network events
+	networkEventsChan := make(chan *network.EventResponseReceived, 100)
 
-	chromedp.ListenTarget(newTabCtx, func(ev any) {
-		switch event := ev.(type) {
-
-		case *serviceworker.EventWorkerRegistrationUpdated:
-			for i, reg := range event.Registrations {
-				log.Printf("SW (index :%d) registration: scope=%q, id=%s, deleted=%v \n",
-					i, reg.ScopeURL, reg.RegistrationID, reg.IsDeleted)
-			}
-
+	// Listen for network response events
+	chromedp.ListenTarget(swCtx, func(ev interface{}) {
+		switch e := ev.(type) {
 		case *network.EventResponseReceived:
-			if strings.Contains(event.Response.URL, "localhost:8080/youtubeVideo") {
-				println("event response received and url is -> ", event.Response.URL, "  - and the req id is ->", event.RequestID)
-				targetReqID = event.RequestID
-				log.Printf("ResponseReceived: URL=%s, ID=%s, Status=%d, MimeType=%s",
-					event.Response.URL, event.RequestID, event.Response.Status, event.Response.MimeType)
-			}
-			if event.Response.URL != "" {
-				func(reqID network.RequestID) {
-					responseBody, err := network.GetResponseBody(reqID).Do(newTabCtx)
-					if err != nil {
-						// not exiting , reason being that the outer function will check and if this has not resulted in the response then we declare failure
-						println("there is a error in getting the error body form the network request (accessing it and not parsing it, and we are not exicting out go func ) ->", err.Error())
-						if newTabCtx.Err() != nil {
-							println("Context state(newTabCtx):", newTabCtx.Err().Error())
-						} else {
-							println("the new tab context is  null, assert:", newTabCtx.Err() == nil)
-						}
-						println("Request ID:", string(reqID))
-						return
-					}
-					var jsonResponseOnYoutubePath types.YouTubeVideoResponse
-					err = json.Unmarshal(responseBody, &jsonResponseOnYoutubePath)
-					if err != nil {
-						println("there is a error in marshalling the json received from the /youtube path in the youtube struct, and err->", err.Error())
-						return
-					}
-					responeFromYoutubeApiSuccessfullyReceivedChan <- &jsonResponseOnYoutubePath
-				}(event.RequestID)
-			}
-		case *network.EventLoadingFinished:
-			println("the network event loading is finished , req id ->", event.RequestID)
-			println("is the target req id is same as the network req id ->", targetReqID == event.RequestID)
-			func(reqID network.RequestID) {
-				// responseBody, err := network.GetResponseBody(reqID).Do(newTabCtx)
-				responseBody, err := network.GetResponseBodyForInterception(network.InterceptionID(event.RequestID)).Do(newTabCtx)
-				if err != nil {
-					println("error in getting the error body in the event loading finished")
-					// not exiting , reason being that the outer function will check and if this has not resulted in the response then we declare failure
-					println("==there is a error in getting the error body form the network request (accessing it and not parsing it, and we are not exicting out go func ) ->", err.Error())
-					if newTabCtx.Err() != nil {
-						println("==Context state(newTabCtx):", newTabCtx.Err().Error())
-					} else {
-						println("==the new tab context is  null, assert:", newTabCtx.Err() == nil)
-					}
-					println("==Request ID:", string(reqID))
-					return
-				}
-				var jsonResponseOnYoutubePath types.YouTubeVideoResponse
-				err = json.Unmarshal(responseBody, &jsonResponseOnYoutubePath)
-				if err != nil {
-					println("==there is a error in marshalling the json received from the /youtube path in the youtube struct, and err->", err.Error())
-					return
-				}
-				responeFromYoutubeApiSuccessfullyReceivedChan <- &jsonResponseOnYoutubePath
-			}(event.RequestID)
+			networkEventsChan <- e
 		}
 	})
 
-	err = chromedp.Run(newTabCtx, network.Enable(),
-		network.SetBypassServiceWorker(false),
-		network.SetCacheDisabled(true),
-		serviceworker.Enable(),
-		network.SetExtraHTTPHeaders(map[string]interface{}{
-			"X-DevTools-Emulate-Network-Conditions-Client-Id": "Chrome.Headless",
-		}),
-		// Set network event reporting to include all request/response data
-		serviceworker.Enable(),
-	)
-	if err != nil {
-		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Err: err, Result: nil}
+	// Enable network events
+	if err := chromedp.Run(swCtx, network.Enable()); err != nil {
+		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: fmt.Errorf("failed to enable network monitoring: %v", err)}
 		return
 	}
+	type responseForJsonBodyChannel struct {
+		ytResp  *types.YouTubeVideoResponse
+		err     error
+		success bool
+	}
+	resultChanForJsonBody := make(chan responseForJsonBodyChannel)
+	var youtubePathResponseInJson *types.YouTubeVideoResponse
+	// Process network events with a timeout
+	go func() {
+		for {
+			resp, ok := <-networkEventsChan
+			if !ok {
+				err := fmt.Errorf("the result is not ok in receiving form the channel 0 ")
+				resultChanForJsonBody <- responseForJsonBodyChannel{err: err, success: false, ytResp: nil}
+				return
+			}
+			// Filter for API calls related to your extension
+			fmt.Printf("response from the networkEventsChan is %v \n\n", resp)
+			println("the response url is ->", resp.Response.URL)
+			if strings.Contains(resp.Response.URL, "localhost") ||
+				strings.Contains(resp.Response.URL, "/youtubeVideo") {
 
-	time.Sleep(time.Minute * 2)
+				fmt.Printf("Detected relevant API call: %s\n", resp.Response.URL)
+
+				// Get the response body
+				var responseBody string
+				err := chromedp.Run(swCtx, chromedp.ActionFunc(func(ctx context.Context) error {
+					body, err := network.GetResponseBody(resp.RequestID).Do(ctx)
+					if err != nil {
+						println("error Unmarshalling the json in body")
+						resultChanForJsonBody <- responseForJsonBodyChannel{err: err, success: false, ytResp: nil}
+						return err
+					}
+					responseBody = string(body)
+					println("the response body is ->\n ", responseBody, " \n\n---")
+					err = json.Unmarshal(body, &youtubePathResponseInJson)
+					if err != nil {
+						println("there is a error in parsing the json into youtube path response ->", err.Error())
+						resultChanForJsonBody <- responseForJsonBodyChannel{err: err, success: false, ytResp: nil}
+						return err
+					}
+					println("got the json decoded in the struct and returnign it")
+					resultChanForJsonBody <- responseForJsonBodyChannel{err: nil, success: true, ytResp: youtubePathResponseInJson}
+					return nil
+				}))
+				if err != nil {
+					fmt.Printf("Error getting response body: %v\n", err)
+					continue
+				}
+
+				fmt.Printf("Response body: %s\n", responseBody)
+
+			}
+		}
+	}()
+
+	// make the resultChanForJsonBody to be a struct that has err and bool that way only one palce will write to the resultChannel
+	// resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: nil}
 	select {
-	// case <-ctx.Done():
-	// 	println("Context already canceled:", ctx.Err().Error())
-	// 	resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Err: ctx.Err()}
-	// 	return
-	case <-newTabCtx.Done():
-		println("Context already canceled:", newTabCtx.Err().Error())
-		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Err: newTabCtx.Err()}
+	case res := <-resultChanForJsonBody:
+		// like what am I supose to do here except for return
+		// that's why make this channle into a struct with error , ptr to body struct and bool
+		if res.success {
+			resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: res.ytResp, Err: nil}
+		} else {
+			resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: res.err}
+		}
 		return
-	case ytBodyResponse := <-responeFromYoutubeApiSuccessfullyReceivedChan:
-		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: ytBodyResponse}
-		return
+	case <-ctx.Done():
+		println("context deadline reached so we will just quit")
+		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: fmt.Errorf("ctx deadline reached")}
 	}
 }
 

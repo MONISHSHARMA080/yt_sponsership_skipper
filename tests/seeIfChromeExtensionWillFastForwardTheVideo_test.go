@@ -1,20 +1,13 @@
 package tests
 
 import (
-	"context"
 	"fmt"
-	"log"
-	"strings"
 	"testing"
 	"time"
 	commonchanneltype "youtubeAdsSkipper/tests/helperPackages/CommonChannelType"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
 	"youtubeAdsSkipper/tests/helperPackages/extension/types"
-
-	"github.com/chromedp/cdproto/network"
-	"github.com/chromedp/cdproto/target"
-	"github.com/chromedp/chromedp"
 )
 
 func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
@@ -38,109 +31,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
 	for i, pageUrl := range youtubeUrl {
-		// go to the url
-		// go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*20, getAPIResponseFromNetworkChann)
-
-		var infos []*target.Info
-		if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
-			var err error
-			infos, err = target.GetTargets().Do(ctx)
-			return err
-		})); err != nil {
-			println(" we have error is ->", err.Error())
-			log.Fatal(err)
-		}
-
-		// 5. Find your extension’s service worker.
-		var swTargetID target.ID
-		prefix := "chrome-extension://" + extensionID
-		for i, ti := range infos {
-			println("index:", i, " and the ti title is ->", ti.Title, "ti's url is ->", ti.URL, "--and type is ", ti.Type)
-
-			if ti.Type == "service_worker" && strings.HasPrefix(ti.URL, prefix) {
-				swTargetID = ti.TargetID
-				break
-			}
-		}
-		if swTargetID == "" {
-			t.Fatal("the taerget ID of the service worker is empty")
-		}
-		println("the target ID of the service worker is ->", swTargetID)
-
-		swCtx, swCancel := chromedp.NewContext(ctx, chromedp.WithTargetID(swTargetID))
-		defer swCancel()
-
-		// Create a channel to receive network events
-		networkEventsChan := make(chan *network.EventResponseReceived, 100)
-
-		// Listen for network response events
-		chromedp.ListenTarget(swCtx, func(ev interface{}) {
-			switch e := ev.(type) {
-			case *network.EventResponseReceived:
-				networkEventsChan <- e
-			}
-		})
-
-		// Enable network events
-		if err := chromedp.Run(swCtx, network.Enable()); err != nil {
-			t.Fatalf("Failed to enable network monitoring: %v", err)
-		}
-
-		// Navigate to the YouTube URL in the main browser context
-		if err := chromedp.Run(ctx, chromedp.Navigate(pageUrl)); err != nil {
-			t.Fatalf("Failed to navigate to URL: %v", err)
-		}
-
-		// Process network events with a timeout
-		go func() {
-			for {
-				select {
-				case resp := <-networkEventsChan:
-					// Filter for API calls related to your extension
-					fmt.Printf("response from the networkEventsChan is %v \n\n", resp)
-					println("the response url is ->", resp.Response.URL)
-					if strings.Contains(resp.Response.URL, "sponsorblock") ||
-						strings.Contains(resp.Response.URL, "your-api-endpoint") {
-
-						fmt.Printf("Detected relevant API call: %s\n", resp.Response.URL)
-
-						// Get the response body
-						var responseBody string
-						err := chromedp.Run(swCtx, chromedp.ActionFunc(func(ctx context.Context) error {
-							body, err := network.GetResponseBody(resp.RequestID).Do(ctx)
-							if err != nil {
-								return err
-							}
-							responseBody = string(body)
-							return nil
-						}))
-						if err != nil {
-							fmt.Printf("Error getting response body: %v\n", err)
-							continue
-						}
-
-						fmt.Printf("Response body: %s\n", responseBody)
-
-						// Parse the response and check for sponsor segments
-						// ... your code to handle the response ...
-					}
-				case <-time.After(30 * time.Second):
-					// Timeout if no relevant responses are detected
-					fmt.Printf("No relevant API responses detected for URL %s\n", pageUrl)
-					return
-				}
-			}
-		}()
-
-		// 7. Enable Network on that session.
-
-		// 8. Listen for network requests from the service worker.
-		// chromedp.ListenTarget(ctx, func(ev interface{}) {
-		// 	if req, ok := ev.(*network.EventRequestWillBeSent); ok && req.SessionID == sessionID {
-		// 		fmt.Printf("→ SW request: %s\n", req.Request.URL)
-		// 	}
-		// })
-		println("the service workrer target id is ->", swTargetID)
+		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*30, getAPIResponseFromNetworkChann)
 		println("sleeping for 4 sec to ensure that the we are able to intercept the message form the service worker")
 		time.Sleep(time.Second * 4)
 		err := chromeExtension.NavigateToAWebPage(ctx, pageUrl)
