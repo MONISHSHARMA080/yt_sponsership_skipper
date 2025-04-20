@@ -10,6 +10,33 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+
+
+func (ce *ChromeExtension) DidWeSkippedTheAd( startTime, endTime float64, playbackTime []float64) (bool, error) {
+	// check if the start time and end time is in the playback time
+	if len(playbackTime) == 0 {
+		return false, fmt.Errorf("the playback time array is empty")
+	}
+	// Look for a significant jump in playback time between startTime and endTime
+	for i := 1; i < len(playbackTime); i++ {
+		// timeDiff := playbackTime[i] - playbackTime[i-1]
+		
+		// If we find a jump larger than 1 second
+			// Check if the jump occurred around our target segment
+			if playbackTime[i-1] >= startTime-1 && playbackTime[i] <= endTime+1 {
+				return true, nil
+			}
+	}
+
+	// No significant skip found in the target range
+	return false, nil
+
+
+}
+
+
+
+
 // will store the time in Array in the js side and when the vide is completed, then we will return it
 func (ce *ChromeExtension) TrackVideoPlaybackTime(ctx context.Context, resultChannel chan commonchanneltype.GenericResultChannel[*[]float64]) {
 	// this will be a struct that will have result and error on it

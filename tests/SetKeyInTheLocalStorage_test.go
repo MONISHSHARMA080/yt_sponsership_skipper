@@ -15,10 +15,6 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-// const (
-// 	extensionID                    = "dpkehfkmkhmbmbofjaikccklcdpdmhpl"
-// 	keyForStorageInChromeExtension = "key"
-// )
 
 func TestSetKeyInTheLocalStorage(t *testing.T) {
 	// get the key

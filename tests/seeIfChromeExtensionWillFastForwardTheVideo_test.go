@@ -11,11 +11,6 @@ import (
 )
 
 func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
-	// mf We only got 2 days (sunday and monday) today implement 2 ;
-	// sunday: this one and other one
-	//
-	//
-	//
 	// Implementation: I will give you 4 url form tldr and big box swe (both)
 	// then go to the first one's yt page,
 	// listen to the yt video's current time and get it in the go (by saving it in the array etc, get the current time event listener)
@@ -26,7 +21,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	ctx := commonstateacrosstest.BrowserContext
-	youtubeUrl := []string{"https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
+	youtubeUrl := []string{ "https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
@@ -57,22 +52,25 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 			t.Fatal(APIResponseFormNetwork.Err)
 		}
 		fmt.Printf("we got the API resp form the network and it is -> %v", APIResponseFormNetwork.Result)
-
-		//
-		// or) may be just get the U-block lite and let it skip the ads instead
-		//
-		//
-		// or in the js we can take the duration of the video if it keeps changing then we will know that we have encountoured an ad and we will take the last one
-		// we will not need this level of autism
-		//
-		//or
-		//
-		//run it for 2 min and then in a
-
-		// now get the current time array and see if we have skipped the video
+		fmt.Printf("\n Api response does contain subtitle %t -- message:%s, -- status:%d -- and start time: %f -- and end time:%f  \n", APIResponseFormNetwork.Result.ContainSponserSubtitle, APIResponseFormNetwork.Result.Message, APIResponseFormNetwork.Result.Status, APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime)
+		println("the video time in the array is ->")
+		for i, timeInArray := range *playBackTimeChan.Result {
+			fmt.Printf("index:%d and time:%.6f \n", i, timeInArray)
+		}
+		didWeSkippedTheSponsorSegment, err:=	chromeExtension.DidWeSkippedTheAd( APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime, *playBackTimeChan.Result)
+		if err != nil {
+			println("there is a error in checking if we skipped the ad and it is ->", err.Error())
+			t.Fatal(err)
+		}
+		println("did we skipped the ad ->", didWeSkippedTheSponsorSegment)
+		if didWeSkippedTheSponsorSegment {
+			println("we have successfully skipped the ad in the video and are exiting form the loop")
+			success = true
+			break
+		}
 
 		println("the first video in the array has ended and we are about to go to the new one")
-		time.Sleep(time.Minute * 6)
+		time.Sleep(time.Minute * 2)
 	}
 
 	// if after all we are not able to success fully predict one of them then fail: all the videos have ads so we should be able to predict one of them
