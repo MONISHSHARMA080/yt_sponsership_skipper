@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"testing"
-	"time"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
@@ -25,9 +24,6 @@ func TestSetKeyInTheLocalStorage(t *testing.T) {
 		log.Fatal("Failed to start browser:", err)
 	}
 	DB := DB.DbConnect()
-
-	println("s;eeping for 30 sec to see that did we get the sign in here ")
-	time.Sleep(time.Second * 3)
 	userKey := userkey.UserKey{}
 	userInDb := userindb.Userindb{}
 

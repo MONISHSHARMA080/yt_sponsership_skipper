@@ -27,8 +27,8 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	success := false
 	for i, pageUrl := range youtubeUrl {
 		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*30, getAPIResponseFromNetworkChann)
-		println("sleeping for 4 sec to ensure that the we are able to intercept the message form the service worker")
-		time.Sleep(time.Second * 4)
+		println("sleeping for 2 sec to ensure that the we are able to intercept the message form the service worker")
+		time.Sleep(time.Second * 2)
 		err := chromeExtension.NavigateToAWebPage(ctx, pageUrl)
 		if err != nil {
 			println("there is a error in navigating to the youtubeUrl at index ", i)
@@ -57,7 +57,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		for i, timeInArray := range *playBackTimeChan.Result {
 			fmt.Printf("index:%d and time:%.6f \n", i, timeInArray)
 		}
-		didWeSkippedTheSponsorSegment, err:=	chromeExtension.DidWeSkippedTheAd( APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime, *playBackTimeChan.Result)
+		didWeSkippedTheSponsorSegment, err:=chromeExtension.DidWeSkippedTheAd( APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime, *playBackTimeChan.Result)
 		if err != nil {
 			println("there is a error in checking if we skipped the ad and it is ->", err.Error())
 			t.Fatal(err)

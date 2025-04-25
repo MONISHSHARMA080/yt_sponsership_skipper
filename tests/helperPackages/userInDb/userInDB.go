@@ -48,11 +48,6 @@ func (userInDb *Userindb) generateSpamUser() {
 func (usrk *Userindb) GenerateSpamUserAndSaveItInDB(db *sql.DB, getuserIdChann chan common.ErrorAndResultStruct[int64]) {
 	usrk.generateSpamUser()
 	go usrk.user.InsertNewUserInDb(db, getuserIdChann)
-	// userIdAndErrChann := <-getuserIdChann
-	// if userIdAndErrChann.Error != nil {
-	// 	return 0, userIdAndErrChann.Error
-	// }
-	// return userIdAndErrChann.Result, nil
 }
 
 func (u *Userindb) IsMyStructEmpty() bool {

@@ -21,7 +21,6 @@ func (ce *ChromeExtension) DidWeSkippedTheAd( startTime, endTime float64, playba
 	for i := 1; i < len(playbackTime); i++ {
 		// timeDiff := playbackTime[i] - playbackTime[i-1]
 		
-		// If we find a jump larger than 1 second
 			// Check if the jump occurred around our target segment
 			if playbackTime[i-1] >= startTime-1 && playbackTime[i] <= endTime+1 {
 				return true, nil

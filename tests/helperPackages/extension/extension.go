@@ -188,3 +188,13 @@ func (extension *ChromeExtension) SetKeysValueFormStorage(ctx context.Context, V
 	}
 	return result.Success, nil
 }
+
+// this will leave your page and go to the index/popup page of the extension and get the keys form there
+func (extension *ChromeExtension) GetKeysValueFormStorageByGoingToTheIndexPage(ctx context.Context) (string, error) {
+	pageUrl := fmt.Sprintf("chrome-extension://%s/index.html", extension.ExtensionId)
+	err := extension.NavigateToAWebPage(ctx, pageUrl)
+	if err != nil {
+		return "", err
+	}
+	return extension.GetKeysValueFormStorage(ctx)
+}
