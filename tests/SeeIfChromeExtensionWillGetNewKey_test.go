@@ -21,7 +21,7 @@ func TestSeeIfWeReplaceDeprecatedKey(t *testing.T) {
 	//
 	// working: (X)1)create a new user and set the user key in the storage
 	// (X) 2) then run the extension on the video(AD) ,
-	// 3) now when the video is done we expect the key to be different than the one we set before
+	// (X) 3) now when the video is done we expect the key to be different than the one we set before
 	// 4) if we really want to be pedantic, get the new key and decrypt it and also see that the time of expiry of the new key will be
 
 	// power off the phone and then do it , it is a 44-28 min test wth cursor

@@ -2,6 +2,7 @@ package extension
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -197,4 +198,61 @@ func (extension *ChromeExtension) GetKeysValueFormStorageByGoingToTheIndexPage(c
 		return "", err
 	}
 	return extension.GetKeysValueFormStorage(ctx)
+}
+
+type valueOfKEYInWebsite struct {
+	Email                         string `json:"email"`
+	Key                           string `json:"key"`
+	Name                          string `json:"name"`
+	IsUserOnPaidTier              bool   `json:"isPaidUser"`
+	IsUserValidatedThroughBackend bool   `json:"isValidatedThroughBackend"`
+}
+
+// note the result on success will be a JSON object where we will have all the stuff that website has, I suggest to use strings.contains
+func (extension *ChromeExtension) GetValueFormLocalStorageOfWebsite(ctx context.Context) (*valueOfKEYInWebsite, error) {
+	type StorageResult struct {
+		Error string `json:"error"`
+		Value string `json:"value"`
+	}
+
+	var valueOfKEY valueOfKEYInWebsite
+
+	var result StorageResult
+	script := `
+		new Promise((resolve) => {
+			try {
+				const value = localStorage.getItem('KEY');
+				resolve({
+					error: null,
+					value: value || ''
+				});
+			} catch (e) {
+				resolve({
+					error: e.toString(),
+					value: ''
+				});
+			}
+		})
+	`
+
+	err := chromedp.Run(ctx,
+		chromedp.Evaluate(script, &result, func(p *runtime.EvaluateParams) *runtime.EvaluateParams { return p.WithAwaitPromise(true) }),
+	)
+
+	fmt.Printf("\n The script execution is completed - value: %s, error: %s \n", result.Value, result.Error)
+
+	if err != nil {
+		fmt.Println("Error executing the script:", err.Error())
+		return nil, err
+	} else if result.Error != "" {
+		fmt.Printf("\n Error from script: %s \n", result.Error)
+		return nil, fmt.Errorf("error retrieving key from local storage: %s", result.Error)
+	}
+	err = json.Unmarshal([]byte(result.Value), &valueOfKEY)
+	if err != nil {
+		println("there is a error in decoding the json in the struct and the error is -> ", err.Error(), "\n and the key value returned is ->", result.Value)
+		return nil, err
+	}
+
+	return &valueOfKEY, nil
 }

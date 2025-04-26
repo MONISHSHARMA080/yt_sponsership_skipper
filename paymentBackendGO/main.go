@@ -79,8 +79,7 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		var RazorpayOrderForRecurring structs.RazorpayOrderResponse
 		var RazorpayOrderForOneTime structs.RazorpayOrderResponse
 
-		fmt.Printf("\n\n----------the useKey struct's decrypted key is -> %s ---------\n\n", userFromTheRequest.GetDecryptedStringInTheStruct())
-		fmt.Printf("\n\n----------the useKey struct is -> %v ---------\n\n", userFromTheRequest)
+		fmt.Printf("\n\n----------the useKey struct is -> %+v ---------\n\n", userFromTheRequest)
 		println(" it should be id primary key ->", userFromTheRequest.IDPrimaryKey)
 
 		razorPayClient := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"))
