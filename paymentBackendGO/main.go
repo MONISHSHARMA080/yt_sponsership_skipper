@@ -107,6 +107,7 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		resChannel := make(chan common.ErrorAndResultStruct[string])
 		dbFieldTOVerifyPayment := structs.CreateDBFieldForStoringTempOrderId(RazorpayOrderForRecurring.ID, RazorpayOrderForOneTime.ID)
 		go dbFieldTOVerifyPayment.SetTokensForTheUser(db, infoHolder.Email, resChannel)
+		println("going to the DB to get the tokens")
 		resultFromAddingTODb := <-resChannel
 		if resultFromAddingTODb.Error != nil {
 			println("there is a error in adding the tokens to the db ->", resultFromAddingTODb.Error.Error())

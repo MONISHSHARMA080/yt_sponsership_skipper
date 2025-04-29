@@ -18,6 +18,7 @@ func DbConnect() *sql.DB {
 	if isThisTestingEnv == "true" {
 		dbURL = os.Getenv("TURSO_DATABASE_URL")
 		url = dbURL
+		println("\n\n testing env and the url is ->", url, "\n\n")
 	} else {
 		// in any case we are in prod
 		dbURL = os.Getenv("TURSO_DATABASE_URL")
