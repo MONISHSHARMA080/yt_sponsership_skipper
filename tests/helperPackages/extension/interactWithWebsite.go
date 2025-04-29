@@ -85,17 +85,16 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	)
 	defer iframeCancel()
 
-	var fullHTML string
-	err = chromedp.Run(iframeCtx,
-		chromedp.Sleep(time.Second*2),
-		chromedp.Evaluate(`document.documentElement.outerHTML`, &fullHTML),
-	) //
-	if err != nil {
-		println("error:", err.Error())
-	}
-	println("the full html  form the  iframe is ->\n ->", fullHTML)
+	// var fullHTML string
+	// err = chromedp.Run(iframeCtx,
+	// 	chromedp.Sleep(time.Second*2),
+	// 	chromedp.Evaluate(`document.documentElement.outerHTML`, &fullHTML),
+	// ) //
+	// if err != nil {
+	// 	println("error:", err.Error())
+	// }
+	// println("the full html  form the  iframe is ->\n ->", fullHTML)
 
-	time.Sleep(time.Second * 24)
 	println("about to click on the button form the iframe ctx")
 
 	err = chromedp.Run(iframeCtx,
@@ -106,13 +105,29 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	if err != nil {
 		return err
 	}
+	println("clicking on the bank of borada in 10 sec")
+	time.Sleep(time.Second * 10)
+	err = chromedp.Run(iframeCtx,
+		chromedp.Click(`//*[@id="main-stack-container"]/div/div/div/div/div[2]/div/div/form[1]/div/label[1]/div/div`, chromedp.BySearch),
+	)
+	println("clicked the bank of borada button")
+	if err != nil {
+		println("there is an error in clicking the bank of borada button and it is ->", err.Error())
+		return err
+	}
+	println("clicking on the success button")
 
-	// var fullHTML string
-	// err = chromedp.Run(ctx) // chromedp.Evaluate(`document.documentElement.outerHTML`, &fullHTML),
-	// if err != nil {
-	// 	println("error:", err.Error())
-	// }
-	// println("the full html is ->\n ->", fullHTML)
+	err = chromedp.Run(iframeCtx,
+		chromedp.WaitVisible(`/html/body/form/button[1]`, chromedp.BySearch),
+		chromedp.Click(`/html/body/form/button[1]`, chromedp.BySearch),
+	)
+	println("clicked the success button")
+	if err != nil {
+		println("there is an error in clicking the succcess button and it is ->", err.Error())
+		return err
+	}
+	println("sleeping for 24 sec")
+	time.Sleep(time.Second * 24)
 	println("we got the iframes and it is ->", len(iframes))
 
 	fmt.Printf("the iframe struct is -> %+v \n\n", iframes[0])

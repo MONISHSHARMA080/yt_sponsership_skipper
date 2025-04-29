@@ -56,7 +56,7 @@ func (respRPay *RazorpayOrderResponse) AskRazorpayForTheOrderID(client *razorpay
 	}
 	body, err := client.Order.Create(data, nil)
 	if err != nil {
-		println("error is ->.>", err.Error())
+		println("error in creating razorpay's order is ->", err.Error())
 		resultChannel <- common.ErrorAndResultStruct[string]{Error: err, Result: ""}
 		return
 	}
