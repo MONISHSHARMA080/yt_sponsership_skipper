@@ -37,6 +37,7 @@ func DbConnect() *sql.DB {
 	for i, entry := range dirEntry {
 		println("the entry at :", i, "is ->", entry.Name())
 	}
+	println("the db url is ->", dbURL, " and the url is ->", url)
 
 	// println(url,"\n\n")
 	db, err := sql.Open("libsql", url)
