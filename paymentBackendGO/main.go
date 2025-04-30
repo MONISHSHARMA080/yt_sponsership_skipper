@@ -83,6 +83,8 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		println(" it should be id primary key ->", userFromTheRequest.IDPrimaryKey)
 
 		razorPayClient := razorpay.NewClient(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"))
+		println("the razorpay key and secret id is ->", os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"))
+		fmt.Printf("the price for the recurring is %d, -- and the price for the one time is %d and the  ID primary key is %d->", infoHolder.PriceForRecurring, infoHolder.PriceForOneTime, userFromTheRequest.IDPrimaryKey)
 
 		go RazorpayOrderForRecurring.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForRecurring, recurringChannel, userFromTheRequest.IDPrimaryKey)
 		go RazorpayOrderForOneTime.AskRazorpayForTheOrderID(razorPayClient, infoHolder.PriceForOneTime, oneTimeChannel, userFromTheRequest.IDPrimaryKey)

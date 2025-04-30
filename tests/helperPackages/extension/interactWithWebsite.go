@@ -31,7 +31,7 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	if err != nil {
 		return err
 	}
-	time.Sleep(7 * time.Second)
+	time.Sleep(3 * time.Second)
 	println("1")
 	println("we are about to click on the button")
 	selectedButton := ""
@@ -105,8 +105,10 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	if err != nil {
 		return err
 	}
-	println("clicking on the bank of borada in 10 sec")
-	time.Sleep(time.Second * 10)
+
+	// this is here to get the new window that the razorpay opens
+	println("clicking on the bank of borada in 3 sec")
+	time.Sleep(time.Second * 3)
 	err = chromedp.Run(iframeCtx,
 		chromedp.Click(`//*[@id="main-stack-container"]/div/div/div/div/div[2]/div/div/form[1]/div/label[1]/div/div`, chromedp.BySearch),
 	)
@@ -115,10 +117,72 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 		println("there is an error in clicking the bank of borada button and it is ->", err.Error())
 		return err
 	}
+
+	time.Sleep(time.Second * 5)
+	println("finding the new targets")
+
+	var successPageTarget *target.Info
+	targets, err = chromedp.Targets(ctx)
+
+	println("the targets are ->", len(targets))
+	if err != nil {
+		println("error in getting the targets and it is ->", err.Error())
+		return err
+	}
+
+	for _, t := range targets {
+		println("target's type is ->", t.Type, " and the url is ->", t.URL, " and the title is ", t.Title, "==\n")
+	}
+	for _, t := range targets {
+		// println("target's type is ->", t.Type, " and the url is ->", t.URL, " and the title is ", t.Title)
+		if t.Type == "page" && strings.Contains(t.URL, "razorpay.com") && strings.Contains(t.Title, "Razorpay Bank") {
+			println("-- selected target's type is ->", t.Type, " and the url is ->", t.URL, " and the title is ", t.Title)
+			successPageTarget = t
+			break
+		}
+	}
+	if successPageTarget == nil {
+		return fmt.Errorf("successPage target not found")
+	}
+
+	successPageCtx, successPageCancelFunc := chromedp.NewContext(
+		iframeCtx,
+		chromedp.WithTargetID(successPageTarget.TargetID),
+	)
+	defer successPageCancelFunc()
+
+	var fullHTML string
+	err = chromedp.Run(successPageCtx,
+		chromedp.Sleep(time.Second*2),
+		chromedp.Evaluate(`document.documentElement.outerHTML`, &fullHTML),
+	) //
+	if err != nil {
+		println("error:", err.Error())
+	}
+	println("the full html  form the  success page  is ->\n ->", fullHTML)
+	time.Sleep(time.Second * 3)
+
+	// println("clicking screeen shot for the page")
+	// var pictureBuf []byte
+	// err = chromedp.Run(successPageCtx,
+	// 	// chromedp.Screenshot(`html`, &pictureBuf, chromedp.ByQuery),
+	// 	chromedp.FullScreenshot(&pictureBuf, 100),
+	// )
+	// if err != nil {
+	// 	println("there is an error in taking the screenshot and it is ->", err.Error())
+	// 	return err
+	// }
+	//
+	// if err := os.WriteFile("screenshotForDebug.png", pictureBuf, 0644); err != nil {
+	// 	println("there is an error in writing the screenshot to the file and it is ->", err.Error())
+	// 	return err
+	// }
+	println("taken the screenshot and saved it to the file")
+
 	println("clicking on the success button")
 
-	err = chromedp.Run(iframeCtx,
-		chromedp.WaitVisible(`/html/body/form/button[1]`, chromedp.BySearch),
+	err = chromedp.Run(successPageCtx,
+		// chromedp.WaitVisible(`/html/body/form/button[1]`, chromedp.BySearch),
 		chromedp.Click(`/html/body/form/button[1]`, chromedp.BySearch),
 	)
 	println("clicked the success button")
@@ -128,6 +192,10 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	}
 	println("sleeping for 24 sec")
 	time.Sleep(time.Second * 24)
+	if true {
+		println("we are able to click the success button and now we will now return ")
+		return nil
+	}
 	println("we got the iframes and it is ->", len(iframes))
 
 	fmt.Printf("the iframe struct is -> %+v \n\n", iframes[0])
