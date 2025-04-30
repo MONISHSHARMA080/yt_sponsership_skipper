@@ -16,8 +16,8 @@ import (
 	"strconv"
 	"strings"
 
-	// _ "github.com/tursodatabase/go-libsql"
-	_ "github.com/tursodatabase/libsql-client-go/libsql"
+	_ "github.com/tursodatabase/go-libsql"
+	// _ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
 type UserInDb struct {

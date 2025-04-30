@@ -113,7 +113,9 @@ func CreateAndReturnOrderId(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 		resultFromAddingTODb := <-resChannel
 		if resultFromAddingTODb.Error != nil {
 			println("there is a error in adding the tokens to the db ->", resultFromAddingTODb.Error.Error())
+			println("the order id is (one time)->", RazorpayOrderForOneTime.ID, "  -- recurring ->", RazorpayOrderForRecurring.ID, "not returning the tokens as we are not abel to store it in the DB")
 			responseFromTheServer.ReturnTheErrorInJsonResponse(w, r, "", "", "Internal server error, can't reach DB", http.StatusInternalServerError)
+			return
 		} else {
 			println("the result of adding the token to db is ->", resultFromAddingTODb.Result)
 		}

@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	// _ "github.com/tursodatabase/libsql-client-go/libsql"
+	// _ "github.com/tursodatabase/go-libsql"
 )
 
 func DbConnect() *sql.DB {
@@ -26,6 +29,15 @@ func DbConnect() *sql.DB {
 		url = fmt.Sprintf("%s?authToken=%s", dbURL, authToken)
 	}
 
+	// help me with printing the files and the dir
+	dirEntry, err := os.ReadDir(".")
+	if err != nil {
+		panic(err)
+	}
+	for i, entry := range dirEntry {
+		println("the entry at :", i, "is ->", entry.Name())
+	}
+
 	// println(url,"\n\n")
 	db, err := sql.Open("libsql", url)
 	if err != nil {
@@ -33,9 +45,5 @@ func DbConnect() *sql.DB {
 		os.Exit(1)
 	}
 
-	//   _, b := db.Query("CREATE TABLE UserAccount (    accountid INT,email TEXT,    strUserToken TEXT);")
-	//   if b!=nil{
-	//     panic(b.Error())
-	//   }
 	return db
 }

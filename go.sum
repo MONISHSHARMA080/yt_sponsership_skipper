@@ -59,6 +59,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/tursodatabase/go-libsql v0.0.0-20250401144753-0be9a6ec7849 h1:unrMd0PSX4/JY7gbdQ8qlc/FVJRbi6fjW+spSHJgRoI=
 github.com/tursodatabase/go-libsql v0.0.0-20250401144753-0be9a6ec7849/go.mod h1:TjsB2miB8RW2Sse8sdxzVTdeGlx74GloD5zJYUC38d8=
+github.com/tursodatabase/go-libsql v0.0.0-20250416102726-983f7e9acb0e h1:DUEcD8ukLWxIlcRWWJSuAX6IbEQln2bc7t9HOT45FFk=
+github.com/tursodatabase/go-libsql v0.0.0-20250416102726-983f7e9acb0e/go.mod h1:TjsB2miB8RW2Sse8sdxzVTdeGlx74GloD5zJYUC38d8=
 github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d h1:dOMI4+zEbDI37KGb0TI44GUAwxHF9cMsIoDTJ7UmgfU=
 github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d/go.mod h1:l8xTsYB90uaVdMHXMCxKKLSgw5wLYBwBKKefNIUnm9s=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=

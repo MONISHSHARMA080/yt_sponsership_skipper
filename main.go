@@ -15,7 +15,6 @@ import (
 	handlerfunction "youtubeAdsSkipper/paymentBackendGO/handlerFunction"
 
 	"github.com/joho/godotenv"
-	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
 type Subtitle struct {
