@@ -11,23 +11,23 @@ import (
 	"github.com/razorpay/razorpay-go"
 )
 
-func StartLocalTunnel() error {
+func StartLocalTunnel() (*exec.Cmd, error) {
 	localPort := "8080"
-
 	// Run the lt command to create a tunnel
-	cmd := exec.Command("lt", "-p", localPort, "-s", "yt-sponsor-skipper")
+	tunnelSubdomain := "yt-sponsor-skipper-new"
+	cmd := exec.Command("lt", "-p", localPort, "-s", tunnelSubdomain)
 
 	// Get stdout pipe
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Printf("Error creating stdout pipe: %v\n", err)
-		return err
+		return nil, err
 	}
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
 		fmt.Printf("Error starting localtunnel: %v\n", err)
-		return err
+		return nil, err
 	}
 
 	fmt.Println("Started localtunnel, waiting for URL...")
@@ -54,25 +54,37 @@ func StartLocalTunnel() error {
 
 	if tunnelURL != "" {
 		fmt.Printf("Tunnel established! URL: %s\n", tunnelURL)
-		fmt.Println("Press Ctrl+C to stop the tunnel")
-
-		// Wait for the command to finish (will block until the tunnel is closed)
-		// if err := cmd.Wait(); err != nil {
-		// 	fmt.Printf("Tunnel closed with error: %v\n", err)
-		// 	return err
-		// }
+		fmt.Println("Tunnel will be closed when test completes")
 	} else {
 		fmt.Println("Could not find tunnel URL in the output")
 		// Kill the process if we couldn't find the URL
 		if err := cmd.Process.Kill(); err != nil {
 			fmt.Printf("Failed to kill process: %v\n", err)
-			return err
+			return nil, err
 		}
+		return nil, fmt.Errorf("could not find tunnel URL in the output")
 	}
-	if !strings.Contains(tunnelURL, "yt-sponsor-skipper") {
-		return fmt.Errorf("the tunnel url does not contain the  yt-sponsor-skipper, in the url , your webhook will not work for this one")
+
+	if !strings.Contains(tunnelURL, tunnelSubdomain) {
+		cmd.Process.Kill() // Kill the process before returning error
+		return nil, fmt.Errorf("the tunnel url does not contain the yt-sponsor-skipper-localTunnel, in the url, your webhook will not work for this one")
 	}
-	return nil
+
+	return cmd, nil
+}
+
+func StopLocalTunnel(cmd *exec.Cmd) {
+	println("going to stop the local tunnel")
+	if cmd != nil && cmd.Process != nil {
+		fmt.Println("Stopping local tunnel...")
+		if err := cmd.Process.Kill(); err != nil {
+			fmt.Printf("Failed to kill tunnel process: %v\n", err)
+		} else {
+			fmt.Println("Local tunnel stopped successfully")
+		}
+		// Wait for the process to fully terminate to avoid zombie processes
+		cmd.Wait()
+	}
 }
 
 // note the url to receive webhook on should be a valid url and also contain the path /webHookIntegrationForPaymentCapture , else we will give an error

@@ -49,14 +49,6 @@ func VerifyPaymentSignature(razorpayKeyID, razorpaySecretID string, envKeyAsByte
 			return
 		}
 
-		// checking if the email sent by user matches the email in the key, if not then here is a error
-		// err = userKey.SetUserDetail()
-		// if err != nil {
-		// 	// 400 error as IDK what is causing it the bad key or smth
-		// 	println("the error in decrypting the key is ->", err.Error())
-		// 	response.ReturnTheErrorInJsonResponse(w, r, "error in getting information out of the key", http.StatusBadRequest, false)
-		// 	return
-		// }
 		if userFormKey.Email == "" || userFormKey.Email != request.Email {
 			println("the error is that the email in request is ->", request.Email, "<- and the one form the key is ->", userFormKey.Email, "<- and are they equal ->", userFormKey.Email != request.Email)
 			response.ReturnTheErrorInJsonResponse(w, r, "the email sent in the request does not match the one in the key", "", http.StatusBadRequest, false)
