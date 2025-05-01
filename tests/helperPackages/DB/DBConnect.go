@@ -18,7 +18,8 @@ func DbConnect() *sql.DB {
 	authToken := ""
 	isThisTestingEnv := os.Getenv("IS_THIS_TESTING_ENVIRONMENT")
 	if isThisTestingEnv == "true" {
-		dbURL = os.Getenv("TURSO_DATABASE_URL")
+		// dbURL = os.Getenv("TURSO_DATABASE_URL")
+		dbURL = "file:../localTest.db"
 		url = dbURL
 	} else {
 		// in any case we are in prod

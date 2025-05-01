@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-
 	// _ "github.com/tursodatabase/libsql-client-go/libsql"
 	// _ "github.com/tursodatabase/go-libsql"
 )
@@ -30,13 +29,13 @@ func DbConnect() *sql.DB {
 	}
 
 	// help me with printing the files and the dir
-	dirEntry, err := os.ReadDir(".")
-	if err != nil {
-		panic(err)
-	}
-	for i, entry := range dirEntry {
-		println("the entry at :", i, "is ->", entry.Name())
-	}
+	// dirEntry, err := os.ReadDir(".")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// for i, entry := range dirEntry {
+	// 	println("the entry at :", i, "is ->", entry.Name())
+	// }
 	println("the db url is ->", dbURL, " and the url is ->", url)
 
 	// println(url,"\n\n")

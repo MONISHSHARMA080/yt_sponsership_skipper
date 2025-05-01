@@ -49,10 +49,6 @@ func DbConnect() *sql.DB {
 		os.Exit(1)
 	}
 
-	//   _, b := db.Query("CREATE TABLE UserAccount (    accountid INT,email TEXT,    strUserToken TEXT);")
-	//   if b!=nil{
-	//     panic(b.Error())
-	//   }
 	return db
 }
 

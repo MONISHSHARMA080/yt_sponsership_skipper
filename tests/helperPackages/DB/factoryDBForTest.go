@@ -11,7 +11,7 @@ import (
 func CreateDBForTest() error {
 	DBFileName := "localTest.db"
 	println("the env for the sqlite file is ->", os.Getenv("TURSO_DATABASE_URL"), " and we in the testing environment ->", os.Getenv("IS_THIS_TESTING_ENVIRONMENT"))
-	os.Setenv("TURSO_DATABASE_URL", "file:../"+DBFileName)
+	os.Setenv("TURSO_DATABASE_URL", "file:./"+DBFileName)
 	os.Setenv("IS_THIS_TESTING_ENVIRONMENT", "true")
 	println("the env for the sqlite file is ->", os.Getenv("TURSO_DATABASE_URL"), " and we in the testing environment ->", os.Getenv("IS_THIS_TESTING_ENVIRONMENT"))
 	err := checkIfDBIsThereInTheRootDirIfNotCreateIt(DBFileName)
