@@ -9,4 +9,5 @@ node_module/
 .idea/
 chromeExtension/node_modules/
 chrome-test-profile-doNotTouch/
+server.log
 node_modules/
