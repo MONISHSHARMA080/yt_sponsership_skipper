@@ -21,7 +21,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	ctx := commonstateacrosstest.BrowserContext
-	youtubeUrl := []string{ "https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
+	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
@@ -38,7 +38,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
 		defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
 		resultChanForTrackingPlayBackTime := make(chan commonchanneltype.GenericResultChannel[*[]float64])
-		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Millisecond*700, stopChannelToStopChekingIfTheVideoIsPlaying, false)
+		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Second*2, stopChannelToStopChekingIfTheVideoIsPlaying, false)
 		go chromeExtension.TrackVideoPlaybackTime(ctx, resultChanForTrackingPlayBackTime)
 		playBackTimeChan := <-resultChanForTrackingPlayBackTime
 		println("the playBakc result is here")
@@ -57,7 +57,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		for i, timeInArray := range *playBackTimeChan.Result {
 			fmt.Printf("index:%d and time:%.6f \n", i, timeInArray)
 		}
-		didWeSkippedTheSponsorSegment, err:=chromeExtension.DidWeSkippedTheAd( APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime, *playBackTimeChan.Result)
+		didWeSkippedTheSponsorSegment, err := chromeExtension.DidWeSkippedTheAd(APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime, *playBackTimeChan.Result)
 		if err != nil {
 			println("there is a error in checking if we skipped the ad and it is ->", err.Error())
 			t.Fatal(err)

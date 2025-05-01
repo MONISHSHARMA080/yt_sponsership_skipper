@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 
@@ -34,8 +33,8 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	defer cancelFunc()
-	println("Server started successfully, and sleeping for 30 sec")
-	time.Sleep(30 * time.Second)
+	// println("Server started successfully, and sleeping for 30 sec")
+	// time.Sleep(30 * time.Second)
 	println("sleeping for 30 sec done \n\n")
 	ctx, cancelFunc0, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
 	if err != nil {

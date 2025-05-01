@@ -10,9 +10,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-
-
-func (ce *ChromeExtension) DidWeSkippedTheAd( startTime, endTime float64, playbackTime []float64) (bool, error) {
+func (ce *ChromeExtension) DidWeSkippedTheAd(startTime, endTime float64, playbackTime []float64) (bool, error) {
 	// check if the start time and end time is in the playback time
 	if len(playbackTime) == 0 {
 		return false, fmt.Errorf("the playback time array is empty")
@@ -20,21 +18,16 @@ func (ce *ChromeExtension) DidWeSkippedTheAd( startTime, endTime float64, playba
 	// Look for a significant jump in playback time between startTime and endTime
 	for i := 1; i < len(playbackTime); i++ {
 		// timeDiff := playbackTime[i] - playbackTime[i-1]
-		
-			// Check if the jump occurred around our target segment
-			if playbackTime[i-1] >= startTime-1 && playbackTime[i] <= endTime+1 {
-				return true, nil
-			}
+
+		// Check if the jump occurred around our target segment
+		if playbackTime[i-1] >= startTime-1 && playbackTime[i] <= endTime+1 {
+			return true, nil
+		}
 	}
 
 	// No significant skip found in the target range
 	return false, nil
-
-
 }
-
-
-
 
 // will store the time in Array in the js side and when the vide is completed, then we will return it
 func (ce *ChromeExtension) TrackVideoPlaybackTime(ctx context.Context, resultChannel chan commonchanneltype.GenericResultChannel[*[]float64]) {
@@ -161,8 +154,9 @@ func (e *ChromeExtension) IsTheYoutubeVideoPlayingAnAd(ctx context.Context) (boo
 // note makse sure to close the channel form the outside
 func (e *ChromeExtension) EnsureVideoIsPlayingPeriodically(ctx context.Context, intervalToCheckTheVideoPlayingAt time.Duration, stopChan <-chan struct{}, shouldWeStopOnError bool) {
 	ticker := time.NewTicker(intervalToCheckTheVideoPlayingAt)
-	defer ticker.Stop()
+	println("in the ensure video is playing func")
 	go func() {
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
@@ -185,47 +179,87 @@ func (e *ChromeExtension) EnsureVideoIsPlayingPeriodically(ctx context.Context, 
 // if the video is not playing then we will play it, if it is then return
 func (e *ChromeExtension) MakeSureTheVideoIsPlaying(ctx context.Context) error {
 	var result string
+
 	script := `
-  (function() {
-    try {
-      const video = document.querySelector('video');
-      if (!video) {
-        return "No video element found";
-      }
-      
-      // Check if video is paused
-      if (video.paused) {
-        // Try to click the play button
-        const playButton = document.querySelector('.ytp-play-button');
-        if (playButton) {
-          playButton.click();
-        } else {
-          // Direct play attempt if button not found
-          video.play();
-        }
-        
-        // Wait briefly and check if it's playing now
-        return new Promise(resolve => {
-          setTimeout(() => {
-            if (video.paused) {
-              resolve("Video still paused after play attempt");
-            } else {
-              resolve(null);
-            }
-          }, 1000);
-        });
-      } else {
-        return null; // Already playing
-      }
-    } catch(e) {
-      return "Error: " + e.toString();
-    }
-  })()
-  `
+		(function() {
+			try {
+				let vp = document.querySelector("#ytd-player");
+				if (vp !== null && vp.player_ && vp.player_.isReady()) {
+					vp.getPlayer().playVideo();
+					console.log("The video is now playing, player is:", vp);
+
+	     const video = document.querySelector('video');
+	     if (!video) {
+	       return "No video element found";
+	     }
+
+  // idk a hack suggested by the chat gpt
+video.muted = true;
+	         video.play();
+	 console.log("is my video  paused", video.paused);
+					return "Video playing successfully";
+				} else {
+					console.log("Video player not ready or not found:", vp);
+					return "Video player not ready";
+				}
+			} catch (err) {
+				console.error("Error ensuring video is playing:", err);
+				return "Error: " + err.toString();
+			}
+		})()
+	 `
+	//
+	//
+	//or you know may be click on it
+	//
+	//
+	//
+	//
+	//
+	// script := `
+	//  (function() {
+	//    try {
+	//      const video = document.querySelector('video');
+	//      if (!video) {
+	//        return "No video element found";
+	//      }
+	//
+	//          video.play();
+	//  console.log("Video is paused", video.paused);
+	//      // Check if video is paused
+	//      if (video.paused) {
+	//        // Try to click the play button
+	//        const playButton = document.querySelector('.ytp-play-button');
+	//        if (playButton) {
+	//          playButton.click();
+	//        } else {
+	//          // Direct play attempt if button not found
+	//          video.play();
+	//        }
+	//
+	//        // Wait briefly and check if it's playing now
+	//        return new Promise(resolve => {
+	//          setTimeout(() => {
+	//            if (video.paused) {
+	//              resolve("Video still paused after play attempt");
+	//            } else {
+	//              resolve(null);
+	//            }
+	//          }, 1000);
+	//        });
+	//      } else {
+	//        return null; // Already playing
+	//      }
+	//    } catch(e) {
+	//      return "Error: " + e.toString();
+	//    }
+	//  })()
+	//  `
 	err := chromedp.Run(ctx,
 		chromedp.Evaluate(script, &result, func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
 			return p.WithAwaitPromise(true)
 		}),
 	)
+	// println("the result of the script to keep the video running is  ->", result)
 	return err
 }

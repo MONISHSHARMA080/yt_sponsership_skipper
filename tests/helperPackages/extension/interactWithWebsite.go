@@ -12,8 +12,10 @@ import (
 )
 
 func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, selectOneTimeButton bool) error {
-	ctx, cancel := context.WithTimeout(ctx, 77*time.Second)
-	defer cancel()
+	ctx, _ = context.WithTimeout(ctx, 77*time.Second)
+	// not calling the cancel function as if we do then the future tests will not work as they get cancelled
+	// defer cancel()
+	//
 
 	err := ce.NavigateToAWebPage(ctx, "http://localhost:5173/")
 	if err != nil {
@@ -50,7 +52,6 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	println("we are going to click on the bank")
 	time.Sleep(time.Second * 4)
 	println("hopefully working")
-	result := ""
 	time.Sleep(time.Second * 2)
 	// document.querySelector("#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div")
 	var iframes []*cdp.Node
@@ -79,11 +80,12 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 		return fmt.Errorf("iframe target not found")
 	}
 
-	iframeCtx, iframeCancel := chromedp.NewContext(
+	iframeCtx, _ := chromedp.NewContext(
 		ctx,
 		chromedp.WithTargetID(iframeT.TargetID),
 	)
-	defer iframeCancel()
+	// not calling the cancel function as if we do then the future tests will not work as they get cancelled
+	// defer iframeCancel()
 
 	// var fullHTML string
 	// err = chromedp.Run(iframeCtx,
@@ -145,39 +147,24 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 		return fmt.Errorf("successPage target not found")
 	}
 
-	successPageCtx, successPageCancelFunc := chromedp.NewContext(
+	successPageCtx, _ := chromedp.NewContext(
 		iframeCtx,
 		chromedp.WithTargetID(successPageTarget.TargetID),
 	)
-	defer successPageCancelFunc()
 
-	var fullHTML string
-	err = chromedp.Run(successPageCtx,
-		chromedp.Sleep(time.Second*2),
-		chromedp.Evaluate(`document.documentElement.outerHTML`, &fullHTML),
-	) //
-	if err != nil {
-		println("error:", err.Error())
-	}
-	println("the full html  form the  success page  is ->\n ->", fullHTML)
-	time.Sleep(time.Second * 3)
+	// not calling the cancel function as if we do then the future tests will not work as they get cancelled
+	// defer successPageCancelFunc()
 
-	// println("clicking screeen shot for the page")
-	// var pictureBuf []byte
+	// var fullHTML string
 	// err = chromedp.Run(successPageCtx,
-	// 	// chromedp.Screenshot(`html`, &pictureBuf, chromedp.ByQuery),
-	// 	chromedp.FullScreenshot(&pictureBuf, 100),
-	// )
+	// 	chromedp.Sleep(time.Second*2),
+	// 	chromedp.Evaluate(`document.documentElement.outerHTML`, &fullHTML),
+	// ) //
 	// if err != nil {
-	// 	println("there is an error in taking the screenshot and it is ->", err.Error())
-	// 	return err
+	// 	println("error:", err.Error())
 	// }
-	//
-	// if err := os.WriteFile("screenshotForDebug.png", pictureBuf, 0644); err != nil {
-	// 	println("there is an error in writing the screenshot to the file and it is ->", err.Error())
-	// 	return err
-	// }
-	println("taken the screenshot and saved it to the file")
+	// println("the full html  form the  success page  is ->\n ->", fullHTML)
+	time.Sleep(time.Second * 3)
 
 	println("clicking on the success button")
 
@@ -192,82 +179,81 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 	}
 	println("sleeping for 24 sec")
 	time.Sleep(time.Second * 24)
-	if true {
-		println("we are able to click the success button and now we will now return ")
-		return nil
-	}
-	println("we got the iframes and it is ->", len(iframes))
-
-	fmt.Printf("the iframe struct is -> %+v \n\n", iframes[0])
-	println("clikcing on the netbanking button")
-	println("possible iframe id is ->", iframes[0].FrameID)
-	// iframeID := iframes[0].FrameID
-	b := fmt.Sprintf(`
-let a = document.querySelector("body > div.razorpay-container > iframe:nth-child(3)").contentWindow.document.querySelector('#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div')
-  console.log('-------pp----------'+a)
-  a.click();
-    `)
-	err = chromedp.Run(ctx, chromedp.Evaluate(b, nil))
-	if err != nil {
-		println("there is a error in clicking the button with eval the selected frames and it is ->", err.Error())
-		time.Sleep(time.Second * 15)
-		return err
-	}
-	err = chromedp.Run(ctx,
-		chromedp.Click(
-			`//*[@id="nav-sidebar"]/div[1]/label[2]/div/div`,
-			chromedp.BySearch,             // use CSS selector
-			chromedp.FromNode(iframes[0]), // scope into that iframe node&#8203;:contentReference[oaicite:0]{index=0}
-		),
-	)
-	// err = clickViaIframeContext(ctx)
-	if err != nil {
-		println("there is a error in clicking the button wiht the selected frames and it is ->", err.Error())
-		return err
-	}
-	println("out iof it ")
-	// err = chromedp.Run(ctx, chromedp.Click(`*[@id="nav-sidebar"]/div[1]/label[2]/div/div`, chromedp.BySearch, chromedp.FromNode(iframes[0])))
-	//#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div:nth-child(1)
-	err = chromedp.Run(ctx, chromedp.Click(`#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div:nth-child(1)`, chromedp.ByQuery, chromedp.FromNode(iframes[0])))
-	if err != nil {
-		println("error in clicking the button using the nodes  ->", err.Error())
-		return err
-	}
-	println("will continue with the clicking after 15 sec")
-	time.Sleep(time.Second * 15)
-	println("continuing ...")
-	err = chromedp.Run(ctx,
-		chromedp.EvaluateAsDevTools(`(function(){
-
-const btn = document.querySelector("#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div")
-      console.log("\n\n\n\n +++the button is ->", btn)
-      if (btn === null) {
-        return JSON.stringify({ success: false, error: "button was  not found:-> "+btn });
-      }
-      btn.click();
-      return JSON.stringify({ success: true, text: btn });
-  })()`, &result),
-		chromedp.Sleep(time.Second*100),
-	)
-	if err != nil {
-
-		println("there is an error in clicking the netbanking button and it is ->", err.Error())
-		time.Sleep(time.Second * 30)
-		return err
-	}
-	err = chromedp.Run(ctx,
-		chromedp.Evaluate(`
-      let a = document.querySelector("#main-stack-container > div > div > div > div > div.flex.h-full.flex-1.flex-col.overflow-auto.bg-surface > div > div > form:nth-child(4) > div > label:nth-child(1) > div > div > div > div")
-      a.click()
-      `, nil),
-		chromedp.Sleep(time.Second*2),
-	)
-	println("the result form clicking the button is ->", result)
-	if err != nil {
-		return err
-	}
-	println("we have clicked the button and now we are waiting for the payment to be done, we will sleep for next 100 seconds")
-	time.Sleep(time.Second * 100)
-
+	println("we are able to click the success button and now we will now return ")
 	return nil
+	//	println("we got the iframes and it is ->", len(iframes))
+	//
+	//	fmt.Printf("the iframe struct is -> %+v \n\n", iframes[0])
+	//	println("clikcing on the netbanking button")
+	//	println("possible iframe id is ->", iframes[0].FrameID)
+	//	// iframeID := iframes[0].FrameID
+	//	b := fmt.Sprintf(`
+	//
+	// let a = document.querySelector("body > div.razorpay-container > iframe:nth-child(3)").contentWindow.document.querySelector('#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div')
+	//
+	//	  console.log('-------pp----------'+a)
+	//	  a.click();
+	//	    `)
+	//		err = chromedp.Run(ctx, chromedp.Evaluate(b, nil))
+	//		if err != nil {
+	//			println("there is a error in clicking the button with eval the selected frames and it is ->", err.Error())
+	//			time.Sleep(time.Second * 15)
+	//			return err
+	//		}
+	//		err = chromedp.Run(ctx,
+	//			chromedp.Click(
+	//				`//*[@id="nav-sidebar"]/div[1]/label[2]/div/div`,
+	//				chromedp.BySearch,             // use CSS selector
+	//				chromedp.FromNode(iframes[0]), // scope into that iframe node&#8203;:contentReference[oaicite:0]{index=0}
+	//			),
+	//		)
+	//		// err = clickViaIframeContext(ctx)
+	//		if err != nil {
+	//			println("there is a error in clicking the button wiht the selected frames and it is ->", err.Error())
+	//			return err
+	//		}
+	//		println("out iof it ")
+	//		// err = chromedp.Run(ctx, chromedp.Click(`*[@id="nav-sidebar"]/div[1]/label[2]/div/div`, chromedp.BySearch, chromedp.FromNode(iframes[0])))
+	//		//#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div:nth-child(1)
+	//		err = chromedp.Run(ctx, chromedp.Click(`#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div:nth-child(1)`, chromedp.ByQuery, chromedp.FromNode(iframes[0])))
+	//		if err != nil {
+	//			println("error in clicking the button using the nodes  ->", err.Error())
+	//			return err
+	//		}
+	//		println("will continue with the clicking after 15 sec")
+	//		time.Sleep(time.Second * 15)
+	//		println("continuing ...")
+	//		err = chromedp.Run(ctx,
+	//			chromedp.EvaluateAsDevTools(`(function(){
+	//
+	// const btn = document.querySelector("#nav-sidebar > div:nth-child(1) > label:nth-child(2) > div > div")
+	//
+	//	      console.log("\n\n\n\n +++the button is ->", btn)
+	//	      if (btn === null) {
+	//	        return JSON.stringify({ success: false, error: "button was  not found:-> "+btn });
+	//	      }
+	//	      btn.click();
+	//	      return JSON.stringify({ success: true, text: btn });
+	//	  })()`, &result),
+	//			chromedp.Sleep(time.Second*100),
+	//		)
+	//		if err != nil {
+	//
+	//			println("there is an error in clicking the netbanking button and it is ->", err.Error())
+	//			time.Sleep(time.Second * 30)
+	//			return err
+	//		}
+	//		err = chromedp.Run(ctx,
+	//			chromedp.Evaluate(`
+	//	      let a = document.querySelector("#main-stack-container > div > div > div > div > div.flex.h-full.flex-1.flex-col.overflow-auto.bg-surface > div > div > form:nth-child(4) > div > label:nth-child(1) > div > div > div > div")
+	//	      a.click()
+	//	      `, nil),
+	//			chromedp.Sleep(time.Second*2),
+	//		)
+	//		println("the result form clicking the button is ->", result)
+	//		if err != nil {
+	//			return err
+	//		}
+	//		println("we have clicked the button and now we are waiting for the payment to be done, we will sleep for next 100 seconds")
+	//		time.Sleep(time.Second * 100)
 }
