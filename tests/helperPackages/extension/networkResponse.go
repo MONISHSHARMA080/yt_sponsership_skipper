@@ -95,7 +95,7 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 			}
 			// Filter for API calls related to your extension
 			fmt.Printf("response from the networkEventsChan is %+v \n\n", resp)
-			fmt.Printf("response from the networkEventsChan is %+v \n\n", *resp)
+			fmt.Printf("response is -> %+v \n\n", *resp.Response)
 			println("the response url is ->", resp.Response.URL)
 			if strings.Contains(resp.Response.URL, "localhost") ||
 				strings.Contains(resp.Response.URL, "/youtubeVideo") {
