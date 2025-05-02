@@ -39,12 +39,17 @@ jobs:
           install-dependencies: true
           install-chromedriver: true
       # 7. Install and start Xvfb (virtual display server)
-      - name: Setup virtual display
+          #
+      # ✳️ Install Xvfb
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb  # installs the X virtual framebuffer :contentReference[oaicite:2]{index=2}
+
+      # ✳️ Start Xvfb on display :99
+      - name: Start Xvfb
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
+          Xvfb :99 -screen 0 1920x1080x24 &           # launch in background
+          echo "DISPLAY=:99" >> $GITHUB_ENV             # set DISPLAY for subsequent steps
+
       # 8. Start Svelte dev server in background
       - name: Start website
         working-directory: website

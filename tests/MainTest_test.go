@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 	println("sleeping for 30 sec done \n\n")
 	ctx, cancelFunc0, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
 	if err != nil {
-		println("there is a error in starting the browser  and the error is ", err)
+		println("there is a error in starting the browser  and the error is ", err.Error())
 		panic(err)
 	}
 	commonstateacrosstest.BrowserContext = ctx
