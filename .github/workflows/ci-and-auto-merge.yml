@@ -46,10 +46,6 @@ jobs:
         with:
           install-dependencies: true
           install-chromedriver: true
-      # 7. Install and start Xvfb (virtual display server)
-      
-      - name: Setup Xvfb
-        uses: GabrielBB/xvfb-action@v1           # installs and launches Xvfb automatically :contentReference[oaicite:4]{index=4}
 
       # 8. Start Svelte dev server in background
       - name: Start website
