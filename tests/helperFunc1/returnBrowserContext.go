@@ -78,6 +78,8 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("auto-open-devtools-for-tabs", true),
 		// This ensures network events are captured
 		chromedp.Flag("enable-network-service", true),
+
+		chromedp.WSURLReadTimeout(60*time.Second),
 	)
 
 	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
