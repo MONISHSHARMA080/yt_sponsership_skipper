@@ -33,22 +33,23 @@ jobs:
         working-directory: website
         run: npm ci
       # 6. Install Chrome & ChromeDriver
+      - name: Cache Chrome
+        uses: actions/cache@v3
+        id: chrome-cache
+        with:
+          path: /usr/bin/google-chrome
+          key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/ci.yml') }}
+      
       - name: Setup Chrome
+        if: steps.chrome-cache.outputs.cache-hit != 'true'
         uses: browser-actions/setup-chrome@v1
         with:
           install-dependencies: true
           install-chromedriver: true
       # 7. Install and start Xvfb (virtual display server)
-          #
-      # ✳️ Install Xvfb
-      - name: Install Xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb  # installs the X virtual framebuffer :contentReference[oaicite:2]{index=2}
-
-      # ✳️ Start Xvfb on display :99
-      - name: Start Xvfb
-        run: |
-          Xvfb :99 -screen 0 1920x1080x24 &           # launch in background
-          echo "DISPLAY=:99" >> $GITHUB_ENV             # set DISPLAY for subsequent steps
+      
+      - name: Setup Xvfb
+        uses: GabrielBB/xvfb-action@v1           # installs and launches Xvfb automatically :contentReference[oaicite:4]{index=4}
 
       # 8. Start Svelte dev server in background
       - name: Start website
@@ -57,7 +58,11 @@ jobs:
       # 9. Wait for site to be up
       - name: Wait for site readiness
         run: npx wait-on http://localhost:5173
-      # 10. Create .env file from secret
+
+      - name: Installing the local tunnel 
+        run:  npm install -g localtunnel
+
+        # 10. Create .env file from secret
       - name: Create .env file from secret
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
