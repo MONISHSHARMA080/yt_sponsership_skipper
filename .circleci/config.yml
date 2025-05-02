@@ -45,9 +45,9 @@ jobs:
           background: true
       
       # 7. Wait for site to be up
-      - run:
-          name: Install wait-on
-          command: npm install -g wait-on
+      # - run:
+      #     name: Install wait-on
+      #     command: npm install -g wait-on
       - run:
           name: Wait for site readiness
           command: npx wait-on http://localhost:5173
