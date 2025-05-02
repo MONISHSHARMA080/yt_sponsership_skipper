@@ -8,14 +8,15 @@ orbs:
 jobs:
   test-and-merge:
     docker:
-      - image: cimg/go:1.24-node
+      - image: cimg/go:1.22-node
+    resource_class: medium
     steps:
       # 1. Checkout code with full history for merging
       - checkout
       
       # 2. Setup Go (with module cache)
       - go/install:
-          version: '1.24.0'
+          version: '1.22.1'
       
       # 3. Setup Node.js with npm cache
       - node/install:
@@ -40,7 +41,7 @@ jobs:
       # 6. Start Svelte dev server in background
       - run:
           name: Start website
-          command: cd website && npm run dev
+          command: cd website && NODE_OPTIONS="--max-old-space-size=4096" npm run dev
           background: true
       
       # 7. Wait for site to be up
