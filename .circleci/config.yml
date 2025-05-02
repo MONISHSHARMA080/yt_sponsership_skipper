@@ -2,25 +2,25 @@ version: 2.1
 
 orbs:
   node: circleci/node@5.1.0
-  go: circleci/go@1.7.3
   browser-tools: circleci/browser-tools@1.4.6
 
 jobs:
   test-and-merge:
     docker:
       - image: cimg/go:1.22-node
-    resource_class: large
+    resource_class: medium
     steps:
       # 1. Checkout code with full history for merging
       - checkout
       
-      # 2. Setup Go (with module cache)
-      - go/install:
-          version: '1.22.1'
+      # 2. Use pre-installed Go in the Docker image instead of orb
+      - run:
+          name: Check Go version
+          command: go version
       
       # 3. Setup Node.js with npm cache
       - node/install:
-          node-version: '23.1.0'
+          node-version: '20.10.0'  # Using a more stable Node.js version
       
       # 4. Install website dependencies
       - restore_cache:
@@ -45,12 +45,12 @@ jobs:
           background: true
       
       # 7. Wait for site to be up
-      # - run:
-      #     name: Install wait-on
-      #     command: npm install -g wait-on
+      - run:
+          name: Install wait-on
+          command: npm install -g wait-on
       - run:
           name: Wait for site readiness
-          command: npx wait-on http://localhost:5173
+          command: npx wait-on http://localhost:5173 --timeout 60000
       
       # 8. Install localtunnel
       - run:
