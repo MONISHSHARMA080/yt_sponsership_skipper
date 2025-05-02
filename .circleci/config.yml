@@ -1,75 +1,107 @@
 version: 2.1
 
 orbs:
-  go: circleci/go@1.7.3                # Go orb for go/load-cache, go/mod-download, go/save-cache, go/test :contentReference[oaicite:3]{index=3}
-  node: circleci/node@4.7.0            # Node orb for node/install-packages :contentReference[oaicite:4]{index=4}
-  browser-tools: circleci/browser-tools@1.5.3  # Chrome & ChromeDriver :contentReference[oaicite:5]{index=5}
+  node: circleci/node@5.1.0
+  go: circleci/go@1.7.3
+  browser-tools: circleci/browser-tools@1.4.6
 
 jobs:
   test-and-merge:
-    # Use Node orb executor so node/install-packages works
-    executor:
-      name: node/default
-      tag: "23.1.0"
     docker:
-      - image: cimg/go:1.24
-    working_directory: ~/repo
+      - image: cimg/go:1.24-node
     steps:
-      - checkout                             # full git history for merge 
-
-      # --- Go caching & tests ---
-      - go/load-cache
-      - go/mod-download
-      - go/save-cache
-      - go/test:
-          packages: ./tests
-
-      # --- Start website & tests ---
-      - node/install-packages:               # install website deps in website/ with npm cache :contentReference[oaicite:7]{index=7}
-          pkg-manager: npm
-          working-directory: website
+      # 1. Checkout code with full history for merging
+      - checkout
+      
+      # 2. Setup Go (with module cache)
+      - go/install:
+          version: '1.24'
+      
+      # 3. Setup Node.js with npm cache
+      - node/install:
+          node-version: '23.1.0'
+          npm-version: latest
+          install-npm: true
+          install-packages: false
+      
+      # 4. Install website dependencies
+      - restore_cache:
+          keys:
+            - npm-packages-{{ checksum "website/package-lock.json" }}
+      - run:
+          name: Install website dependencies
+          command: cd website && npm ci
+      - save_cache:
+          key: npm-packages-{{ checksum "website/package-lock.json" }}
+          paths:
+            - website/node_modules
+      
+      # 5. Install Chrome & ChromeDriver
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
+      
+      # 6. Start Svelte dev server in background
       - run:
           name: Start website
-          command: |
-            cd website
-            npm run dev &
+          command: cd website && npm run dev
+          background: true
+      
+      # 7. Wait for site to be up
+      - run:
+          name: Install wait-on
+          command: npm install -g wait-on
       - run:
           name: Wait for site readiness
           command: npx wait-on http://localhost:5173
+      
+      # 8. Install localtunnel
       - run:
-          name: Install localtunnel
+          name: Installing the local tunnel
           command: npm install -g localtunnel
-
-      # --- Load ENV_FILE secret into .env ---
+      
+      # 9. Create .env file from stored environment variables
       - run:
-          name: Create .env from secret
-          command: echo "$ENV_FILE" > .env
-
-      # --- Always show logs even on failure ---
+          name: Create .env file
+          command: |
+            echo "$ENV_FILE" > .env
+      
+      # 10. Run Go tests
+      - run:
+          name: Run Go tests
+          command: go test ./tests -v
+      
+      # 11. Show server log output
       - run:
           name: Print server log
-          when: always
           command: |
-            echo "=== Server Log ==="
-            cat tests/server.log || echo "No server.log found."
-
-      # --- Auto‑merge back to main on success ---
+            echo "=== Server Log Output ==="
+            cat tests/server.log || echo "No server.log file found."
+          when: always
+      
+      # 12. Merge into main if tests passed
       - run:
-          name: Merge into main
-          when: on_success
+          name: Configure Git identity
           command: |
             git config user.name "circleci-bot"
-            git config user.email "bot@circleci.com"
+            git config user.email "circleci-bot@users.noreply.github.com"
+      - run:
+          name: Merge into main if tests passed
+          command: |
+            # extract branch name
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            # fetch latest main & attempt merge
             git fetch origin main
             git checkout main
-            git merge --no-ff "${CIRCLE_BRANCH}" || (git merge --abort && exit 1)
+            git merge --no-ff "$BRANCH" || { echo "⚠️ Merge conflict detected, aborting." git merge --abort; exit 1; }
+            # push merged main back
             git push origin main
 
 workflows:
-  test_and_merge_workflow:
-    filters:
-      branches:
-        ignore: main                      # skip runs on main 
+  version: 2
+  test-and-auto-merge:
     jobs:
-      - test-and-merge
-
+      - test-and-merge:
+          filters:
+            branches:
+              ignore:
+                - main
