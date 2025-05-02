@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	}
 	cancelFunc, err := helperfunc1_test.StartTestServer("../", []string{}, "server.log", "8080")
 	if err != nil {
-		println("Error starting test server:", err)
+		println("Error starting test server:", err.Error())
 		panic(err)
 	}
 	defer cancelFunc()
