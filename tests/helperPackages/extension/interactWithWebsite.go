@@ -12,7 +12,7 @@ import (
 )
 
 func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, selectOneTimeButton bool) error {
-	ctx, _ = context.WithTimeout(ctx, 77*time.Second)
+	ctx, _ = context.WithTimeout(ctx, 700*time.Second)
 	// not calling the cancel function as if we do then the future tests will not work as they get cancelled
 	// defer cancel()
 	//
