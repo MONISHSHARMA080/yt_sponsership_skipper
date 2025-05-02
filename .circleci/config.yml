@@ -9,7 +9,7 @@ jobs:
   test-and-merge:
     docker:
       - image: cimg/go:1.22-node
-    resource_class: medium
+    resource_class: large
     steps:
       # 1. Checkout code with full history for merging
       - checkout
