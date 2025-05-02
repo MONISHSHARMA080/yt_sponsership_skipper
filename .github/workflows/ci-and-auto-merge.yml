@@ -33,12 +33,14 @@ jobs:
         working-directory: website
         run: npm ci
       # 6. Install Chrome & ChromeDriver
-      - name: Cache Chrome
-        uses: actions/cache@v3
+      - name: Cache Chrome installation
         id: chrome-cache
+        uses: actions/cache@v3
         with:
-          path: /usr/bin/google-chrome
-          key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/ci.yml') }}
+          path: |
+            ~/.cache/google-chrome
+            ~/.cache/chromedriver
+          key: chrome-cache-${{ runner.os }}-v135
       
       - name: Setup Chrome
         if: steps.chrome-cache.outputs.cache-hit != 'true'
