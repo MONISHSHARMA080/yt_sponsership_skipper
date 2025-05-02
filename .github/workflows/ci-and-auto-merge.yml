@@ -57,6 +57,11 @@ jobs:
       - name: Wait for site readiness
         run: npx wait-on http://localhost:5173
 
+      # 8.5. make the secret for the go tests
+      - name: Create .env file from secret
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+
       # 9. Run Go tests (in ./tests)
       - name: Run Go tests
         run: go test ./tests -v
@@ -83,3 +88,6 @@ jobs:
 
           # push merged main back
           git push origin main
+
+
+
