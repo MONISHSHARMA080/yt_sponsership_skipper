@@ -27,7 +27,7 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
-		chromedp.Flag("headless", false),          // Important: We don't want headless mode
+		chromedp.Flag("headless", true),           // Important: We don't want headless mode
 		chromedp.Flag("enable-automation", false), // Disable the automation banner
 		chromedp.Flag("disable-web-security", true),
 		chromedp.Flag("extensions-on-chrome-urls", true),
