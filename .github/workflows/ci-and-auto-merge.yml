@@ -67,6 +67,14 @@ jobs:
       # 11. Run Go tests (in ./tests)
       - name: Run Go tests
         run: go test ./tests -v
+
+      # 11.1. Show server log output
+      - name: Print server log
+        if: always()  # Show logs even if tests fail
+        run: |
+          echo "=== Server Log Output ==="
+          cat tests/server.log || echo "No server.log file found."
+
       # 12. Merge into main if tests passed; abort on conflict
       - name: Merge into main
         if: ${{ success() }}
