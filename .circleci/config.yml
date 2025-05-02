@@ -1,0 +1,78 @@
+
+version: 2.1
+
+orbs:
+  go: circleci/go@1.7.3        # Go orb for installing Go, caching modules, running tests :contentReference[oaicite:9]{index=9}
+  node: circleci/node@4.7.0    # Node orb for setting up Node.js and npm caching :contentReference[oaicite:10]{index=10}
+  browser-tools: circleci/browser-tools@1.5.3  # Browser Tools orb for Chrome & WebDriver installation :contentReference[oaicite:11]{index=11}
+
+jobs:
+  test-and-merge:
+    docker:
+      - image: cimg/go:1.24    # Official CircleCI Go image :contentReference[oaicite:12]{index=12}
+    working_directory: ~/repo
+    steps:
+      - checkout              # full git history for merge operations :contentReference[oaicite:13]{index=13}
+
+      # --- Go setup & cache ---
+      - go/load-cache         # load cached Go modules :contentReference[oaicite:14]{index=14}
+      - go/mod-download       # run `go mod download` :contentReference[oaicite:15]{index=15}
+      - go/save-cache         # save Go modules to cache :contentReference[oaicite:16]{index=16}
+
+      # --- Node.js & website deps ---
+      - node/with-cache:      # install Node.js & cache npm, run within `website` dir :contentReference[oaicite:17]{index=17}
+          pkg-manager: npm
+          working-directory: website
+
+      # --- Chrome & WebDriver ---
+      - browser-tools/install-chrome      # install Google Chrome :contentReference[oaicite:18]{index=18}
+      - browser-tools/install-chromedriver # install matching ChromeDriver :contentReference[oaicite:19]{index=19}
+
+      # --- Start Svelte dev server & wait ---
+      - run:
+          name: Start website
+          command: |
+            cd website
+            npm run dev &                # background dev server
+      - run:
+          name: Wait for site readiness
+          command: npx wait-on http://localhost:5173  # wait until it's up
+
+      # --- LocalTunnel & env ---
+      - run:
+          name: Install localtunnel
+          command: npm install -g localtunnel
+      - run:
+          name: Create .env from secret
+          command: echo "$ENV_FILE" > .env        # ENV_FILE set in project settings :contentReference[oaicite:20]{index=20}
+
+      # --- Go tests & logs ---
+      - go/test:
+          packages: ./tests   # run `go test ./tests` :contentReference[oaicite:21]{index=21}
+      - run:
+          name: Print server log
+          when: always         # always run, even on failure
+          command: |
+            echo "=== Server Log Output ==="
+            cat tests/server.log || echo "No server.log found."
+
+      # --- Merge back into main ---
+      - run:
+          name: Merge into main
+          when: on_success      # only if tests passed
+          command: |
+            git config user.name "circleci-bot"
+            git config user.email "bot@circleci.com"
+            BRANCH=${CIRCLE_BRANCH}
+            git fetch origin main
+            git checkout main
+            git merge --no-ff "$BRANCH" || (git merge --abort && exit 1)
+            git push origin main
+
+workflows:
+  test_and_merge_workflow:
+    jobs:
+      - test-and-merge:
+          filters:
+            branches:
+              ignore: main         # skip runs on main branch pushes :contentReference[oaicite:22]{index=22}
