@@ -70,7 +70,6 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		}
 
 		println("the first video in the array has ended and we are about to go to the new one")
-		time.Sleep(time.Minute * 2)
 	}
 
 	// if after all we are not able to success fully predict one of them then fail: all the videos have ads so we should be able to predict one of them
