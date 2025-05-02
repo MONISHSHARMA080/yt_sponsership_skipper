@@ -187,7 +187,7 @@ func (e *ChromeExtension) MakeSureTheVideoIsPlaying(ctx context.Context) error {
 				if (vp !== null && vp.player_ && vp.player_.isReady()) {
 					vp.getPlayer().playVideo();
 					console.log("The video is now playing, player is:", vp);
-
+          vp.getPlayer().setPlaybackRate(2)
 	     const video = document.querySelector('video');
 	     if (!video) {
 	       return "No video element found";
