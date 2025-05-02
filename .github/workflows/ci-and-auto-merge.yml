@@ -1,82 +1,73 @@
-
 name: CI → Test & Auto‑Merge
-
 # 1. Run on any push except to main
 on:
   push:
     branches-ignore:
       - main
-
 permissions:
   contents: write   # allow pushing to branches
   actions: read
-
 jobs:
   test-and-merge:
     runs-on: ubuntu-latest
-
     steps:
       # 2. Checkout full history so we can merge
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       # 3. Setup Go (with module cache)
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
           cache: true
-
       # 4. Setup Node.js (with npm cache)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '23.1.0'
           cache: 'npm'
-
       # 5. Install website deps
       - name: Install website dependencies
         working-directory: website
         run: npm ci
-
       # 6. Install Chrome & ChromeDriver
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
         with:
           install-dependencies: true
           install-chromedriver: true
-
-      # 7. Start Svelte dev server in background
+      # 7. Install and start Xvfb (virtual display server)
+      - name: Setup virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+      # 8. Start Svelte dev server in background
       - name: Start website
         working-directory: website
         run: npm run dev &
-
-      # 8. Wait for site to be up
+      # 9. Wait for site to be up
       - name: Wait for site readiness
         run: npx wait-on http://localhost:5173
-
-      # 8.5. make the secret for the go tests
+      # 10. Create .env file from secret
       - name: Create .env file from secret
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
-
-      # 9. Run Go tests (in ./tests)
+      # 11. Run Go tests (in ./tests)
       - name: Run Go tests
         run: go test ./tests -v
-
-      # 10. Merge into main if tests passed; abort on conflict
+      # 12. Merge into main if tests passed; abort on conflict
       - name: Merge into main
         if: ${{ success() }}
         run: |
           # configure git identity
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           # extract branch name
           BRANCH=${GITHUB_REF#refs/heads/}
-
           # fetch latest main & attempt merge
           git fetch origin main
           git checkout main
@@ -85,9 +76,5 @@ jobs:
             git merge --abort
             exit 1
           }
-
           # push merged main back
           git push origin main
-
-
-
