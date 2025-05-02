@@ -239,7 +239,7 @@ func (extension *ChromeExtension) GetValueFormLocalStorageOfWebsite(ctx context.
 		chromedp.Evaluate(script, &result, func(p *runtime.EvaluateParams) *runtime.EvaluateParams { return p.WithAwaitPromise(true) }),
 	)
 
-	fmt.Printf("\n The script execution is completed - value: %s, error: %s \n", result.Value, result.Error)
+	fmt.Printf("\n The script execution is completed - value: %s --- error: %s \n", result.Value, result.Error)
 	println("the script execution is completed - value: ", result.Value, " error: ", result.Error)
 
 	if err != nil {
