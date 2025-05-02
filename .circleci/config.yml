@@ -20,9 +20,6 @@ jobs:
       # 3. Setup Node.js with npm cache
       - node/install:
           node-version: '23.1.0'
-          npm-version: latest
-          install-npm: true
-          install-packages: false
       
       # 4. Install website dependencies
       - restore_cache:
