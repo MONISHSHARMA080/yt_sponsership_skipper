@@ -224,7 +224,7 @@ func (extension *ChromeExtension) GetValueFormLocalStorageOfWebsite(ctx context.
 				const value = localStorage.getItem('KEY');
 				resolve({
 					error: null,
-					value: value || ''
+					value: value 
 				});
 			} catch (e) {
 				resolve({
@@ -240,6 +240,7 @@ func (extension *ChromeExtension) GetValueFormLocalStorageOfWebsite(ctx context.
 	)
 
 	fmt.Printf("\n The script execution is completed - value: %s, error: %s \n", result.Value, result.Error)
+	println("the script execution is completed - value: ", result.Value, " error: ", result.Error)
 
 	if err != nil {
 		fmt.Println("Error executing the script:", err.Error())
