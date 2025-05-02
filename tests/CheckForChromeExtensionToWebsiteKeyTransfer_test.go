@@ -18,7 +18,8 @@ func TestCheckForChromeExtensionToWebsiteKeyTransfer(t *testing.T) {
 	// see that if it is valid or not of not then get the new one
 	// 2) or make the expiry time form the env large so while generating the key we know it willbe sufficiend and will not change
 	// this is the already happening as we have not changed the key
-	println("in the test to check if chromeExtension passes its key to the website")
+	println("\n\n\n\n\n in the test to check if chromeExtension passes its key to the website")
+	defer println("\n\n\n\n\n\n")
 	ctx := commonstateacrosstest.BrowserContext
 	DB := DB.DbConnect()
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
