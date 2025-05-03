@@ -102,6 +102,13 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 
 				fmt.Printf("Detected relevant API call: %s\n", resp.Response.URL)
 
+				if resp.Response.Status != 200 {
+					println("the response status is not 200 and it is ->", resp.Response.Status)
+					println("we are returning")
+					resultChanForJsonBody <- responseForJsonBodyChannel{err: fmt.Errorf("the response form the server is not 200 so we are returning "), success: false, ytResp: nil}
+					return
+				}
+
 				// Get the response body
 				var responseBody string
 				err := chromedp.Run(swCtx, chromedp.ActionFunc(func(ctx context.Context) error {

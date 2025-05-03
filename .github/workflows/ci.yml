@@ -53,12 +53,6 @@ jobs:
           echo "=== Server Log Output ==="
           cat ./logs/server.log || echo "No server.log file found."
           
-      # Print Docker logs if tests fail
-      - name: Print Docker logs
-        if: failure()
-        run: |
-          echo "=== Docker Container Logs ==="
-          docker compose logs ci
 
       # Merge into main if tests passed; abort on conflict
       - name: Merge into main
