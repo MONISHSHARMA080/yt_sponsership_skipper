@@ -23,11 +23,6 @@ import (
 func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Context, timeToKeepLookingForNetworkResponse time.Duration, resultChannel chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]) {
 	println("getting context without timepout")
 	ctx, cancelFunc := context.WithTimeout(ctx, timeToKeepLookingForNetworkResponse)
-	// if err != nil {
-	//    println("the error in getting the ")
-	// 	resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: nil}
-	// 	return
-	// }
 	defer cancelFunc()
 	var infos []*target.Info
 	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {

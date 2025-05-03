@@ -186,18 +186,25 @@ func (e *ChromeExtension) MakeSureTheVideoIsPlaying(ctx context.Context) error {
 				let vp = document.querySelector("#ytd-player");
 				if (vp !== null && vp.player_ && vp.player_.isReady()) {
 					vp.getPlayer().playVideo();
+					
+					// Get current time and duration to calculate percentage
+					const currentTime = vp.getPlayer().getCurrentTime();
+					const duration = vp.getPlayer().getDuration();
+					const percentagePlayed = (currentTime / duration * 100).toFixed(2);
+					
 					console.log("The video is now playing, player is:", vp);
-          vp.getPlayer().setPlaybackRate(2)
-	     const video = document.querySelector('video');
-	     if (!video) {
-	       return "No video element found";
-	     }
-
-  // idk a hack suggested by the chat gpt
-video.muted = true;
-	         video.play();
-	 console.log("is my video  paused", video.paused);
-					return "Video playing successfully";
+					vp.getPlayer().setPlaybackRate(2)
+					
+					const video = document.querySelector('video');
+					if (!video) {
+						return "No video element found";
+					}
+					// idk a hack suggested by the chat gpt
+					video.muted = true;
+					video.play();
+					console.log("is my video paused", video.paused);
+					
+					return "Video playing successfully - " + percentagePlayed + "% complete";
 				} else {
 					console.log("Video player not ready or not found:", vp);
 					return "Video player not ready";

@@ -26,7 +26,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
 	for i, pageUrl := range youtubeUrl {
-		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*30, getAPIResponseFromNetworkChann)
+		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*8, getAPIResponseFromNetworkChann)
 		println("sleeping for 2 sec to ensure that the we are able to intercept the message form the service worker")
 		time.Sleep(time.Second * 2)
 		err := chromeExtension.NavigateToAWebPage(ctx, pageUrl)
@@ -75,7 +75,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// if after all we are not able to success fully predict one of them then fail: all the videos have ads so we should be able to predict one of them
 	if !success {
 		t.Fatal("we are not able to skip the yt video in the chrome extension(in all 4 of the url)")
-	}else{
+	} else {
 		println("we are able to skip the ad in the video and we are exiting the test")
 	}
 }
