@@ -21,6 +21,9 @@ RUN wget -qO- https://dl.google.com/linux/linux_signing_key.pub | apt-key add - 
   && apt-get update && apt-get install -y google-chrome-stable \
   && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p /tmp/chrome-profile && chown -R root:root /tmp/chrome-profile
+
+
 # ChromeDriver (match your Chrome version)
 ARG CHROMEDRIVER_VERSION=114.0.5735.90
 RUN wget -O /tmp/chromedriver.zip \

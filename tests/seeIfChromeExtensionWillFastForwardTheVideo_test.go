@@ -75,5 +75,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// if after all we are not able to success fully predict one of them then fail: all the videos have ads so we should be able to predict one of them
 	if !success {
 		t.Fatal("we are not able to skip the yt video in the chrome extension(in all 4 of the url)")
+	}else{
+		println("we are able to skip the ad in the video and we are exiting the test")
 	}
 }
