@@ -34,7 +34,7 @@ jobs:
       # Build and run tests with Docker Compose
       - name: Run tests using Docker
         run: |
-          docker-compose up --build --exit-code-from ci
+          docker compose up --build --exit-code-from ci
         
       # Copy logs from Docker container before it stops
       - name: Extract logs from container
@@ -43,7 +43,7 @@ jobs:
           # Create directory for logs
           mkdir -p ./logs
           # Copy server.log from the website directory in the container to host
-          docker cp $(docker-compose ps -q ci):/app/website/server.log ./logs/server.log || echo "Could not copy server.log from container"
+          docker cp $(docker compose ps -q ci):/app/website/server.log ./logs/server.log || echo "Could not copy server.log from container"
 
           
       # Print server.log if available
@@ -58,7 +58,7 @@ jobs:
         if: failure()
         run: |
           echo "=== Docker Container Logs ==="
-          docker-compose logs ci
+          docker compose logs ci
 
       # Merge into main if tests passed; abort on conflict
       - name: Merge into main
