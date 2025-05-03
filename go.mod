@@ -11,7 +11,6 @@ require (
 	github.com/markbates/goth v1.80.0
 	github.com/razorpay/razorpay-go v1.3.2
 	github.com/tursodatabase/go-libsql v0.0.0-20250416102726-983f7e9acb0e
-	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
 )
 
 require (
@@ -19,7 +18,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
-	github.com/coder/websocket v1.8.12 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250211171154-1ae217ad3535 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
