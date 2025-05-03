@@ -77,6 +77,7 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 		err     error
 		success bool
 	}
+	println("the networkEventsChan is created and we are about to start the go routine")
 	resultChanForJsonBody := make(chan responseForJsonBodyChannel)
 	var youtubePathResponseInJson *types.YouTubeVideoResponse
 	// Process network events with a timeout
@@ -102,6 +103,8 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 					println("we are returning")
 					resultChanForJsonBody <- responseForJsonBodyChannel{err: fmt.Errorf("the response form the server is not 200 so we are returning "), success: false, ytResp: nil}
 					return
+				} else {
+					println("the response status is 200 and we are good to go")
 				}
 
 				// Get the response body

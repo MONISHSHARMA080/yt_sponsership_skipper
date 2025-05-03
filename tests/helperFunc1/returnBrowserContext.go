@@ -27,7 +27,7 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
-		chromedp.Flag("headless", true),           // Important: We don't want headless mode
+		chromedp.Flag("headless", false),          // Important: We don't want headless mode
 		chromedp.Flag("enable-automation", false), // Disable the automation banner
 		chromedp.Flag("disable-web-security", true),
 		chromedp.Flag("extensions-on-chrome-urls", true),
@@ -78,9 +78,8 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 		chromedp.Flag("auto-open-devtools-for-tabs", true),
 		// This ensures network events are captured
 		chromedp.Flag("enable-network-service", true),
-        chromedp.Flag("disable-dev-shm-usage", true), // --disable-dev-shm-usage :contentReference[oaicite:6]{index=6}
-        // chromedp.UserDataDir("/tmp/chrome-profile"),  // --user-data-dir :contentReference[oaicite:7]{index=7}
-
+		chromedp.Flag("disable-dev-shm-usage", true), // --disable-dev-shm-usage :contentReference[oaicite:6]{index=6}
+		// chromedp.UserDataDir("/tmp/chrome-profile"),  // --user-data-dir :contentReference[oaicite:7]{index=7}
 
 		chromedp.WSURLReadTimeout(60*time.Second),
 	)

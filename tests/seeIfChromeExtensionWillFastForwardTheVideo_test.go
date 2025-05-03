@@ -26,6 +26,10 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
 	for i, pageUrl := range youtubeUrl {
+
+		// there are problems with this test, for eg why is the  function after the video completion does not return
+		// the problem for that is that the channel getAPIResponseFromNetworkChann does not return
+
 		go chromeExtension.GetResponseFromServerToChromeExtension(ctx, time.Minute*8, getAPIResponseFromNetworkChann)
 		println("sleeping for 2 sec to ensure that the we are able to intercept the message form the service worker")
 		time.Sleep(time.Second * 2)
