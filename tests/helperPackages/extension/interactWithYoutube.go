@@ -208,58 +208,11 @@ video.muted = true;
 			}
 		})()
 	 `
-	//
-	//
-	//or you know may be click on it
-	//
-	//
-	//
-	//
-	//
-	// script := `
-	//  (function() {
-	//    try {
-	//      const video = document.querySelector('video');
-	//      if (!video) {
-	//        return "No video element found";
-	//      }
-	//
-	//          video.play();
-	//  console.log("Video is paused", video.paused);
-	//      // Check if video is paused
-	//      if (video.paused) {
-	//        // Try to click the play button
-	//        const playButton = document.querySelector('.ytp-play-button');
-	//        if (playButton) {
-	//          playButton.click();
-	//        } else {
-	//          // Direct play attempt if button not found
-	//          video.play();
-	//        }
-	//
-	//        // Wait briefly and check if it's playing now
-	//        return new Promise(resolve => {
-	//          setTimeout(() => {
-	//            if (video.paused) {
-	//              resolve("Video still paused after play attempt");
-	//            } else {
-	//              resolve(null);
-	//            }
-	//          }, 1000);
-	//        });
-	//      } else {
-	//        return null; // Already playing
-	//      }
-	//    } catch(e) {
-	//      return "Error: " + e.toString();
-	//    }
-	//  })()
-	//  `
 	err := chromedp.Run(ctx,
 		chromedp.Evaluate(script, &result, func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
 			return p.WithAwaitPromise(true)
 		}),
 	)
-	// println("the result of the script to keep the video running is  ->", result)
+	println("the result of the script to keep the video running is  ->", result)
 	return err
 }
