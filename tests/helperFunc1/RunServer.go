@@ -55,6 +55,7 @@ func StartTestServer(
 
 	// Return a cancel func that kills the server process and closes the log
 	return func() {
+		println("the server is shutting down as the stopping func is called (form defer hopefully)")
 		cancelCtx()     // send kill signal to `go run`
 		cmd.Wait()      // wait for process to exit and release resources
 		logFile.Close() // flush and close the log file
