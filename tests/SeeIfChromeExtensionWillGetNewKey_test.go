@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 	"youtubeAdsSkipper/paymentBackendGO/common"
+	helperfunc1_test "youtubeAdsSkipper/tests/helperFunc1"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
@@ -26,6 +27,7 @@ func TestSeeIfWeReplaceDeprecatedKey(t *testing.T) {
 
 	// power off the phone and then do it , it is a 44-28 min test wth cursor
 
+	helperfunc1_test.LogTestNameInTheServerLogFile(t)
 	ctx := commonstateacrosstest.BrowserContext
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	print("\n\n in the replcae deprecated key \n\n")

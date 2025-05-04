@@ -5,6 +5,7 @@ import (
 	"log"
 	"testing"
 	"youtubeAdsSkipper/paymentBackendGO/common"
+	helperfunc1_test "youtubeAdsSkipper/tests/helperFunc1"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
@@ -14,9 +15,9 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-
 func TestSetKeyInTheLocalStorage(t *testing.T) {
 	// get the key
+	helperfunc1_test.LogTestNameInTheServerLogFile(t)
 
 	ctx := commonstateacrosstest.BrowserContext
 	// Start the browser
