@@ -23,11 +23,6 @@ import (
 func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Context, timeToKeepLookingForNetworkResponse time.Duration, resultChannel chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]) {
 	println("getting context without timepout")
 	ctx, cancelFunc := context.WithTimeout(ctx, timeToKeepLookingForNetworkResponse)
-	// if err != nil {
-	//    println("the error in getting the ")
-	// 	resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: nil}
-	// 	return
-	// }
 	defer cancelFunc()
 	var infos []*target.Info
 	if err := chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
@@ -60,7 +55,13 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 
 	swCtx, swCancel := chromedp.NewContext(ctx, chromedp.WithTargetID(swTargetID))
 	defer swCancel()
-
+	// Enable network events
+	if err := chromedp.Run(swCtx, network.Enable()); err != nil {
+		println("there is a error in enabling the network events ->", err.Error())
+		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: fmt.Errorf("failed to enable network monitoring: %v", err)}
+		return
+	}
+	println("the network events are enabled")
 	// Create a channel to receive network events
 	networkEventsChan := make(chan *network.EventResponseReceived, 100)
 
@@ -68,20 +69,18 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 	chromedp.ListenTarget(swCtx, func(ev interface{}) {
 		switch e := ev.(type) {
 		case *network.EventResponseReceived:
+			println("the response is received and the url is ->", e.Response.URL, "status is ", e.Response.Status)
+			fmt.Printf("the response is -> %+v \n", e.Response)
 			networkEventsChan <- e
 		}
 	})
 
-	// Enable network events
-	if err := chromedp.Run(swCtx, network.Enable()); err != nil {
-		resultChannel <- commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse]{Result: nil, Err: fmt.Errorf("failed to enable network monitoring: %v", err)}
-		return
-	}
 	type responseForJsonBodyChannel struct {
 		ytResp  *types.YouTubeVideoResponse
 		err     error
 		success bool
 	}
+	println("the networkEventsChan is created and we are about to start the go routine")
 	resultChanForJsonBody := make(chan responseForJsonBodyChannel)
 	var youtubePathResponseInJson *types.YouTubeVideoResponse
 	// Process network events with a timeout
@@ -101,6 +100,15 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 				strings.Contains(resp.Response.URL, "/youtubeVideo") {
 
 				fmt.Printf("Detected relevant API call: %s\n", resp.Response.URL)
+
+				if resp.Response.Status != 200 {
+					println("the response status is not 200 and it is ->", resp.Response.Status)
+					println("we are returning")
+					resultChanForJsonBody <- responseForJsonBodyChannel{err: fmt.Errorf("the response form the server is not 200 so we are returning "), success: false, ytResp: nil}
+					return
+				} else {
+					println("the response status is 200 and we are good to go")
+				}
 
 				// Get the response body
 				var responseBody string

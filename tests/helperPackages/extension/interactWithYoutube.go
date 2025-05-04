@@ -181,23 +181,50 @@ func (e *ChromeExtension) MakeSureTheVideoIsPlaying(ctx context.Context) error {
 	var result string
 
 	script := `
+
 		(function() {
 			try {
 				let vp = document.querySelector("#ytd-player");
 				if (vp !== null && vp.player_ && vp.player_.isReady()) {
+					// Get current time and duration to calculate percentage
+					const currentTime = vp.getPlayer().getCurrentTime();
+					const duration = vp.getPlayer().getDuration();
+					const percentagePlayed = (currentTime / duration * 100).toFixed(2);
+					
+					// Check if video is complete or nearly complete
+					if (currentTime >= duration || percentagePlayed > 99.5) {
+						vp.getPlayer().pauseVideo();
+						return "Video completed - 100% complete";
+					}
+					
+					// Set up ended event listener if not already set
+					const video = document.querySelector('video');
+					if (video) {
+						// Only add the listener if it hasn't been added before
+						if (!video.hasAttribute('data-end-listener-added')) {
+							video.addEventListener('ended', function() {
+								console.log("Video ended event triggered");
+								vp.getPlayer().pauseVideo();
+								video.pause();
+							});
+							// Mark that we've added the listener to avoid duplicates
+							video.setAttribute('data-end-listener-added', 'true');
+							console.log("Added ended event listener to video");
+						}
+						
+						video.muted = true;
+						video.play();
+					} else {
+						console.log("No video element found");
+					}
+					
+					// Only play if not completed
 					vp.getPlayer().playVideo();
-					console.log("The video is now playing, player is:", vp);
-          vp.getPlayer().setPlaybackRate(2)
-	     const video = document.querySelector('video');
-	     if (!video) {
-	       return "No video element found";
-	     }
-
-  // idk a hack suggested by the chat gpt
-video.muted = true;
-	         video.play();
-	 console.log("is my video  paused", video.paused);
-					return "Video playing successfully";
+					vp.getPlayer().setPlaybackRate(2);
+					
+					console.log("is my video paused", video ? video.paused : "no video element");
+					
+					return "Video playing successfully - " + percentagePlayed + "% complete";
 				} else {
 					console.log("Video player not ready or not found:", vp);
 					return "Video player not ready";
@@ -207,59 +234,13 @@ video.muted = true;
 				return "Error: " + err.toString();
 			}
 		})()
+
 	 `
-	//
-	//
-	//or you know may be click on it
-	//
-	//
-	//
-	//
-	//
-	// script := `
-	//  (function() {
-	//    try {
-	//      const video = document.querySelector('video');
-	//      if (!video) {
-	//        return "No video element found";
-	//      }
-	//
-	//          video.play();
-	//  console.log("Video is paused", video.paused);
-	//      // Check if video is paused
-	//      if (video.paused) {
-	//        // Try to click the play button
-	//        const playButton = document.querySelector('.ytp-play-button');
-	//        if (playButton) {
-	//          playButton.click();
-	//        } else {
-	//          // Direct play attempt if button not found
-	//          video.play();
-	//        }
-	//
-	//        // Wait briefly and check if it's playing now
-	//        return new Promise(resolve => {
-	//          setTimeout(() => {
-	//            if (video.paused) {
-	//              resolve("Video still paused after play attempt");
-	//            } else {
-	//              resolve(null);
-	//            }
-	//          }, 1000);
-	//        });
-	//      } else {
-	//        return null; // Already playing
-	//      }
-	//    } catch(e) {
-	//      return "Error: " + e.toString();
-	//    }
-	//  })()
-	//  `
 	err := chromedp.Run(ctx,
 		chromedp.Evaluate(script, &result, func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
 			return p.WithAwaitPromise(true)
 		}),
 	)
-	// println("the result of the script to keep the video running is  ->", result)
+	println("the result of the script to keep the video running is  ->", result)
 	return err
 }
