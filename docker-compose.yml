@@ -1,8 +1,19 @@
+version: '3'
+
 services:
   ci:
     build: .
     ports:
-      - "5173:5173"
-      - "8080:8080"
-    # when you change services, clean up orphans:
-    # docker-compose up --remove-orphans
+      - "5173:5173"  # Website port
+      - "8080:8080"  # Go service port
+      - "9222:9222"  # Chrome debugging port
+      - "5900:5900"  # VNC port (optional, if you want to view the browser remotely)
+    volumes:
+      - ./test-results:/app/test-results  # Optional: for saving test artifacts
+    environment:
+      - DISPLAY=:99
+      # Add any environment variables your tests need
+    # If you need specific runtime options:
+    cap_add:
+      - SYS_ADMIN  # May be needed for Chrome in Docker
+    shm_size: 2gb  # Increase shared memory for Chrome stability
