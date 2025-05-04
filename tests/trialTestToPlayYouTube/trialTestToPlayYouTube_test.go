@@ -14,7 +14,7 @@ import (
 func TestToWatchYoutbeVideo(t *testing.T) {
 	// Define browser options with stealth settings
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.Flag("headless", false),
+		chromedp.Flag("headless", true),
 		chromedp.Flag("disable-blink-features", "AutomationControlled"),
 		chromedp.Flag("disable-web-security", true),
 		chromedp.Flag("disable-features", "IsolateOrigins,site-per-process"),
