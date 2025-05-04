@@ -64,5 +64,5 @@ CMD sh -c "\
     npm run dev --prefix website -- --host 0.0.0.0 & \
     go test ./tests -v ;\
     echo '  ======= SERVER LOG =======' && \
-    cat website/server.log \
+    cat tests/server.log  \
 "
