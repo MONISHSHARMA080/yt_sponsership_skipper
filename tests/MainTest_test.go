@@ -47,9 +47,6 @@ func TestMain(m *testing.M) {
 	defer cancelFunc()
 	defer cancelFunc0()
 
-	testHook := &testHook{}
-	testing.RegisterTestingT(testHook)
-
 	code := m.Run()
 
 	os.Exit(code)
