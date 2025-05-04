@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 	"time"
-	helperfunc1_test "youtubeAdsSkipper/tests/helperFunc1"
 	commonchanneltype "youtubeAdsSkipper/tests/helperPackages/CommonChannelType"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
 	"youtubeAdsSkipper/tests/helperPackages/extension"
@@ -22,7 +21,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	// open the file and append to it and not overwrite it
-	helperfunc1_test.LogTestNameInTheServerLogFile(t)
+	// helperfunc1_test.LogTestNameInTheServerLogFile(t)
 	ctx := commonstateacrosstest.BrowserContext
 	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
