@@ -72,6 +72,7 @@ getTheVideoPlaybackTimeForItsLife()
 			return p.WithAwaitPromise(true)
 		}),
 	)
+	println("in the track video playback time func")
 	if err != nil {
 		resultChannel <- commonchanneltype.GenericResultChannel[*[]float64]{Result: nil, Err: fmt.Errorf("there is a error in running the script to get the videoPlayback time (array) out of the js exec and it is :->%s", err.Error())}
 		return
