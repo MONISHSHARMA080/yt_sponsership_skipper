@@ -39,8 +39,9 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 			continue
 		}
 		println("we are in the youtube video ->", pageUrl)
+		// make sure to close this channel as is depends on me to close it
 		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
-		defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
+		// defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
 		resultChanForTrackingPlayBackTime := make(chan commonchanneltype.GenericResultChannel[*[]float64])
 		go chromeExtension.EnsureVideoIsPlayingPeriodically(ctx, time.Second*2, stopChannelToStopChekingIfTheVideoIsPlaying, false)
 		go chromeExtension.TrackVideoPlaybackTime(ctx, resultChanForTrackingPlayBackTime)
@@ -49,6 +50,10 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		if playBackTimeChan.Err != nil {
 			t.Fatal("there is a error in getting the playBackTime[] and it is ->" + playBackTimeChan.Err.Error())
 		}
+
+		println("closing the channel to see that the video is still playing as we have gotten the result")
+		close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it
+
 		println("is the playBackTime array not nil->", playBackTimeChan.Result != nil, " and the array lenght is:", len(*playBackTimeChan.Result))
 		APIResponseFormNetwork := <-getAPIResponseFromNetworkChann
 		if APIResponseFormNetwork.Err != nil {
