@@ -17,85 +17,79 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	
 	extensionPath := filepath.Join(cwd, "../chromeExtension")
 	println("the chrome extensionPath is ->", extensionPath)
+	
 	ublockPath := filepath.Join(cwd, "u-block")
 	println("the ublockPath extensionPath is ->", ublockPath)
 
+	// Configure options for non-headless Chrome in Docker
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		// Core settings for non-headless mode
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
-		chromedp.Flag("headless", false),
-		chromedp.Flag("no-sandbox", true),             // Required for Docker
-		chromedp.Flag("disable-dev-shm-usage", true),  // Good for Docker stability
-		chromedp.Flag("disable-gpu", true),            // Better for Docker
-		chromedp.Flag("enable-automation", false),     // Disable the automation banner
-		
-		// Extension-related flags
+		chromedp.Flag("headless", false),            // Explicitly set non-headless mode
+		chromedp.Flag("no-sandbox", true),           // Required in Docker
+		chromedp.Flag("disable-dev-shm-usage", true), // Avoid using /dev/shm which is limited in Docker
+		chromedp.Flag("remote-debugging-address", "0.0.0.0"), // Allow external connections
+		chromedp.Flag("remote-debugging-port", "9222"),
+		chromedp.Flag("disable-gpu", false),         // Enable GPU for better rendering
+		chromedp.Flag("window-size", "1280,720"),
+		chromedp.Flag("enable-automation", false),   // Disable the automation banner
+		chromedp.Flag("disable-web-security", true),
+		chromedp.Flag("extensions-on-chrome-urls", true),
+		chromedp.Flag("disable-default-apps", true),
 		chromedp.Flag("load-extension", extensionPath+","+ublockPath),
 		chromedp.Flag("disable-extensions-except", extensionPath+","+ublockPath),
-		chromedp.Flag("extensions-on-chrome-urls", true),
 		chromedp.Flag("disable-popup-blocking", true),
-		
-		// Security and permission settings
-		chromedp.Flag("disable-web-security", true),
-		chromedp.Flag("ignore-certificate-errors", true),
-		chromedp.Flag("disable-infobars", true),
-		
-		// Storage settings
-		chromedp.Flag("unlimited-storage", true),
-		chromedp.Flag("allow-unlimited-local-storage", true),
-		
-		// Account/sync settings
 		chromedp.Flag("disable-sync", true),
 		chromedp.Flag("disable-signin-promo", true),
 		chromedp.Flag("disable-sync-credential-backend", true),
-		chromedp.Flag("account-consistency", "disabled"),
+		chromedp.Flag("enable-features", "PasswordImport"),
 		chromedp.Flag("disable-features", "PasswordExport,Signin,IdentityManager"),
-		chromedp.Flag("enable-features", "PasswordImport,DisableAccountConsistency"),
-		
-		// Viewport settings
-		chromedp.Flag("window-size", "1920,1080"),
-		
-		// Debug settings
-		chromedp.Flag("remote-debugging-port", "9222"),
-		chromedp.Flag("auto-open-devtools-for-tabs", true),
-		chromedp.Flag("enable-network-service", true),
-		
-		// Anti-detection settings
+		chromedp.Flag("safebrowsing-disable-extension-blacklist", true),
+		chromedp.Flag("account-consistency", "disabled"),
+		chromedp.Flag("unlimited-storage", true),
+		chromedp.Flag("allow-unlimited-local-storage", true),
+		// Use a persistent user data directory in Docker
+		chromedp.UserDataDir("/tmp/chrome-profile"),
+		// For better automation detection evasion
 		chromedp.Flag("disable-blink-features", "AutomationControlled"),
+		chromedp.Flag("ignore-certificate-errors", true),
+		chromedp.Flag("disable-infobars", true),
 		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"),
-		
-		// Networking timeout
+		// Network settings
+		chromedp.Flag("enable-network-service", true),
 		chromedp.WSURLReadTimeout(60*time.Second),
 	)
 
+	// Create execution allocator context
 	allocCtx, cancel1 := chromedp.NewExecAllocator(context.Background(), opts...)
-
-	// Create context with more verbose logging
+	
+	// Create Chrome context
 	ctx, _ := chromedp.NewContext(
 		allocCtx,
 		chromedp.WithLogf(func(format string, args ...interface{}) {
-			fmt.Printf("ChromeDP: "+format+"\n", args...)
+			fmt.Printf(format, args...)
 		}),
-		chromedp.WithDebugf(func(format string, args ...interface{}) {
-			fmt.Printf("ChromeDP Debug: "+format+"\n", args...)
-		}),
+		// Increase browser start timeout for Docker environment
+		// chromedp.WithBrowserOption(
+		// 	chromedp.WithBrowserStartTimeout(2 * time.Minute),
+		// ),
 	)
 
 	// Create a timeout for the entire operation
 	ctx, cancel := context.WithTimeout(ctx, 40*time.Minute)
 
-	// Set up network
+	// Enable network events
 	err = chromedp.Run(ctx, network.Enable())
 	if err != nil {
 		cancel()
 		cancel1()
-		return nil, nil, nil, fmt.Errorf("failed to enable network: %w", err)
+		return nil, nil, nil, err
 	}
-	
-	// Set up anti-detection measures
+
+	// Set viewport and anti-automation measures
 	err = chromedp.Run(ctx,
 		// Set realistic viewport
 		emulation.SetDeviceMetricsOverride(1920, 1080, 1.0, false),
@@ -114,7 +108,7 @@ func GetNewBrowserForChromeExtension(extensionID string) (context.Context, conte
 	if err != nil {
 		cancel()
 		cancel1()
-		return nil, nil, nil, fmt.Errorf("failed to set up anti-detection: %w", err)
+		return nil, nil, nil, err
 	}
 
 	return ctx, cancel, cancel1, nil

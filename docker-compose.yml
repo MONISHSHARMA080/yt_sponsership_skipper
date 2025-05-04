@@ -1,19 +1,17 @@
-version: '3'
-
 services:
   ci:
     build: .
     ports:
       - "5173:5173"  # Website port
-      - "8080:8080"  # Go service port
+      - "8080:8080"  # Backend port
       - "9222:9222"  # Chrome debugging port
-      - "5900:5900"  # VNC port (optional, if you want to view the browser remotely)
+      - "5900:5900"  # VNC port
+      - "6080:6080"  # noVNC web-based access
     volumes:
-      - ./test-results:/app/test-results  # Optional: for saving test artifacts
+      - /tmp/.X11-unix:/tmp/.X11-unix  # X11 socket for GUI
     environment:
-      - DISPLAY=:99
-      # Add any environment variables your tests need
-    # If you need specific runtime options:
-    cap_add:
-      - SYS_ADMIN  # May be needed for Chrome in Docker
-    shm_size: 2gb  # Increase shared memory for Chrome stability
+      - DISPLAY=:99  # Use Xvfb display
+    # Use privileged mode to allow proper rendering
+    privileged: true
+    # Set shared memory size to avoid Chrome crashes
+    shm_size: '2gb'
