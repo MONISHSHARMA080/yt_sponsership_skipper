@@ -220,7 +220,7 @@ func (e *ChromeExtension) MakeSureTheVideoIsPlaying(ctx context.Context) error {
 					
 					console.log("is my video paused", video ? video.paused : "no video element");
 					
-					return "Video playing successfully - " + percentagePlayed + "% complete";
+					return "Video playing successfully - " + percentagePlayed + "% complete ------current time of video is -> "+ currentTime + " and the duration is -> " + duration;
 				} else {
 					console.log("Video player not ready or not found:", vp);
 					return "Video player not ready";
