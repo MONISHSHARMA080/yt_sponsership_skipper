@@ -127,8 +127,8 @@ func (ce ChromeExtension) GetResponseFromServerToChromeExtension(ctx context.Con
 						resultChanForJsonBody <- responseForJsonBodyChannel{err: err, success: false, ytResp: nil}
 						return err
 					}
-					println("got the json decoded in the struct and returnign it")
 					resultChanForJsonBody <- responseForJsonBodyChannel{err: nil, success: true, ytResp: youtubePathResponseInJson}
+					println("got the json decoded in the struct and returnign it")
 					return nil
 				}))
 				if err != nil {
