@@ -30,8 +30,8 @@ func (ce *ChromeExtension) DidWeSkippedTheAd(startTime, endTime float64, playbac
 }
 
 // will store the time in Array in the js side and when the vide is completed, then we will return it
+// this will be a struct that will have result and error on it
 func (ce *ChromeExtension) TrackVideoPlaybackTime(ctx context.Context, resultChannel chan commonchanneltype.GenericResultChannel[*[]float64]) {
-	// this will be a struct that will have result and error on it
 	var result struct {
 		Result []float64 `json:"result"`
 		Error  string    `json:"error"`
@@ -192,11 +192,6 @@ func (e *ChromeExtension) MakeSureTheVideoIsPlaying(ctx context.Context) error {
 					const duration = vp.getPlayer().getDuration();
 					const percentagePlayed = (currentTime / duration * 100).toFixed(2);
 					
-					// Check if video is complete or nearly complete
-					if (currentTime >= duration || percentagePlayed > 99.5) {
-						vp.getPlayer().pauseVideo();
-						return "Video completed - 100% complete";
-					}
 					
 					// Set up ended event listener if not already set
 					const video = document.querySelector('video');
