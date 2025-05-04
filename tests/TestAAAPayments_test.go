@@ -16,6 +16,7 @@ func TestAAAAPaymentToUpgradeTheUserPlan(t *testing.T) {
 	//
 	//also run the localtunnel and create the razorpay webhook form the lib, and delete when the test is over
 	// we are not creating a new webhook as we don't need it, we will just create the tunnel at the already existing one
+	helperfunc1_test.LogTestNameInTheServerLogFile(t)
 	ctx := commonstateacrosstest.BrowserContext
 
 	tunnelCMD, err := helperfunc1_test.StartLocalTunnel()
