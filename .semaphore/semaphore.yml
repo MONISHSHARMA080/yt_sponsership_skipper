@@ -33,4 +33,3 @@ blocks:
             # bring up all services, abort on first container exit,
             # and return the exit code of the `test` service
             - docker-compose up --abort-on-container-exit --exit-code-from test
-
