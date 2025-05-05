@@ -23,9 +23,10 @@ jobs:
           name: Create root .env file
           # We echo the environment variable directly into the file.
           # Ensure ENV_FILE is set as a secret in CircleCI.
-          command: ls
-          command: echo "$ENV_FILE" > .env
-          command: cat .env
+          command: |
+            ls
+            echo "$ENV_FILE" > .env
+            cat .env
 
       - run:
           name: Create website .env file
