@@ -10,19 +10,20 @@ agent:
 # Attach the two file‑type secrets to every job,
 # and run the prologue before any job commands.
 global_job_config:
-  secrets:
-    - name: root‑env‑file
-    - name: website‑env‑file
+  # secrets:
+  #   - name: root‑env‑file
+  #   - name: website‑env‑file
 
   prologue:
     commands:
       # checkout must come first
-      - checkout
+      # - checkout
       # copy the root .env into your workspace
-      - cp /home/semaphore/root‑env‑file/.env ./.env
+      # - cp /home/semaphore/root‑env‑file/.env ./.env
       # ensure website/ exists & copy its .env
-      - mkdir -p website
-      - cp /home/semaphore/website‑env‑file/.env website/.env
+      # - mkdir -p website
+      # - cp /home/semaphore/website‑env‑file/.env website/.env
+      - ls  
 
 blocks:
   - name: Run tests in Docker Compose
