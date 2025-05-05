@@ -18,16 +18,19 @@ blocks:
   - name: Run tests in Docker Compose
     task:
       jobs:
-        - name: up & test
+        - name: ' integration tests'
           commands:
-            - 'docker-compose up '
+            - 'docker compose up '
       secrets:
         - name: ENV_FILE
         - name: ENV_FILE_Secret
       epilogue:
         always:
           commands:
-            - ls
+            - echo "starting the tests"
         on_fail:
           commands:
-            - ls
+            - echo "the job failed"
+      prologue:
+        commands:
+          - echo "prologue"
