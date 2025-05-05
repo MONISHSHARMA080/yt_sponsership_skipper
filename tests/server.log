@@ -5,19 +5,7 @@ Test server started, proceeding to browser setup.
 
 
 
- -----------------TestCheckForChromeExtensionToWebsiteKeyTransfer------------------
-
-
-
-
-
-
-
-
-
-
-
- -----------------TestSeeIfWeReplaceDeprecatedKey------------------
+ -----------------TestSeeIfChromeExtensionSkipsTheVideo------------------
 
 
 

@@ -40,7 +40,16 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 			println("there is a error in navigating to the youtubeUrl at index ", i)
 			continue
 		}
+		time.Sleep(time.Second * 6)
 		println("we are in the youtube video ->", pageUrl)
+		err = chromeExtension.CaptureScreenshot(ctx, "youtubeVideoScreenShot.png")
+		if err != nil {
+			println("there is a error in taking the screenshot of the youtube video and it is ->", err.Error())
+			// not returning as it is not necessary
+			// return
+		} else {
+			println("the screenshot of the youtube video is taken and saved in the file -> youtubeVideoScreenShot.png")
+		}
 		// make sure to close this channel as is depends on me to close it
 		stopChannelToStopChekingIfTheVideoIsPlaying := make(chan struct{})
 		// defer close(stopChannelToStopChekingIfTheVideoIsPlaying) // this is a send only channel so only we can close it

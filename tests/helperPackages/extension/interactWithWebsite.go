@@ -3,6 +3,8 @@ package extension
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -10,6 +12,37 @@ import (
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
 )
+
+// CaptureScreenshot navigates to the current page in ctx, takes a full‑page screenshot,
+// and writes it (overwriting if present) to /app/tests/screenshot/<fileName> inside the container.
+// That folder should be bind‑mounted to ./tests/screenshot on your host.
+func (ce *ChromeExtension) CaptureScreenshot(ctx context.Context, fileName string) error {
+	// hard‑coded container path
+	containerDir := "screenshot"
+	fullPath := filepath.Join(containerDir, fileName)
+
+	// ensure the directory exists
+	// see its docs , if the path is there it does nothing, this is for saftey purposes
+	if err := os.MkdirAll(containerDir, 0o755); err != nil {
+		println("error in making the directory for screenshot ->", err.Error())
+		return err
+	}
+
+	var buf []byte
+	err := chromedp.Run(ctx,
+		chromedp.FullScreenshot(&buf, 100)) // quality=100% :contentReference[oaicite:0]{index=0});
+	if err != nil {
+		return err
+	}
+
+	// write file (0644 will override if already exists)
+	if err := os.WriteFile(fullPath, buf, 0o644); err != nil {
+		return err
+	}
+
+	fmt.Printf("📸 screenshot saved to %s\n", fullPath)
+	return nil
+}
 
 func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, selectOneTimeButton bool) error {
 	ctx, _ = context.WithTimeout(ctx, 700*time.Second)
@@ -90,38 +123,37 @@ func (ce *ChromeExtension) MakeThePaymentAndGetOnPaidTier(ctx context.Context, s
 
 	// here we need to first fill the number if it is there
 
+	// document.querySelector("#overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\\:grow-0 > div > div.mt-6.flex.flex-col > label > input")
+	// selector (down)
+	// #overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\:grow-0 > div > div.mt-6.flex.flex-col > label > input
+	// xpath (down)
+	// //*[@id="overlay-backdrop"]/div/div/div/form/div[1]/div/div[2]/label/input
 
-// document.querySelector("#overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\\:grow-0 > div > div.mt-6.flex.flex-col > label > input")
-// selector (down)
-// #overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\:grow-0 > div > div.mt-6.flex.flex-col > label > input
-// xpath (down)
-// //*[@id="overlay-backdrop"]/div/div/div/form/div[1]/div/div[2]/label/input
-
-var phoneNumberPresent bool
-err = chromedp.Run(iframeCtx,
-    chromedp.Evaluate(`document.querySelector("#overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\\:grow-0 > div > div.mt-6.flex.flex-col > label > input") !== null`, &phoneNumberPresent),
-)
-if err != nil {
-    println("Error checking for phone number field:", err.Error())
-	return err
-}
-
-if phoneNumberPresent {
-    println("the number box is present")
-    err = chromedp.Run(iframeCtx,
-        chromedp.SendKeys(`#overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\:grow-0 > div > div.mt-6.flex.flex-col > label > input`, "9999999999", chromedp.ByQuery),
-    )
-    if err != nil {
-        println("Error filling phone number:", err.Error())
+	var phoneNumberPresent bool
+	err = chromedp.Run(iframeCtx,
+		chromedp.Evaluate(`document.querySelector("#overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\\:grow-0 > div > div.mt-6.flex.flex-col > label > input") !== null`, &phoneNumberPresent),
+	)
+	if err != nil {
+		println("Error checking for phone number field:", err.Error())
 		return err
-    } else {
-        println("Successfully filled phone number with 9999999999")
-    }
-} else {
-    println("Phone number input not found, proceeding with next steps")
-}
-println("sleeping for 3 sec, so that we can wait for the number box to go away")
-time.Sleep(time.Second * 3)
+	}
+
+	if phoneNumberPresent {
+		println("the number box is present")
+		err = chromedp.Run(iframeCtx,
+			chromedp.SendKeys(`#overlay-backdrop > div > div > div > form > div.relative.flex.grow.flex-col.d\:grow-0 > div > div.mt-6.flex.flex-col > label > input`, "9999999999", chromedp.ByQuery),
+		)
+		if err != nil {
+			println("Error filling phone number:", err.Error())
+			return err
+		} else {
+			println("Successfully filled phone number with 9999999999")
+		}
+	} else {
+		println("Phone number input not found, proceeding with next steps")
+	}
+	println("sleeping for 3 sec, so that we can wait for the number box to go away")
+	time.Sleep(time.Second * 3)
 
 	err = chromedp.Run(iframeCtx,
 		// for example, click the Netbanking button
@@ -134,9 +166,6 @@ time.Sleep(time.Second * 3)
 	// this is here to get the new window that the razorpay opens
 	println("clicking on the bank of borada in 3 sec")
 	time.Sleep(time.Second * 3)
-
-
-
 
 	err = chromedp.Run(iframeCtx,
 		chromedp.Click(`//*[@id="main-stack-container"]/div/div/div/div/div[2]/div/div/form[1]/div/label[1]/div/div`, chromedp.BySearch),

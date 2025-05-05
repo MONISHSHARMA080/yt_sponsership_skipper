@@ -46,12 +46,12 @@ jobs:
           docker cp $(docker compose ps -q ci):/app/website/server.log ./logs/server.log || echo "Could not copy server.log from container"
 
           
-      # Print server.log if available
-      - name: Print server log
-        if: always()
-        run: |
-          echo "=== Server Log Output ==="
-          cat ./logs/server.log || echo "No server.log file found."
+      - name: Upload CI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts
+          path: |
+            tests/screenshot
           
 
       # Merge into main if tests passed; abort on conflict
