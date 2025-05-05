@@ -75,5 +75,6 @@ workflows:
     # This runs on every push, except to the main branch
     # You might adjust the branch pattern as needed
     unless: # Or `filters: branches: ignore: main`
-      branches:
-        only: main
+     branches:
+              ignore:
+                - main 
