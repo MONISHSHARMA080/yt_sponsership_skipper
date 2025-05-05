@@ -24,15 +24,18 @@ jobs:
           # We echo the environment variable directly into the file.
           # Ensure ENV_FILE is set as a secret in CircleCI.
           command: |
-            ls
             echo "$ENV_FILE" > .env
-            cat .env
 
       - run:
           name: Create website .env file
           # Ensure WEBSITE_ENV_FILE is set as a secret in CircleCI.
           # Assumes the website/ directory exists from checkout.
-          command: echo "$WEBSITE_ENV_FILE" > website/.env
+          command:  |
+          echo "$WEBSITE_ENV_FILE" > website/.env
+          ls
+          cat .env
+          echo "----printed env file  in the root dir , not in the website---"
+          cat website/.env
 
       # Build and run tests with Docker Compose
       # --build ensures the image is built using the .env files we just created
