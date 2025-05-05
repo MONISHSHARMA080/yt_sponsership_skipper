@@ -30,7 +30,8 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	fmt.Printf("\n\n --Content of .env file:\n %s \n\n\n\n\n", string(envFileContent))
-	fmt.Printf("\n\n --Content of .env file:\n %s \n\n\n\n\n", string(envFileContent[:38]))
+	fmt.Printf("\n\n --Content of .env file:\n %s \n\n\n\n\n", string(envFileContent[:338]))
+	println("the lenght of the env file is ->", len(string(envFileContent)))
 
 	err = DB.CreateDBForTest()
 	if err != nil {
