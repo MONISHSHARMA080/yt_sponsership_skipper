@@ -1,105 +1,79 @@
+# CircleCI 2.1 Configuration
 version: 2.1
 
-orbs:
-  node: circleci/node@5.1.0
-  browser-tools: circleci/browser-tools@1.4.6
-
+# Define jobs
 jobs:
-  test-and-merge:
-    docker:
-      - image: cimg/go:1.22-node
-    resource_class: medium
+  build-and-test:
+    # We need a machine executor because we are running docker compose,
+    # which involves orchestrating containers directly on the host or a
+    # dedicated Docker engine. Using a docker primary executor would run
+    # commands *inside* a container, making it tricky to run docker compose
+    # against the host or a remote daemon easily without extra steps like setup_remote_docker.
+    machine:
+      image: ubuntu-2204:2024.04.1 # Or a similar recent Ubuntu image that has Docker installed
+
     steps:
-      # 1. Checkout code with full history for merging
+      # Checkout the code
       - checkout
-      
-      # 2. Use pre-installed Go in the Docker image instead of orb
+
+      # Create environment files from CircleCI environment variables (secrets)
+      # These secrets must be configured in your CircleCI project settings
+      # or within a context used by this job/workflow.
       - run:
-          name: Check Go version
-          command: go version
-      
-      # 3. Setup Node.js with npm cache
-      - node/install:
-          node-version: '20.10.0'  # Using a more stable Node.js version
-      
-      # 4. Install website dependencies
-      - restore_cache:
-          keys:
-            - npm-packages-{{ checksum "website/package-lock.json" }}
+          name: Create root .env file
+          # We echo the environment variable directly into the file.
+          # Ensure ENV_FILE is set as a secret in CircleCI.
+          command: echo "$ENV_FILE" > .env
+
       - run:
-          name: Install website dependencies
-          command: cd website && npm ci
-      - save_cache:
-          key: npm-packages-{{ checksum "website/package-lock.json" }}
-          paths:
-            - website/node_modules
-      
-      # 5. Install Chrome & ChromeDriver
-      - browser-tools/install-chrome
-      - browser-tools/install-chromedriver
-      
-      # 6. Start Svelte dev server in background
+          name: Create website .env file
+          # Ensure WEBSITE_ENV_FILE is set as a secret in CircleCI.
+          # Assumes the website/ directory exists from checkout.
+          command: echo "$WEBSITE_ENV_FILE" > website/.env
+
+      # Build and run tests with Docker Compose
+      # --build ensures the image is built using the .env files we just created
+      # --exit-code-from ci makes the step's exit code the same as the 'ci' service container's exit code
       - run:
-          name: Start website
-          command: cd website && NODE_OPTIONS="--max-old-space-size=4096" npm run dev
-          background: true
-      
-      # 7. Wait for site to be up
+          name: Run tests using Docker Compose
+          command: docker compose up --build --abort-on-container-exit ci
+
+      # Extract logs from Docker container before it stops (if needed)
+      # This assumes your logs are output to /app/tests/server.log inside the container
+      # based on your Dockerfile's CMD.
       - run:
-          name: Install wait-on
-          command: npm install -g wait-on
-      - run:
-          name: Wait for site readiness
-          command: npx wait-on http://localhost:5173 --timeout 60000
-      
-      # 8. Install localtunnel
-      - run:
-          name: Installing the local tunnel
-          command: npm install -g localtunnel
-      
-      # 9. Create .env file from stored environment variables
-      - run:
-          name: Create .env file
+          name: Extract logs from container
           command: |
-            echo "$ENV_FILE" > .env
-      
-      # 10. Run Go tests
-      - run:
-          name: Run Go tests
-          command: go test ./tests -v
-      
-      # 11. Show server log output
+            mkdir -p ./logs
+            # Find the container ID for the 'ci' service and copy the log file
+            # We use 'docker compose ps -q ci' to get the container ID quietly
+            docker cp $(docker compose ps -q ci):/app/tests/server.log ./logs/server.log || echo "Could not copy server.log from container"
+          when: always # Run this step even if the previous step fails
+
+      # Print server.log if available
       - run:
           name: Print server log
           command: |
             echo "=== Server Log Output ==="
-            cat tests/server.log || echo "No server.log file found."
-          when: always
-      
-      # 12. Merge into main if tests passed
-      - run:
-          name: Configure Git identity
-          command: |
-            git config user.name "circleci-bot"
-            git config user.email "circleci-bot@users.noreply.github.com"
-      - run:
-          name: Merge into main if tests passed
-          command: |
-            # extract branch name
-            BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            # fetch latest main & attempt merge
-            git fetch origin main
-            git checkout main
-            git merge --no-ff "$BRANCH" || { echo "⚠️ Merge conflict detected, aborting." git merge --abort; exit 1; }
-            # push merged main back
-            git push origin main
+            cat ./logs/server.log || echo "No server.log file found."
+          when: always # Run this step even if tests failed
 
+      # Note: The auto-merge step from your GitHub Actions is not included here
+      # as it's separate from the build/test execution within Docker.
+      # Implementing auto-merge would require additional steps involving git
+      # configuration and potentially SSH keys or a deploy key for push access,
+      # which is a separate configuration topic.
+
+# Define workflows
 workflows:
-  version: 2
-  test-and-auto-merge:
+  # Workflow name (can be anything descriptive)
+  build-test-docker-workflow:
+    # Define the jobs to run in this workflow
     jobs:
-      - test-and-merge:
-          filters:
-            branches:
-              ignore:
-                - main
+      - build-and-test
+    # Configure triggers, similar to GitHub Actions 'on'
+    # This runs on every push, except to the main branch
+    # You might adjust the branch pattern as needed
+    unless: # Or `filters: branches: ignore: main`
+      branches:
+        only: main
