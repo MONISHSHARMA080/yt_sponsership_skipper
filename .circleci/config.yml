@@ -64,17 +64,17 @@ jobs:
       # configuration and potentially SSH keys or a deploy key for push access,
       # which is a separate configuration topic.
 
+
 # Define workflows
 workflows:
   # Workflow name (can be anything descriptive)
   build-test-docker-workflow:
     # Define the jobs to run in this workflow
     jobs:
-      - build-and-test
-    # Configure triggers, similar to GitHub Actions 'on'
-    # This runs on every push, except to the main branch
-    # You might adjust the branch pattern as needed
-    unless: # Or `filters: branches: ignore: main`
-     branches:
-              ignore:
-                - main 
+      # List the job(s) included in this workflow
+      - build-and-test: # <-- Job name listed here
+          # Apply filters to this specific job within the workflow
+          filters:
+            branches:
+              ignore: # <-- Ignore pushes to the 'main' branch
+                - main
