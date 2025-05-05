@@ -30,6 +30,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	fmt.Printf("\n\n --Content of .env file:\n %s \n\n\n\n\n", string(envFileContent))
+	fmt.Printf("\n\n --Content of .env file:\n %s \n\n\n\n\n", string(envFileContent[:8]))
 
 	err = DB.CreateDBForTest()
 	if err != nil {
