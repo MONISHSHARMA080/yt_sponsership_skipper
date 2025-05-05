@@ -16,6 +16,7 @@ global_job_config:
   prologue:
     commands:
       - checkout
+      - ls
       # copy the root .env from the secret into your workspace
       - cp /home/semaphore/ENV_FILE/.env ./.env
       # copy the website/.env into website/
