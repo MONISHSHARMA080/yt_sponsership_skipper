@@ -24,6 +24,13 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 	println("the api key form the env is ->", os.Getenv("API_KEYS"))
+	envFileContent, err := os.ReadFile("../.env")
+	if err != nil {
+		println("Error opening .env file:", err.Error())
+		panic(err)
+	}
+	fmt.Printf("\n\n --Content of .env file:\n %s \n\n\n\n\n", string(envFileContent))
+
 	err = DB.CreateDBForTest()
 	if err != nil {
 		panic(err)
