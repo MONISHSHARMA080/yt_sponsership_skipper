@@ -21,7 +21,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	// the time skipped is in the range of the network req)
 
 	// open the file and append to it and not overwrite it
-	// helperfunc1_test.LogTestNameInTheServerLogFile(t)
+	commonstateacrosstest.LogChan <- "\n\n\n\n\n\n -----------------" + t.Name() + "------------------\n\n\n\n\n\n"
 	ctx := commonstateacrosstest.BrowserContext
 	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
@@ -68,6 +68,7 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 		for i, timeInArray := range *playBackTimeChan.Result {
 			fmt.Printf("index:%d and time:%.6f \n", i, timeInArray)
 		}
+		println("trying to see if we have skipped the ad in the video")
 		didWeSkippedTheSponsorSegment, err := chromeExtension.DidWeSkippedTheAd(APIResponseFormNetwork.Result.StartTime, APIResponseFormNetwork.Result.EndTime, *playBackTimeChan.Result)
 		if err != nil {
 			println("there is a error in checking if we skipped the ad and it is ->", err.Error())

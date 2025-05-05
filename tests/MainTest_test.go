@@ -27,13 +27,16 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	cancelFunc, err := helperfunc1_test.StartTestServer("../", []string{}, "server.log", "8080")
+	commonstateacrosstest.LogChan = make(chan string, 100) // Increased buffer size
+	cancelFunc, err := helperfunc1_test.StartTestServer("../", []string{}, "server.log", "8080", commonstateacrosstest.LogChan)
 	if err != nil {
 		println("Error starting test server:", err.Error())
 		panic(err)
 	}
 	defer cancelFunc()
-	println("sleeping for 30 sec done \n\n")
+	commonstateacrosstest.LogChan <- "Test server started, proceeding to browser setup."
+	defer close(commonstateacrosstest.LogChan)
+	println("Test server started, proceeding to browser setup.")
 	ctx, cancelFunc0, cancelFunc, err := helperfunc1_test.GetNewBrowserForChromeExtension(extensionID)
 	if err != nil {
 		println("there is a error in starting the browser  and the error is ", err.Error())

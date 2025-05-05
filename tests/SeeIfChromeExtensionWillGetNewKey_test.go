@@ -26,7 +26,7 @@ func TestSeeIfWeReplaceDeprecatedKey(t *testing.T) {
 
 	// power off the phone and then do it , it is a 44-28 min test wth cursor
 
-	// helperfunc1_test.LogTestNameInTheServerLogFile(t)
+	commonstateacrosstest.LogChan <- "\n\n\n\n\n\n -----------------" + t.Name() + "------------------\n\n\n\n\n\n"
 	ctx := commonstateacrosstest.BrowserContext
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	print("\n\n in the replcae deprecated key \n\n")

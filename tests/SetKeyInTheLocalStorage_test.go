@@ -16,7 +16,7 @@ import (
 
 func TestSetKeyInTheLocalStorage(t *testing.T) {
 	// get the key
-	// helperfunc1_test.LogTestNameInTheServerLogFile(t)
+	commonstateacrosstest.LogChan <- "\n\n\n\n\n\n -----------------" + t.Name() + "------------------\n\n\n\n\n\n"
 
 	ctx := commonstateacrosstest.BrowserContext
 	// Start the browser

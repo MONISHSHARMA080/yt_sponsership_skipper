@@ -10,4 +10,6 @@ var (
 	BrowserContext context.Context
 	CancelFunc     context.CancelFunc
 	Once           sync.Once
+
+	LogChan chan string
 )
