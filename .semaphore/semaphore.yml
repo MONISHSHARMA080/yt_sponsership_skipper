@@ -22,11 +22,12 @@ blocks:
           commands:
             - 'docker-compose up '
       secrets:
+        - name: ENV_FILE
         - name: ENV_FILE_Secret
       epilogue:
         always:
           commands:
-            - ls; tree -L 3
+            - ls
         on_fail:
           commands:
             - ls
