@@ -23,6 +23,7 @@ func TestMain(m *testing.M) {
 		fmt.Println("Error loading .env file:", err)
 		panic(err)
 	}
+	println("the api key form the env is ->", os.Getenv("API_KEYS"))
 	err = DB.CreateDBForTest()
 	if err != nil {
 		panic(err)
