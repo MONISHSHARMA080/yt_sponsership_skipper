@@ -1,4 +1,4 @@
-FROM golang:1.21 AS builder
+FROM golang:1.24 AS builder
 
 # Install build dependencies for cgo
 RUN apt-get update && apt-get install -y \
