@@ -6,6 +6,6 @@
   "deploy": {
     "startCommand": "./app",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
+    "restartPolicyMaxRetries": 2
   }
 }
