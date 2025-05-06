@@ -2,7 +2,10 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "nixpacks",
-    "buildCommand": "go build -o app"
+    "buildCommand": "go build -o app",
+    "variables": {
+      "CGO_ENABLED": "1"
+    }
   },
   "deploy": {
     "startCommand": "./app",
