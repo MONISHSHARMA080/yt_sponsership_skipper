@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ["...", "gcc"]
+
+[build]
+builder = "nixpacks"
+buildCommand = "go build -o app"
+[build.variables]
+CGO_ENABLED = "1"
+
+[deploy]
+startCommand = "./app"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
