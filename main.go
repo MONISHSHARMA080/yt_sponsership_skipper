@@ -28,27 +28,6 @@ type Transcripts struct {
 	Subtitles []Subtitle `xml:"text"`
 }
 
-// type userForDB struct {
-// 	accountid      int64
-// 	email          string
-// 	UserToken      string
-// 	is_a_paid_user bool
-// }
-
-// func init() {
-// 	err := godotenv.Load()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	if os.Getenv("TIMEFORFAKEKEYEXPIRY") == "" {
-// 		panic("the TIMEFORFAKEKEYEXPIRY var is not set")
-// 	}
-// 	encryption_key := os.Getenv("encryption_key")
-// 	if encryption_key == "" {
-// 		panic("encryption_key is not there")
-// 	}
-// }
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
