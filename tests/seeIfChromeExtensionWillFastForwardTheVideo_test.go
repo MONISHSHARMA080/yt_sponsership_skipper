@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 	commonchanneltype "youtubeAdsSkipper/tests/helperPackages/CommonChannelType"
@@ -24,6 +25,11 @@ func TestSeeIfChromeExtensionSkipsTheVideo(t *testing.T) {
 	commonstateacrosstest.LogChan <- "\n\n\n\n\n\n -----------------" + t.Name() + "------------------\n\n\n\n\n\n"
 	ctx := commonstateacrosstest.BrowserContext
 	youtubeUrl := []string{"https://www.youtube.com/watch?v=korOpibkm6g", "https://www.youtube.com/watch?v=D3cjV3tNd88", "https://www.youtube.com/watch?v=NOfUCMzBNVg", "https://www.youtube.com/watch?v=WVn4FPULFWA"}
+	// randomized the array
+	rand.Shuffle(len(youtubeUrl), func(i, j int) {
+		youtubeUrl[i], youtubeUrl[j] = youtubeUrl[j], youtubeUrl[i]
+	})
+
 	chromeExtension := extension.ChromeExtension{ExtensionId: extensionID}
 	getAPIResponseFromNetworkChann := make(chan commonchanneltype.GenericResultChannel[*types.YouTubeVideoResponse])
 	success := false
