@@ -14,12 +14,13 @@ export async function POST({ request }) {
     // Stream the request body directly to the backend without parsing first
     // This reduces memory usage and processing time
     console.log(`++++++++++++++ making a request to the makeAPayment ${new Date().getTime()}  ++++++++++`);
+    const requestData = await request.json();
 
     const backendResponse = await fetch(BACKEND_ENDPOINT, {
       method: 'POST',
       headers: STANDARD_HEADERS,
       // Use the request body directly as a stream
-      body: request.body
+      body: JSON.stringify(requestData)
     });
 
     if (!backendResponse.ok) {

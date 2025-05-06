@@ -1,8 +1,9 @@
 // @ts-check
 /// <reference types="chrome-types" />
-const config = {
-  BACKEND_URL: "http://localhost:8080",
-};
+// const config = {
+//   BACKEND_URL: "http://localhost:8080",
+// };
+import { config } from "./config.js";
 /**
  * Authenticates user and retrieves a key; will return empty string on the error
  * @typedef {Object} AuthResponse
