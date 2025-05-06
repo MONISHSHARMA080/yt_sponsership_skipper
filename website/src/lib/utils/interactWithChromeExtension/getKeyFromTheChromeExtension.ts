@@ -23,6 +23,8 @@ export class interactWithTheChromeExtensionAndStoreIt {
   }
 
   private messageHandler(event: MessageEvent) {
+    console.log(`in the message handler and the event is ->`, event);
+
     if (event.origin !== window.location.origin) {
       return
     }
