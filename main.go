@@ -53,7 +53,19 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		println("Error loading .env file: %v", err)
-		panic(err)
+		railwayProjectName := os.Getenv("RAILWAY_PROJECT_NAME")
+		if railwayProjectName == "" {
+			panic(err)
+		} else {
+			println("the railway project name is -->", railwayProjectName)
+		}
+		isthisTestingEnv := os.Getenv("IS_THIS_TESTING_ENVIRONMENT")
+		if isthisTestingEnv == "" {
+			panic(err)
+		} else {
+			println("the is this testing env is -->", isthisTestingEnv)
+			println("we are able to get the env")
+		}
 	}
 	encryption_key := os.Getenv("encryption_key")
 	encryption_key_as_byte := []byte(os.Getenv("encryption_key"))
