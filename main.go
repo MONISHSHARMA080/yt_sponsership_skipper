@@ -52,7 +52,7 @@ type Transcripts struct {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		println("Error loading .env file: %v", err)
+		println("Error loading .env file: %s", err.Error())
 		railwayProjectName := os.Getenv("RAILWAY_PROJECT_NAME")
 		if railwayProjectName == "" {
 			panic(err)
