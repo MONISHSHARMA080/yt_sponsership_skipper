@@ -1,0 +1,21 @@
+# Located at ./tests/docker-compose.yml
+services:
+  ci:
+    build:
+      # Set the build context to the parent directory (the project root)
+      context: ..
+      # Specify the Dockerfile location relative to the context
+      dockerfile: tests/Dockerfile
+    volumes:
+      # Mount the screenshot directory from the host to the container.
+      # The host path './screenshot' is now relative to this docker-compose.yml file,
+      # which is correct since both are inside the 'tests' directory.
+      # The container path '/app/tests/screenshot' is correct because COPY . .
+      # in the Dockerfile copies the 'tests/screenshot' structure into '/app'.
+      - ./screenshot:/app/tests/screenshot
+    ports:
+      - "5173:5173"
+      - "8080:8080"
+    # Optional: Define the working directory for the container if needed,
+    # though the Dockerfile's WORKDIR and CMD handle this.
+    # working_dir: /app
