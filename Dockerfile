@@ -1,37 +1,33 @@
-FROM golang:1.24 AS builder
+# Base image with Go support and necessary build tools
+FROM golang:1.24-bullseye
 
-# Install build dependencies for cgo
+# Install C build tools and dependencies for CGO/Turso
 RUN apt-get update && apt-get install -y \
     build-essential \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Copy go mod files
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy the source code
-COPY . .
-
-# Build the application with cgo enabled
-ENV CGO_ENABLED=1
-RUN go build -o main .
-
-# Final stage
-FROM debian:bullseye-slim
-
-RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /app
 
-# Copy the binary from the builder stage
-COPY --from=builder /app/main .
+# Enable CGO and set ldflags for proper linking
+ENV CGO_ENABLED=1
+ENV CGO_LDFLAGS="-ldl"
 
-# Expose the port your application uses
+# Copy go.mod and go.sum files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy the rest of the application
+COPY . .
+
+# Build the application
+RUN go build -o main .
+
+# Expose the port your application runs on
+# (Replace 8080 with your actual port)
 EXPOSE 8080
 
 # Command to run the application
