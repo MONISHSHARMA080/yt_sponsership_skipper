@@ -12,7 +12,16 @@
     "unlimitedStorage"
   ],
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_icon": {
+      "32": "assest/5.png"
+    }
+  },
+  "icons": {
+    "16": "assest/5.png",
+    "32": "assest/5.png",
+    "48": "assest/5.png",
+    "128": "assest/5.png"
   },
   "content_scripts": [
     {
@@ -39,4 +48,4 @@
     ]
   },
   "host_permissions": ["http://localhost:8080/*"]
-}
+ }
