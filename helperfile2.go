@@ -152,10 +152,12 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 	if is_user_paid {
 		a := strconv.Itoa(random_number_for_apiKey)
 		println("random number generated is ->", a)
+		println("the api key that we are getting is ->API_KEY_PAID", a)
 		return os.Getenv("API_KEY_PAID" + a), nil
 	} else {
 		a := strconv.Itoa(random_number_for_apiKey)
 		println("random number generated is ->", a)
+		println("the api key that we are getting is ->API_KEY_UNPAID", a)
 		return os.Getenv("API_KEY_UNPAID" + a), nil
 	}
 }

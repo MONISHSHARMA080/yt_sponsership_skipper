@@ -248,7 +248,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
 			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 		}
-		println("and the random key picked by the logic is --> ", apiKey[:9], " and the lenght is ->", len(apiKey))
+		println("and the random key picked by the logic is --> ", apiKey[:len(apiKey)-4], " and the lenght is ->", len(apiKey))
 
 		go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey, &result_for_subtitles.string_value)
 		groq_response := <-channel_for_groqResponse
