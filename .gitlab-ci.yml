@@ -9,8 +9,6 @@ variables:
 
 # Run on any push except to main
 workflow:
-  rules:
-    - if: $CI_COMMIT_BRANCH != "main"
 
 docker-test:
   stage: test
