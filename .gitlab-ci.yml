@@ -1,0 +1,64 @@
+stages:
+  - test
+  - merge
+
+variables:
+  # Docker-in-Docker settings
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
+# Run on any push except to main
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
+
+docker-test:
+  stage: test
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
+  artifacts:
+    paths:
+      - tests/screenshot
+      - logs/
+  before_script:
+    # Install docker compose
+    - apk add --no-cache docker-compose git
+    # Create environment files from CI/CD variables
+    - echo "$ENV_FILE" > .env
+    - echo "$WEBSITE_ENV_FILE" > website/.env
+  script:
+    # Build and run tests with Docker Compose
+    - cd tests
+    - docker compose up --build --exit-code-from ci
+  after_script:
+    # Extract logs from container even if tests fail
+    - mkdir -p ./logs
+    - docker cp $(docker compose ps -q ci 2>/dev/null || echo "none"):/app/website/server.log ./logs/server.log || echo "Could not copy server.log from container"
+
+auto-merge:
+  stage: merge
+  image: alpine:latest
+  rules:
+    - when: on_success  # Only run if the test job succeeds
+  before_script:
+    - apk add --no-cache git
+    # Configure git identity
+    - git config --global user.name "GitLab CI"
+    - git config --global user.email "gitlab-ci@example.com"
+    # Setup SSH for pushing
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    # Extract branch name
+    - BRANCH=$CI_COMMIT_BRANCH
+    # Fetch latest main & attempt merge
+    - git fetch origin main
+    - git checkout main
+    - git merge --no-ff "$BRANCH" || { echo "⚠️ Merge conflict detected, aborting."; git merge --abort; exit 1; }
+    # Push merged main back
+    - git push origin main
