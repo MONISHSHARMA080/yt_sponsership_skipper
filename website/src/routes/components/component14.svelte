@@ -22,6 +22,9 @@
 	import { didUserSelectOneTimePayment } from '$lib/sharedState/didUserSeletctOneTimePayment.svelte';
 	import ShowUserErrorMessage from '$lib/components/showUserNotifications/ShowUserErrorMessage.svelte';
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId.svelte';
+	import { set } from 'zod';
+
+	let showUserErrorMessage = $state(false)
 
 	let yellowCircle = new Spring({ x: 0, y: 0 });
 	const blueCircle = new Spring({ x: 0, y: 0 });
@@ -317,11 +320,10 @@
 									<Loader2 class="h-5 w-5 animate-spin" />
 									<span>{plan.buttonText}</span>
 								</button>
-							{:else if razorpayOrderId.fetchingStatus === 'error' && !razorpayOrderId.areWeInAMiddleOfMultipleFetchCycle}
+							{:else if razorpayOrderId.fetchingStatus === 'error'}
 								<div
 									class="flex w-full items-center justify-center gap-2 rounded-md border-3 border-black bg-red-600 px-8 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
 								>
-									<!-- {console.log(`hi form the component -------------------------------`)} -->
 									<ShowUserErrorMessage
 										message="there is a error that prevents you form making payment, redoing it "
 									/>
