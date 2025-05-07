@@ -1,13 +1,34 @@
-<script>
+<script lang="ts">
+	/**
+	 * @description This component is used to show an error message to the user.
+	 */
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
-	let { message = 'An error occurred!', duration = 3000 } = $props();
-	let visible = $state(true);
+
+
+	/**
+	 * checkTheConditionAfterTheWait - is used to check if the error message should be shown or not, intended use is to be a state var .
+	 */
+	interface propsType {message:String, duration?:number, checkTheConditionAfterTheWait:Boolean,waitToShowError?:number }
+	let { message = 'An error occurred!', duration = 3000, checkTheConditionAfterTheWait, waitToShowError= 2000  }:propsType = $props();
+	let visible = $state(false);
 	const timeout = setTimeout(() => (visible = false), duration);
+	if (waitToShowError > duration) {
+		// If the waitToShowError is greater than the duration, set the duration to waitToShowError
+		duration = waitToShowError;
+		console.error('waitToShowError is greater than duration, setting duration to waitToShowError');
+	}
+
+	setTimeout(()=>{visible = true; console.log(`showing the error and the visible is ${visible} and the condition to see if we should is ${checkTheConditionAfterTheWait}`);
+	}, waitToShowError)
+
+
+
 	onDestroy(() => clearTimeout(timeout));
+
 </script>
 
-{#if visible}
+{#if visible && checkTheConditionAfterTheWait}
 	<div class="error-message top" transition:fade>
 		{message}
 	</div>
