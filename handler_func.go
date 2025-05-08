@@ -7,6 +7,9 @@ import (
 	"time"
 	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
+	askllm "youtubeAdsSkipper/pkg/askLLM"
+	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
+	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
 )
 
 type JsonError_HTTPErrorCode_And_Message struct {
@@ -189,7 +192,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 
 		// channel_for_userDetails := make(chan string_and_error_channel)
 		channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
-		ChanForResponseForGettingSubtitlesTiming := make(chan ResponseForGettingSubtitlesTiming)
+		ChanForResponseForGettingSubtitlesTiming := make(chan askllmHelper.ResponseForGettingSubtitlesTiming)
 
 		go userFormKey.DecryptTheKey(request_for_youtubeVideo_struct.Encrypted_string, channelToDecryptUserKey)
 		// go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
@@ -211,28 +214,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			method_to_write_http_and_json_to_respond(w, "upgrade your key as it's time ran out", http.StatusUpgradeRequired)
 			return
 		}
-
-		// if result_for_user_details.err != nil {
-		//
-		// 	method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
-		// 	return
-		// }
-		// if the paid user has the
-
-		// userInDb, err := returnUserInDbFormEncryptedString(result_for_user_details.string_value)
-		// if err != nil {
-		// 	// this could be a bad request too
-		// 	println(" in the returnUserInDbFormEncryptedString's error -->", err.Error(), "\n")
-		// 	method_to_write_http_and_json_to_respond(w, "Something went wron on out side , error recognizing you form the auth token", http.StatusInternalServerError)
-		// }
-
-		// println("result_for_user_details--++", result_for_user_details.string_value, "\n user in db is -> ", userInDb.userName, userInDb.accounID, userInDb.email, userInDb.is_a_paid_user)
-		// if len(result_for_user_details.string_value) >= 4700 && !userInDb.is_a_paid_user {
-		// 	// block it I guess
-		// 	println(" +++++++++++string is longer than 3000")
-		// 	method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
-		// 	return
-		// }
 		result_for_subtitles := <-channel_for_subtitles
 		if result_for_subtitles.err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side", http.StatusInternalServerError)
@@ -242,7 +223,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
 
 		// what about the free user and paid user channel/key_channel and prompt the groq
-		channel_for_groqResponse := make(chan String_and_error_channel_for_groq_response)
 		apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userFormKey.IsUserPaid)
 		if err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
@@ -250,60 +230,28 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		}
 		println("and the random key picked by the logic is --> ", apiKey[:len(apiKey)-4], " and the lenght is ->", len(apiKey))
 
-		go AskGroqabouttheSponsorship(httpClient, channel_for_groqResponse, apiKey, &result_for_subtitles.string_value)
-		groq_response := <-channel_for_groqResponse
-
-		if groq_response.err != nil && groq_response.groqApiResponsePtr == nil || groq_response.SponsorshipContent == nil {
-			if groq_response.http_response_for_go_api_ptr != nil {
-				println("the http response is not nil and the status code is ->", groq_response.http_response_for_go_api_ptr.StatusCode)
-				method_to_write_http_and_json_to_respond(w, "somethign went wrong on our side", http.StatusInternalServerError)
-				return
-			}
-			if groq_response.http_response_for_go_api_ptr.StatusCode == 429 {
-				println("the response form the groq api is 429")
-				method_to_write_http_and_json_to_respond(w, "the request time out on this tier", http.StatusTooManyRequests)
-				return
-			} else if groq_response.groqApiResponsePtr == nil {
-				println("groq error ", groq_response.err.Error())
-				method_to_write_http_and_json_to_respond(w, "somethign went wrong on our side", http.StatusInternalServerError)
-				return
-			}
-			if groq_response.SponsorshipContent == nil {
-				println(" sponsership content is not there ")
-				method_to_write_http_and_json_to_respond(w, "somethign went wrong on our side", http.StatusInternalServerError)
-				return
-			}
-		}
-		println("555")
-		// getting error deciding the escaped json in the json response
-		if groq_response.SponsorshipContent.DoesVideoHaveSponsorship && groq_response.SponsorshipContent.SponsorshipSubtitle != "" {
-			// if the subtitles is found
-			go GetTimeAndDurInTheSubtitles(result_for_subtitles.transcript, &groq_response.SponsorshipContent.SponsorshipSubtitle, &result_for_subtitles.string_value, ChanForResponseForGettingSubtitlesTiming)
-		} else {
-			// return no to the user as either the video does not have subtitles or the groq did not return it
-			w.WriteHeader(http.StatusOK)
-			err := json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: "sponsership subtitles not found in the video", Status_code: http.StatusOK, ContainSponserSubtitle: false})
+		// -------------
+		// if !userFormKey.IsUserPaid
+		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
+		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
+		askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+		// -------------
+		result := <-resultChannel
+		if result.Err != nil {
+			println("error in gettign the result form the groq and it is  ->", result.Err.Error())
+			err:=result.SendResponse(w)
 			if err != nil {
-				println("error in the method  encoding the json in the struct 123-->", err.Error())
+				println("we are going to panic as we should have filled the struct in a good way but clearly we did not do that and the error is ->", err.Error())
+				panic("error in sending the response to the user---"+ err.Error())
 			}
 			return
 		}
-		SubtitlesTimming := <-ChanForResponseForGettingSubtitlesTiming
-		if SubtitlesTimming.err != nil {
-			if SubtitlesTimming.err.Error() == "" {
-				method_to_write_http_and_json_to_respond(w, "no subtitle found for the video", http.StatusNotFound)
-			}
-			println("--==", SubtitlesTimming.err.Error())
-			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error getting subtitles timming ", http.StatusInternalServerError)
-			println("error in result_for_subtitles.err --> ", SubtitlesTimming.err.Error())
-			return
-		}
-		err = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusOK, Error: "", Message: "subtitles found", StartTime: int64(SubtitlesTimming.startTime), EndTime: int64(SubtitlesTimming.endTime), ContainSponserSubtitle: true})
+		println("sending the right response")
+		err=result.SendResponse(w)
 		if err != nil {
-			println("error decoding json", SubtitlesTimming.err.Error(), SubtitlesTimming.endTime, SubtitlesTimming.startTime)
-			method_to_write_http_and_json_to_respond(w, "Subtitles found but not able to provide json response", http.StatusInternalServerError)
-			return
+			println("we are going to panic as we should have filled the struct in a good way but clearly we did not do that and the error is ->", err.Error())
+			panic("error in sending the response to the user---"+ err.Error())
 		}
-		w.Header().Set("Content-Type", "application/json")
+
 	}
 }

@@ -1,4 +1,4 @@
-package main
+package askllm
 
 import (
 	"bytes"
@@ -13,18 +13,85 @@ import (
 	"unicode/utf8"
 )
 
+type ResponseForWhereToSkipVideo struct {
+	Status_code            int    `json:"status"`
+	Message                string `json:"message"`
+	StartTime              int64  `json:"startTime"`
+	EndTime                int64  `json:"endTime"`
+	ContainSponserSubtitle bool   `json:"containSponserSubtitle"`
+	Error                  string `json:"error,omitempty"`
+}
+type String_and_error_channel_for_groq_response struct {
+	Err                          error
+	GroqApiResponsePtr           *GroqApiResponse
+	Http_response_for_go_api_ptr *http.Response
+	SponsorshipContent           *SponsorshipContent
+}
+
+type GroqApiResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Created int64  `json:"created"`
+	Model   string `json:"model"`
+	Choices []struct {
+		Index   int `json:"index"`
+		Message struct {
+			Role    string `json:"role"`
+			Content string `json:"content"` // Changed to string to handle raw JSON
+		} `json:"message"`
+		Logprobs     interface{} `json:"logprobs"`
+		FinishReason string      `json:"finish_reason"`
+	} `json:"choices"`
+	Usage struct {
+		QueueTime        float64 `json:"queue_time"`
+		PromptTokens     int     `json:"prompt_tokens"`
+		PromptTime       float64 `json:"prompt_time"`
+		CompletionTokens int     `json:"completion_tokens"`
+		CompletionTime   float64 `json:"completion_time"`
+		TotalTokens      int     `json:"total_tokens"`
+		TotalTime        float64 `json:"total_time"`
+	} `json:"usage"`
+	SystemFingerprint string `json:"system_fingerprint"`
+	XGroq             struct {
+		ID string `json:"id"`
+	} `json:"x_groq"`
+}
+
+type String_and_error_channel_for_subtitles struct {
+	Err          error
+	String_value string
+	Transcript   *Transcripts
+}
+
+type SponsorshipContent struct {
+	DoesVideoHaveSponsorship bool   `json:"does_video_have_sponsorship"`
+	SponsorshipSubtitle      string `json:"sponsorship_subtitle"`
+}
+
+type Subtitle struct {
+	Text  string `xml:",chardata"`
+	Start string `xml:"start,attr"`
+	Dur   string `xml:"dur,attr"`
+}
+
+// Transcripts holds an array of Subtitle elements
+type Transcripts struct {
+	Subtitles []Subtitle `xml:"text"`
+}
+
+
 func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_response chan<- String_and_error_channel_for_groq_response, APIKEY_according_to_users_tier string, subtitlesInTheVideo *string) {
 	err, http_req := factoryGroqPostReqCreator(APIKEY_according_to_users_tier, subtitlesInTheVideo)
 	if err != nil {
 		println("||1")
-		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: nil, SponsorshipContent: nil}
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: err, GroqApiResponsePtr: nil, Http_response_for_go_api_ptr: nil, SponsorshipContent: nil}
 		return
 	}
 
 	http_response, err := httpClient.Do(http_req)
 	if err != nil {
 		println("||2")
-		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: err, GroqApiResponsePtr: nil, Http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 		return
 	}
 	defer http_response.Body.Close()
@@ -36,7 +103,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 	bodyBytes, err := io.ReadAll(http_response.Body)
 	if err != nil {
 		println("||3 - Error reading response body:", err.Error())
-		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: err, GroqApiResponsePtr: nil, Http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 		return
 	}
 	// println("the body is in the groq req ->", string(bodyBytes))
@@ -54,7 +121,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 	if err != nil {
 		println("||4 - Error decoding response:", err.Error())
 		println("Response body was:", string(bodyBytes))
-		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: err, GroqApiResponsePtr: nil, Http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 		return
 	}
 
@@ -64,7 +131,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		a := formatGroqJson(groqApiResponse.Choices[0].Message.Content)
 		if a == "" {
 			println(" can't format the groq json (exiting)-->", a)
-			channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
+			channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: err, GroqApiResponsePtr: nil, Http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 			return
 		}
 		println("formatted groq json is -->\n", a, "\n")
@@ -74,7 +141,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 		if err != nil {
 			println("||5 - Error parsing content JSON:", err.Error())
 			println("Content was:", groqApiResponse.Choices[0].Message.Content)
-			channel_for_groq_response <- String_and_error_channel_for_groq_response{err: err, groqApiResponsePtr: nil, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
+			channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: err, GroqApiResponsePtr: nil, Http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 			return
 		}
 		// converting it to utf-8 (string is not working)
@@ -86,11 +153,11 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 				println("even after the strign() still not valid utf-8")
 			}
 		}
-		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: nil, groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: &sponsorshipContent}
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: nil, GroqApiResponsePtr: &groqApiResponse, Http_response_for_go_api_ptr: http_response, SponsorshipContent: &sponsorshipContent}
 	} else {
 		println("No choices in the groq response")
 		printJson(groqApiResponse)
-		channel_for_groq_response <- String_and_error_channel_for_groq_response{err: fmt.Errorf("no choices presesnt in the gorq response"), groqApiResponsePtr: &groqApiResponse, http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
+		channel_for_groq_response <- String_and_error_channel_for_groq_response{Err: fmt.Errorf("no choices presesnt in the gorq response"), GroqApiResponsePtr: &groqApiResponse, Http_response_for_go_api_ptr: http_response, SponsorshipContent: nil}
 	}
 	println("||6")
 }
@@ -136,14 +203,10 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 
 	if is_user_paid {
 		numberOFEnvKeyAccordignToUserTeir := os.Getenv("NO_OF_KEYS_FOR_PAID_USER")
-		println("the user is  paid and the number of keys is -->", numberOFEnvKeyAccordignToUserTeir)
 		number_ofKeys, err = strconv.ParseInt(numberOFEnvKeyAccordignToUserTeir, 10, 32)
-		println("the number of keys after str conv  is ->", number_ofKeys)
 	} else {
 		numberOFEnvKeyAccordignToUserTeir := os.Getenv("NO_OF_KEYS_FOR_UNPAID_USER")
-		println("the user is not paid and the number of keys is -->", numberOFEnvKeyAccordignToUserTeir)
 		number_ofKeys, err = strconv.ParseInt(numberOFEnvKeyAccordignToUserTeir, 10, 32)
-		println("the number of keys after str conv  is ->", number_ofKeys)
 	}
 	if err != nil {
 		return "", err
@@ -164,9 +227,9 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 }
 
 type ResponseForGettingSubtitlesTiming struct {
-	startTime int
-	endTime   int
-	err       error
+	StartTime int
+	EndTime   int
+	Err       error
 }
 
 func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
@@ -392,20 +455,6 @@ func getIndexOfSponserSubtitleForEndFromAdjacentIndex(transcript Transcripts, cu
 			return currentIndex
 		}
 	}
-
-	// for _, idx := range []int{currentIndex - 1, currentIndex, currentIndex + 1} {
-	// 	// Ensure index is within slice bounds
-	// 	if idx >= 0 && idx < len(transcript.Subtitles) {
-	// 		subtitleText := strings.ToLower(transcript.Subtitles[idx].Text)
-	// 		// Check if both first and second words are present
-	// 		if strings.Contains(subtitleText, strings.ToLower(firstWord)) &&
-	// 			strings.Contains(subtitleText, strings.ToLower(secondWord)) {
-	// 			return idx
-	// 		}
-	// 	}
-	// }
-	// println("can't find so returning the basic")
-	// return currentIndex // as a safe bet
 }
 
 func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error) {
@@ -416,4 +465,13 @@ func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error
 	}
 	println("==", strToReturn[0])
 	return strToReturn[0], strToReturn[1], nil
+}
+
+func printJson(data interface{}) {
+	jsonBytes, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		fmt.Println("Error formatting JSON:", err)
+		return
+	}
+	fmt.Println(string(jsonBytes))
 }
