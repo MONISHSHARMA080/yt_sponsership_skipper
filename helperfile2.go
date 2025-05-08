@@ -148,7 +148,7 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	random_number_for_apiKey := rand.Intn(int(number_ofKeys) + 1)
+	random_number_for_apiKey := rand.Intn(int(number_ofKeys))
 	println("the nummber of key in the env is --> ", number_ofKeys)
 	if is_user_paid {
 		a := strconv.Itoa(random_number_for_apiKey)
