@@ -11,9 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"unicode/utf8"
-	// "strings"
-	// "text/template/parse"
-	// "gotest.tools/assert"
 )
 
 type ResponseForWhereToSkipVideo struct {
@@ -81,6 +78,7 @@ type Subtitle struct {
 type Transcripts struct {
 	Subtitles []Subtitle `xml:"text"`
 }
+
 
 func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_response chan<- String_and_error_channel_for_groq_response, APIKEY_according_to_users_tier string, subtitlesInTheVideo *string) {
 	err, http_req := factoryGroqPostReqCreator(APIKEY_according_to_users_tier, subtitlesInTheVideo)
@@ -229,9 +227,9 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 }
 
 type ResponseForGettingSubtitlesTiming struct {
-	startTime int
-	endTime   int
-	err       error
+	StartTime int
+	EndTime   int
+	Err       error
 }
 
 func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
@@ -457,20 +455,6 @@ func getIndexOfSponserSubtitleForEndFromAdjacentIndex(transcript Transcripts, cu
 			return currentIndex
 		}
 	}
-
-	// for _, idx := range []int{currentIndex - 1, currentIndex, currentIndex + 1} {
-	// 	// Ensure index is within slice bounds
-	// 	if idx >= 0 && idx < len(transcript.Subtitles) {
-	// 		subtitleText := strings.ToLower(transcript.Subtitles[idx].Text)
-	// 		// Check if both first and second words are present
-	// 		if strings.Contains(subtitleText, strings.ToLower(firstWord)) &&
-	// 			strings.Contains(subtitleText, strings.ToLower(secondWord)) {
-	// 			return idx
-	// 		}
-	// 	}
-	// }
-	// println("can't find so returning the basic")
-	// return currentIndex // as a safe bet
 }
 
 func getFirstTwoWords(stringToPerformOperationOn *string) (string, string, error) {

@@ -24,6 +24,7 @@ type ResultAndErrorChannel[T ResponseStatus] struct {
 // will return a error if the generic struct is empty and not allowd to send a response
 func (r *ResultAndErrorChannel[T]) SendResponse(w http.ResponseWriter) error {
 	w.WriteHeader(r.Result.GetStatusCode())
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Printf("the result that is being sent to the user is -> %+v \n\n\n", r.Result)
 	if r.Err != nil {
 		fmt.Printf("the error in the  -> %s \n", r.Err.Error())

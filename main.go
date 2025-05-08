@@ -13,20 +13,24 @@ import (
 	routehandlerfunc "youtubeAdsSkipper/RouteHandlerFunc/GetNewKey"
 	paymentbackendgo "youtubeAdsSkipper/paymentBackendGO"
 	handlerfunction "youtubeAdsSkipper/paymentBackendGO/handlerFunction"
-
+	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
 	"github.com/joho/godotenv"
 )
 
-type Subtitle struct {
-	Text  string `xml:",chardata"`
-	Start string `xml:"start,attr"`
-	Dur   string `xml:"dur,attr"`
-}
+// type Subtitle struct {
+// 	Text  string `xml:",chardata"`
+// 	Start string `xml:"start,attr"`
+// 	Dur   string `xml:"dur,attr"`
+// }
 
-// Transcripts holds an array of Subtitle elements
-type Transcripts struct {
-	Subtitles []Subtitle `xml:"text"`
-}
+// // Transcripts holds an array of Subtitle elements
+// type Transcripts struct {
+// 	Subtitles []Subtitle `xml:"text"`
+// }
+
+// type alias so that I have common types
+type Transcripts = askllmHelper.Transcripts
+type Subtitle = askllmHelper.Subtitle
 
 func main() {
 	err := godotenv.Load()
