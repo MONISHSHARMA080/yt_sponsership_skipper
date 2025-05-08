@@ -136,15 +136,19 @@ func getAPIKEYForGroqBasedOnUsersTeir(is_user_paid bool) (string, error) {
 
 	if is_user_paid {
 		numberOFEnvKeyAccordignToUserTeir := os.Getenv("NO_OF_KEYS_FOR_PAID_USER")
+		println("the user is  paid and the number of keys is -->", numberOFEnvKeyAccordignToUserTeir)
 		number_ofKeys, err = strconv.ParseInt(numberOFEnvKeyAccordignToUserTeir, 10, 32)
+		println("the number of keys after str conv  is ->", number_ofKeys)
 	} else {
 		numberOFEnvKeyAccordignToUserTeir := os.Getenv("NO_OF_KEYS_FOR_UNPAID_USER")
+		println("the user is not paid and the number of keys is -->", numberOFEnvKeyAccordignToUserTeir)
 		number_ofKeys, err = strconv.ParseInt(numberOFEnvKeyAccordignToUserTeir, 10, 32)
+		println("the number of keys after str conv  is ->", number_ofKeys)
 	}
 	if err != nil {
 		return "", err
 	}
-	random_number_for_apiKey := rand.Intn(int(number_ofKeys))
+	random_number_for_apiKey := rand.Intn(int(number_ofKeys) + 1)
 	println("the nummber of key in the env is --> ", number_ofKeys)
 	if is_user_paid {
 		a := strconv.Itoa(random_number_for_apiKey)
