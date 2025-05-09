@@ -15,9 +15,17 @@ type ResponseStatus interface {
 
 // ResultAndErrorChannel is a generic struct for handling API responses
 // The generic type T must implement the ResponseStatus interface
+// this error is for  the logging and not for the panic
+// the use case is that we will fill the result for the error or success response and in case of the error that is the actual use case we will set it in the error
+//
+//	and log it on the server ; this is not for the response's error
 type ResultAndErrorChannel[T ResponseStatus] struct {
 	Result T
-	Err    error
+	// this error is for  the logging and not for the panic
+	// the use case is that we will fill the result for the error or success response and in case of the error that is
+	// the actual use case we will set it in the error
+	// and log it on the server ; this is not for the response's error
+	Err error
 }
 
 // SendResponse sends the HTTP response to the user
@@ -28,6 +36,8 @@ func (r *ResultAndErrorChannel[T]) SendResponse(w http.ResponseWriter) error {
 	fmt.Printf("the result that is being sent to the user is -> %+v \n\n\n", r.Result)
 	if r.Err != nil {
 		fmt.Printf("the error in the  -> %s \n", r.Err.Error())
+		// we are not returning a error here as this is a a error in
+		// return r.Err
 	}
 	if r.Result.AreWeNotAllowedToReturnResponse() {
 		println("the result is empty and we are not allowed to send a response, we are returning")
@@ -40,4 +50,3 @@ func (r *ResultAndErrorChannel[T]) SendResponse(w http.ResponseWriter) error {
 	}
 	return nil
 }
-

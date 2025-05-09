@@ -1,0 +1,129 @@
+package askllm
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"math/rand"
+	"net/http"
+	"os"
+	"strconv"
+	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
+	askllm "youtubeAdsSkipper/pkg/askLLM/groqHelper"
+
+	"google.golang.org/genai"
+)
+
+type geminiResponseType struct {
+	DoesVideoHaveSponsorship bool   `json:"does_video_have_sponsorship"`
+	SponsorshipSubtitle      string `json:"sponsorship_subtitle"`
+}
+
+func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_for_subtitles askllm.String_and_error_channel_for_subtitles,
+	ChanForResponseForGettingSubtitlesTiming chan askllm.ResponseForGettingSubtitlesTiming, resultChannel chan commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo],
+) {
+	response := commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo]{}
+	ctx := context.Background()
+	apiKey, err := getRandomApiKey()
+	if err != nil {
+		println("there is a error in getting a random api key and it js ->", err.Error())
+		response.Result.FillTheStructForError("somethign went wrong on our side", http.StatusInternalServerError)
+		response.Err = err
+		resultChannel <- response
+		return
+	}
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey:  apiKey,
+		Backend: genai.BackendGeminiAPI,
+	})
+	if err != nil {
+		println("there is a getting the gemini client and it is ", err.Error())
+		response.Result.FillTheStructForError("somethign went wrong on our side", http.StatusInternalServerError)
+		response.Err = err
+		resultChannel <- response
+		return
+	}
+
+	geminiSystemPrompt := os.Getenv("GEMINI_MESSAGE_CONTEN")
+	println("geminiSystemPrompt is ", geminiSystemPrompt)
+
+	config := &genai.GenerateContentConfig{
+		SystemInstruction: genai.NewContentFromText(geminiSystemPrompt, genai.RoleUser),
+		ResponseMIMEType:  "application/json",
+		ResponseSchema: &genai.Schema{
+			Type: genai.TypeObject,
+			Properties: map[string]*genai.Schema{
+				"does_video_have_sponsorship": {Type: genai.TypeBoolean},
+				"sponsorship_subtitle":        {Type: genai.TypeString},
+			},
+			// PropertyOrdering: []string{"recipeName", "ingredients"},
+		},
+	}
+	result, err := client.Models.GenerateContent(
+		ctx,
+		"Gemini 2.5 Flash Preview 04-17",
+		genai.Text(videoScript),
+		config,
+	)
+	if err != nil {
+		println("there is a getting the response form the gemini client  and it is ", err.Error())
+		response.Result.FillTheStructForError("somethign went wrong on our side", http.StatusInternalServerError)
+		response.Err = err
+		resultChannel <- response
+		return
+	}
+	fmt.Printf("the gemini's response is -> %+v \n", result)
+
+	fmt.Println(result.Text())
+	geminiResponse, err := getGemniResponseDecoded(result.Text())
+	if err != nil {
+		println("there is a error in decoding the gemini response and it is ", err.Error())
+		response.Result.FillTheStructForError("somethign went wrong on our side", http.StatusInternalServerError)
+		response.Err = err
+		resultChannel <- response
+		return
+	}
+	fmt.Printf("the gemini's decoded  response is -> %+v \n", geminiResponse)
+
+	go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
+	subtitleTimingResponse := <-ChanForResponseForGettingSubtitlesTiming
+	if subtitleTimingResponse.Err != nil {
+		if subtitleTimingResponse.Err.Error() == "" {
+			println("there is a error in getting the subtitles and the error is also '' ", subtitleTimingResponse.Err.Error())
+			response.Result.FillTheStructForError("no subtitle found for the video", http.StatusNotFound)
+			response.Err = err
+			resultChannel <- response
+			return
+		}
+		println("there is a error in decoding the gemini response and it is ", subtitleTimingResponse.Err.Error())
+		response.Result.FillTheStructForError("Something is wrong on our side, error getting subtitles timming ", http.StatusInternalServerError)
+		response.Err = err
+		resultChannel <- response
+		return
+	}
+}
+
+func getRandomApiKey() (string, error) {
+	keysForPaidUser := os.Getenv("NO_OF_KEYS_FOR_PAID_USER")
+	TotalKeysForPaidUser, err := strconv.ParseInt(keysForPaidUser, 10, 64)
+	if err != nil {
+		println("there is a error in converting the keys of paid user for gemini to int and it is ", err.Error())
+		return "", err
+	}
+	randomKeyNo := rand.Intn(int(TotalKeysForPaidUser))
+	keyStr := fmt.Sprintf("GEMINI_API_KEY%d", randomKeyNo)
+	println("gemini key to get form the env is --> ", keyStr)
+	envKeyForGemini := os.Getenv(keyStr)
+	println("env key for gemini is ", envKeyForGemini[0:len(envKeyForGemini)-6])
+	return envKeyForGemini, nil
+}
+
+func getGemniResponseDecoded(geminisResponse string) (geminiResponseType, error) {
+	var geminiResponse geminiResponseType
+	err := json.Unmarshal([]byte(geminisResponse), &geminiResponse)
+	if err != nil {
+		println("there is a error in unmarshalling the gemini response and it is ", err.Error())
+		return geminiResponse, err
+	}
+	return geminiResponse, nil
+}
