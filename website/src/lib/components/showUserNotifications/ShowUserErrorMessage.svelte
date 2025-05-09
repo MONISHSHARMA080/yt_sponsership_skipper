@@ -10,7 +10,7 @@
 	 * checkTheConditionAfterTheWait - is used to check if the error message should be shown or not, intended use is to be a state var .
 	 */
 	interface propsType {message:String, duration?:number, checkTheConditionAfterTheWait:Boolean,waitToShowError?:number }
-	let { message = 'An error occurred!', duration = 3000, checkTheConditionAfterTheWait, waitToShowError= 2000  }:propsType = $props();
+	let { message = 'An error occurred!', duration = 3000, checkTheConditionAfterTheWait, waitToShowError= 4300  }:propsType = $props();
 	let visible = $state(false);
 	const timeout = setTimeout(() => (visible = false), duration);
 	if (waitToShowError > duration) {

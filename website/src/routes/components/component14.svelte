@@ -327,6 +327,7 @@
 									<ShowUserErrorMessage
 										message="there is a error that prevents you form making payment, redoing it "
 										checkTheConditionAfterTheWait={razorpayOrderId.fetchingStatus === 'error'}
+										
 									/>
 									<span>{plan.buttonText}</span>
 									<!-- <ShowUserErrorMessage message="there is a error in getting to the backend " /> -->
