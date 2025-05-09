@@ -12,3 +12,4 @@ chrome-test-profile-doNotTouch/
 server.log
 node_modules/
 screenshot/
+.vscode/
