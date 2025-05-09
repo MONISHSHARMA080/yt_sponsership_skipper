@@ -20,7 +20,7 @@ async function getOrderIdRecursively(callerName: String) {
     let numberOfIter = 4
     for (let index = 0; index < numberOfIter; index++) {
       console.log(`in the iteration ${index} of getOrderIdRecursively and the caller is ${callerName}`);
-
+      console.log(`the key state object is ->${JSON.stringify(keyFromChromeExtensionState)}`);
 
       let res = await askBackendForOrderId(keyFromChromeExtensionState);
       console.log(`!!!the success is ${res} !and we are on the loop iter ${index}`);
