@@ -89,12 +89,19 @@ try {
   console.log("there is a error in listen and replyu to svelte function ->", error);
 }
 try {
-  Promise.all([
-    main(),
 
-  ]).then(([mainResult]) => {
-    console.log("main finished and the returned value is -->", mainResult, "\n\n and the ");
-  })
+  document.addEventListener('yt-navigate-finish', () => {
+    console.log('_____________Navigated to a new YouTube video');
+    Promise.all([
+      main(),
+
+    ]).then(([mainResult]) => {
+      console.log("main finished and the returned value is -->", mainResult, "\n\n and the ");
+    })
+    // Add your extension logic here
+  });
+
+
 } catch (e) {
   console.log("error in main script:", e);
 }
