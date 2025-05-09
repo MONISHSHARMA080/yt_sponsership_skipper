@@ -229,29 +229,36 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 		}
 		println("and the random key picked by the logic is --> ", apiKey[:len(apiKey)-4], " and the lenght is ->", len(apiKey))
-
+		println("the user on paid tier ->", userFormKey.IsUserPaid)
 		// -------------
 		// if !userFormKey.IsUserPaid
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
-		askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
-		// -------------
-		result := <-resultChannel
-		if result.Err != nil {
-			println("error in gettign the result form the groq and it is  ->", result.Err.Error())
-			err:=result.SendResponse(w)
-			if err != nil {
-				println("we are going to panic as we should have filled the struct in a good way but clearly we did not do that and the error is ->", err.Error())
-				panic("error in sending the response to the user---"+ err.Error())
-			}
-			return
+		println("+++++++++++++++++++++")
+		if userFormKey.IsUserPaid {
+			println("the user is paid and we are using the gemini for the response ")
+			go askllm.AskGeminiAboutSponsorShipAndGetTheSponsorTiming(result_for_subtitles.string_value, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+		} else {
+			println("the user is in free tier")
+			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
 		}
-		println("sending the right response")
-		err=result.SendResponse(w)
+		// -------------
+		//
+		//hold on something is ewrong, as form my service worker i can see that this is not sending a response, I am blocking a channel somewhere
+		//and it is most likely in the success case in the above function as in that case I am not sending the response
+		//
+		//
+		println("waiting on the result channel")
+		result := <-resultChannel
+		println("got the result form the groq sponsorship")
+		// if we have a error then log it and either way send the response
+		if result.Err != nil {
+			fmt.Printf("\n the error in giving the sponsorship of the video is -> %s  \n ", result.Err.Error())
+		}
+		err = result.SendResponse(w)
 		if err != nil {
 			println("we are going to panic as we should have filled the struct in a good way but clearly we did not do that and the error is ->", err.Error())
-			panic("error in sending the response to the user---"+ err.Error())
+			panic(err)
 		}
-
 	}
 }

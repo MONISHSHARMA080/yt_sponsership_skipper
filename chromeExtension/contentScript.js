@@ -18,6 +18,7 @@ async function main() {
   }
   console.log("the key is  -->", key, "from the  content script, error is -->", error);
   let [videoID, errorFormGettingVideoID] = getVideoID();
+  console.log(`about to get the video id`)
   if (errorFormGettingVideoID) {
     console.log("videoID is  -->", videoID, "and the error getting it is -->", errorFormGettingVideoID);
     return;
@@ -88,12 +89,19 @@ try {
   console.log("there is a error in listen and replyu to svelte function ->", error);
 }
 try {
-  Promise.all([
-    main(),
 
-  ]).then(([mainResult]) => {
-    console.log("main finished and the returned value is -->", mainResult, "\n\n and the ");
-  })
+  document.addEventListener('yt-navigate-finish', () => {
+    console.log('_____________Navigated to a new YouTube video');
+    Promise.all([
+      main(),
+
+    ]).then(([mainResult]) => {
+      console.log("main finished and the returned value is -->", mainResult, "\n\n and the ");
+    })
+    // Add your extension logic here
+  });
+
+
 } catch (e) {
   console.log("error in main script:", e);
 }
