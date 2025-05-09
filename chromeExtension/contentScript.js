@@ -18,6 +18,7 @@ async function main() {
   }
   console.log("the key is  -->", key, "from the  content script, error is -->", error);
   let [videoID, errorFormGettingVideoID] = getVideoID();
+  console.log(`about to get the video id`)
   if (errorFormGettingVideoID) {
     console.log("videoID is  -->", videoID, "and the error getting it is -->", errorFormGettingVideoID);
     return;
