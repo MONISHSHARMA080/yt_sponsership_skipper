@@ -44,7 +44,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		return
 	}
 
-	geminiSystemPrompt := os.Getenv("GEMINI_MESSAGE_CONTEN")
+	geminiSystemPrompt := os.Getenv("GEMINI_MESSAGE_CONTENT")
 	println("geminiSystemPrompt is ", geminiSystemPrompt)
 
 	config := &genai.GenerateContentConfig{
@@ -61,7 +61,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 	}
 	result, err := client.Models.GenerateContent(
 		ctx,
-		"Gemini 2.5 Flash Preview 04-17",
+		"gemini-2.0-flash",
 		genai.Text(videoScript),
 		config,
 	)

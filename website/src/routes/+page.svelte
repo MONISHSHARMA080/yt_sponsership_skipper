@@ -12,22 +12,6 @@
 	import { askBackendForOrderId } from '$lib/utils/razorpayIntegration/AskBackendForOrderId.svelte';
 	import { shouldWeGetOrderIdRecursively } from '$lib/sharedState/getOrderIdRecursively.svelte';
 
-	// Commented extension code preserved as in original
-	// let interactWithExtensionClass = new interactWithTheChromeExtensionAndStoreIt
-	// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
-	// 	// keyFromChromeExtensionState.key = key
-	// 	interactWithExtensionClass.cleanup()
-	// let checkKeyAndnew = new checkIfKeyIsValidAndUpdateTheState()
-	// //  checkKeyAndnew.seeIfKeyIsValid(key)
-	// }
-	// console.log("error in interacting with the chrome extension is -> ",error );
-	// const sendNewKeyClass = new sendChromeExtensionNewKey("(((((((((((((((((((((((((((((((")
-	// sendNewKeyClass.sendKey().then((response)=>{
-	// 	console.log("the response after sending the key is  ->",response)
-	// 	console.log('\n\n\n\n');
-	// 	// sendNewKeyClass.clearEventListener()
-	// })
-
 	onMount(() => {
 		$inspect(keyFromChromeExtensionState);
 
@@ -45,12 +29,6 @@
 		}
 		console.log('about to ask backend for the order id');
 
-		// askBackendForOrderId(keyFromChromeExtensionState).then((val) => {
-		// 	console.log(`the order id form the backend's value is ->${val}`);
-		//     // set timout and do it again on error
-		//       if (!val){
-		//     }
-		// });
 		$inspect(razorpayOrderId);
 
 		// make it is global state as I want it to be like a like a message or reactive functions that fetches when the value is changed
@@ -104,41 +82,7 @@
 				return true;
 			}
 		});
-		// if (err instanceof Error) {
-		// 	console.error(
-		// 		`there is a error in the writtign the state to the local storage and it is ${err} `
-		// 	);
-		// }
 	});
-	// let error = interactWithExtensionClass.start((key)=>{console.log("the key is received and it is ->",key," --- about to update the svelete store")
-
-	// let val = $derived(keyFromChromeExtensionState);
-	// $effect(() => {
-	// 	console.log(
-	// 		`asking backend for the order id and the key is -> ${keyFromChromeExtensionState.key}`
-	// 	);
-	// 	askBackendForOrderId(val).then((val) => {
-	// 		console.log(`the svelte effect returned and the value is ->`, val);
-	// 	});
-	// });
-	//
-	// 	console.log(`\n\n\n----++----this log is form the plain log and not form effect when the keyFromChromeExtensionState changes val
-	// -->${JSON.stringify(val)}`);
-
-	// if we don't do this and the ordered id is used in a failure , it will not update, also update it only when the failure is registered
-	// let newRazorPayOrderID = $derived(razorpayOrderId)
-	// $effect(()=>{
-	// 	console.log(`the razor pay order id after change is -> ${JSON.stringify(newRazorPayOrderID)}`);
-	// 	if (newRazorPayOrderID.numberOfTimesKeyUsed === 1 || newRazorPayOrderID.numberOfTimesKeyUsed >1) {
-	// 		console.log(`the razor pay ordered id has been used one time`);
-	// 		askBackendForOrderId(keyFromChromeExtensionState).then((val)=>{
-	// 			console.log(`the razorpay order ID is used one time and we are updated it and the returned value is  -> ${val} `);
-	// 		})
-	// 	}else{
-	// 		return
-	// 	}
-	// })
-
 	let keyUpdatedObj = $derived(keyUpdatedState);
 	$effect(() => {
 		if (keyUpdatedObj.newKeyReceived && keyFromChromeExtensionState.key) {

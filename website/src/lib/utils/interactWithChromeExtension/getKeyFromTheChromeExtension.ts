@@ -108,6 +108,14 @@ export class interactWithTheChromeExtensionAndStoreIt {
       }
       console.log("the key object is  in the start()->", keyObj);
       console.log(`key form the storage is ->`, this.keyStateFromStorage);
+      // if the key is present 
+      if (keyObj?.key !== null && keyObj?.key !== undefined && keyObj?.key !== "" && keyObj?.key.length > 4){
+        if (keyObj.isValidatedThroughBackend){
+          // then go ahead and set the global state to it 
+          console.log(`the key object is already in the storage and is validated through backend so we are assigning `);
+           Object.assign(keyFromChromeExtensionState, keyObj)
+        }
+      }
 
       // this.keyStateFromStorage = keyObj
       // this.saveKeyObjFromLocalStorageToGlobalState(keyObj)
@@ -158,13 +166,8 @@ export class interactWithTheChromeExtensionAndStoreIt {
   private saveKeyObjFromLocalStorageToGlobalState(keyObj: keyStateObject | null) {
     if (keyObj !== null && keyObj.key !== "" && keyObj.key !== null) {
       console.log(`changine the keyFromChromeExtensionState and the key Obj to replace it is ${JSON.stringify(keyObj)} ---- and the new one is ${JSON.stringify(keyFromChromeExtensionState)}`);
-      // keyFromChromeExtensionState = keyObj
       Object.assign(keyFromChromeExtensionState, keyObj)
-      // keyFromChromeExtensionState.key = keyObj.key
-      // keyFromChromeExtensionState.isValidatedThroughBackend = keyObj.isValidatedThroughBackend
-      // keyFromChromeExtensionState.name = keyObj.name
-      // keyFromChromeExtensionState.email = keyObj.email
-    }
+   }
   }
 
 
