@@ -5,12 +5,21 @@
 	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 
-
 	/**
 	 * checkTheConditionAfterTheWait - is used to check if the error message should be shown or not, intended use is to be a state var .
 	 */
-	interface propsType {message:String, duration?:number, checkTheConditionAfterTheWait:Boolean,waitToShowError?:number }
-	let { message = 'An error occurred!', duration = 3000, checkTheConditionAfterTheWait, waitToShowError= 4300  }:propsType = $props();
+	interface propsType {
+		message: String;
+		duration?: number;
+		checkTheConditionAfterTheWait: Boolean;
+		waitToShowError?: number;
+	}
+	let {
+		message = 'An error occurred!',
+		duration = 7000,
+		checkTheConditionAfterTheWait,
+		waitToShowError = 4300
+	}: propsType = $props();
 	let visible = $state(false);
 	const timeout = setTimeout(() => (visible = false), duration);
 	if (waitToShowError > duration) {
@@ -19,13 +28,14 @@
 		console.error('waitToShowError is greater than duration, setting duration to waitToShowError');
 	}
 
-	setTimeout(()=>{visible = true; console.log(`showing the error and the visible is ${visible} and the condition to see if we should is ${checkTheConditionAfterTheWait}`);
-	}, waitToShowError)
-
-
+	setTimeout(() => {
+		visible = true;
+		console.log(
+			`showing the error and the visible is ${visible} and the condition to see if we should is ${checkTheConditionAfterTheWait}`
+		);
+	}, waitToShowError);
 
 	onDestroy(() => clearTimeout(timeout));
-
 </script>
 
 {#if visible && checkTheConditionAfterTheWait}
@@ -67,4 +77,3 @@
 		}
 	}
 </style>
-

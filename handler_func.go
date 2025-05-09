@@ -235,7 +235,13 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
 		println("+++++++++++++++++++++")
-		go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+		if userFormKey.IsUserPaid {
+			println("the user is paid and we are using the gemini for the response ")
+			go askllm.AskGeminiAboutSponsorShipAndGetTheSponsorTiming(result_for_subtitles.string_value, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+		} else {
+			println("the user is in free tier")
+			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+		}
 		// -------------
 		//
 		//hold on something is ewrong, as form my service worker i can see that this is not sending a response, I am blocking a channel somewhere
