@@ -88,14 +88,13 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		// ---> now make the json response func <---
 		// -------- this one should send the json response and not http error
 
-		println("making the db struct")
 		userToInsert := commonstructs.UserInDb{
 			AccountID:  signup_user_details_temp.AccountID,
 			Email:      responseFormGoogleAuthToken.Email,
 			UserName:   responseFormGoogleAuthToken.Name,
 			IsUserPaid: false, //  default is false for the new user
 		}
-
+		fmt.Printf("made the db struct %+v \n\n", userToInsert)
 		// println("is the Db struct valid (not added the free tier so it should be false->", userToInsert.IsUserValid())
 		// userToInsert.AddUserToFreeTier()
 		// println("is the Db struct valid added the free tier so it should be true->", userToInsert.IsUserValid())
