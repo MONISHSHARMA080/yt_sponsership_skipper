@@ -96,7 +96,6 @@ ORDER BY m.id DESC
 LIMIT 1;
   `
 	row := db.QueryRow(checkIfReturningUser, UserInDb.Email)
-	println("made the sql query to see  if the user is a returning user ")
 	err := row.Scan(&res.LastUserTier, &res.LastPaymentID, &res.LastCheckTime, &res.LastVersion)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -128,7 +127,6 @@ is_a_paid_user = excluded.is_a_paid_user
 RETURNING id
 
   `
-	println("the sql query about to be made is ->", query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid, "\n\n")
 	row := db.QueryRow(query, UserInDb.AccountID, UserInDb.Email, UserInDb.UserName, UserInDb.IsUserPaid)
 	println("made the sql query")
 	err := row.Scan(&res.UserID)
