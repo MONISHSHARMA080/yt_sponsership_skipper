@@ -85,8 +85,16 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 	}
 	fmt.Printf("the gemini's decoded  response is -> %+v \n", geminiResponse)
 
+	if !geminiResponse.DoesVideoHaveSponsorship {
+		println("the video does not contain subtitles")
+		response.Result.FillTheStructForSuccess("Success, got the subtitles, and where to skip in the video", http.StatusOK, 0, 0)
+		response.Err = nil
+		resultChannel <- response
+		return
+	}
 	go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
 	subtitleTimingResponse := <-ChanForResponseForGettingSubtitlesTiming
+	println("got the subtitleTimingResponse in the gemini")
 	if subtitleTimingResponse.Err != nil {
 		if subtitleTimingResponse.Err.Error() == "" {
 			println("there is a error in getting the subtitles and the error is also '' ", subtitleTimingResponse.Err.Error())
@@ -101,6 +109,9 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		resultChannel <- response
 		return
 	}
+	response.Result.FillTheStructForSuccess("Success, got the subtitles, and where to skip in the video", http.StatusOK, int64(subtitleTimingResponse.StartTime), int64(subtitleTimingResponse.EndTime))
+	response.Err = nil
+	resultChannel <- response
 }
 
 func getRandomApiKey() (string, error) {

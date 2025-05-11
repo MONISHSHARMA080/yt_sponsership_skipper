@@ -249,7 +249,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		//
 		println("waiting on the result channel")
 		result := <-resultChannel
-		println("got the result form the groq sponsorship")
+		println("got the result for the  sponsorship")
 		// if we have a error then log it and either way send the response
 		if result.Err != nil {
 			fmt.Printf("\n the error in giving the sponsorship of the video is -> %s  \n ", result.Err.Error())

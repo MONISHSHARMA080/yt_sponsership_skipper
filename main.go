@@ -192,17 +192,6 @@ func return_caption_url(captionsDataInJson map[string]interface{}) (string, erro
 	return baseUrl, nil
 }
 
-// fetchAndReturnTheBodyAsString returns the body of the HTTP response as a string
-// generateSubtitleString formats subtitles into a single string "[start] text [dur]"
-// func generateSubtitleString(subtitles []Subtitle) string {
-// 	var result string
-// 	for _, subtitle := range subtitles {
-// 		result += fmt.Sprintf(" %s ",subtitle.Text)
-// 	}
-// 	result += "\n"
-// 	return result
-// }
-
 // --- 2nd one for utf-8 strings
 
 func generateSubtitleString(subtitles []Subtitle) string {
@@ -217,9 +206,10 @@ func generateSubtitleString(subtitles []Subtitle) string {
 
 func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_subtitles chan<- string_and_error_channel_for_subtitles) {
 	println(" in the get_the_subtitles func")
+	httP_client_1 := &http.Client{}
+	println("fetching the body and returning it as a string")
 
-	httP_client_1 := http.Client{}
-	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httP_client_1)
+	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, httP_client_1)
 	if err != nil {
 		println("there is a error in fetching the youtube body and is ->", err.Error())
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
