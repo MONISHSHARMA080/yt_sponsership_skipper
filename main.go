@@ -14,6 +14,7 @@ import (
 	paymentbackendgo "youtubeAdsSkipper/paymentBackendGO"
 	handlerfunction "youtubeAdsSkipper/paymentBackendGO/handlerFunction"
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
+
 	"github.com/joho/godotenv"
 )
 
@@ -29,8 +30,10 @@ import (
 // }
 
 // type alias so that I have common types
-type Transcripts = askllmHelper.Transcripts
-type Subtitle = askllmHelper.Subtitle
+type (
+	Transcripts = askllmHelper.Transcripts
+	Subtitle    = askllmHelper.Subtitle
+)
 
 func main() {
 	err := godotenv.Load()
@@ -216,6 +219,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	httP_client_1 := http.Client{}
 	htmlResponse, err := fetchAndReturnTheBodyAsString(youtubeUrl, &httP_client_1)
 	if err != nil {
+		println("there is a error in fetching the youtube body and is ->", err.Error())
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
@@ -224,6 +228,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	// probally take it as a htmlresponse *string
 	err = convertHtmlToJsonAndWriteItToAMAp(htmlResponse, &captionsDataInJson)
 	if err != nil {
+		println("there is a error in converting the html to json and writing it to a map->", err.Error())
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
@@ -231,11 +236,13 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 
 	baseUrl, err := return_caption_url(captionsDataInJson)
 	if err != nil {
+		println("there is a error in returning the captiin url ->", err.Error())
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
 	captionsInXML, errorF := fetchAndReturnTheBodyAsByte(baseUrl, &httpClient)
 	if errorF != nil {
+		println("there is a error in fetching the captionsInXML->", errorF.Error())
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorF, string_value: "", transcript: nil}
 		return
 	}
@@ -243,6 +250,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal(captionsInXML, &transcripts)
 	if errorInXMl != nil {
+		println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
 		return
 	}
@@ -253,7 +261,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	}
 
 	for _, subtitle := range transcripts.Subtitles {
-		fmt.Printf("[start %s] %s [Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
+		fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
 	}
 
 	// 2. Second requirement: Generate single string with format "[start] text [dur]"
