@@ -85,7 +85,7 @@ func fetchAndReturnTheBodyAsString(youtubeVideoUrl string, httpClient *http.Clie
 		return "", err
 	}
 	responseBodyString := buf.String()
-	println("the response body is ->", responseBodyString, "\n\n ++++")
+	// println("the response body is ->", responseBodyString, "\n\n ++++")
 	fmt.Printf("the youtube html status is %s, and the status code is %d \n\n ", response.Status, response.StatusCode)
 
 	// fmt.Printf("\n\nstring in fetchAndReturnTheBodyAsString -->  %s --++\n\n", responseBodyString)
