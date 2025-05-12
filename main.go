@@ -2,11 +2,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -16,6 +19,10 @@ import (
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
 
 	"github.com/joho/godotenv"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
+	"google.golang.org/api/youtube/v3"
 )
 
 // type Subtitle struct {
@@ -34,6 +41,122 @@ type (
 	Transcripts = askllmHelper.Transcripts
 	Subtitle    = askllmHelper.Subtitle
 )
+
+// ----------------- client redirect
+
+var (
+	// change this to the same URI you configured in Google Cloud Console:
+	oauth2RedirectURL = "http://localhost:8080/oauth2callback"
+	config            *oauth2.Config
+)
+
+// loadOAuthConfig reads client_secret.json and builds an oauth2.Config.
+func loadOAuthConfig() *oauth2.Config {
+	a := os.Getenv("CLIENT_SECRET_GOOGLE")
+	println("google client secrent form the .env file ->", a[:10], "--\n\n and the client_secret's lenght is ->", len(a))
+	// b, err := os.ReadFile("client_secret.json")
+	if a == "" {
+		log.Fatalf("Error reading client_secret.json: form the .env")
+	}
+	b := []byte(a)
+	cfg, err := google.ConfigFromJSON(b,
+		youtube.YoutubeReadonlyScope,
+		youtube.YoutubeUploadScope,
+		youtube.YoutubeForceSslScope,
+		youtube.YoutubepartnerScope,
+		// add extra scopes here if needed
+	)
+	if err != nil {
+		log.Fatalf("Error parsing client_secret.json: %v", err)
+	}
+	cfg.RedirectURL = oauth2RedirectURL
+	return cfg
+}
+
+// handleLogin redirects user to Google’s OAuth consent page.
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	// "state" can be used to verify callback integrity.
+	url := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	http.Redirect(w, r, url, http.StatusFound)
+}
+
+// handleCallback handles the OAuth callback, exchanges code for token,
+// and creates a YouTube service client.
+func handleCallback(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse query", http.StatusBadRequest)
+		return
+	}
+	code := r.FormValue("code")
+	if code == "" {
+		http.Error(w, "Code not found in query", http.StatusBadRequest)
+		return
+	}
+
+	// Exchange the code for a token
+	ctx := context.Background()
+	tok, err := config.Exchange(ctx, code)
+	if err != nil {
+		http.Error(w, "Token exchange failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	saveToken("token.json", tok)
+	// Persist tok (tok.AccessToken, tok.RefreshToken) as you see fit
+	// e.g. saveToken("token.json", tok)
+
+	// Create YouTube client
+	client := config.Client(ctx, tok)
+	service, err := youtube.NewService(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		http.Error(w, "YouTube client creation failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Example API call: fetch your channel info
+	resp, err := service.Channels.
+		List([]string{"snippet", "statistics"}).
+		Mine(true).
+		Do()
+	if err != nil {
+		http.Error(w, "API call error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "Hello, %s! You have %d subscribers.",
+		resp.Items[0].Snippet.Title,
+		resp.Items[0].Statistics.SubscriberCount)
+}
+
+func saveToken(path string, token *oauth2.Token) {
+	f, err := os.Create(path)
+	if err != nil {
+		log.Fatalf("Unable to create token file %q: %v", path, err)
+	}
+	defer f.Close()
+
+	encoder := json.NewEncoder(f)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(token); err != nil {
+		log.Fatalf("Unable to encode token to %q: %v", path, err)
+	}
+	fmt.Printf("Token saved to %s\n", path)
+}
+
+// tokenFromFile retrieves a token from a file, or returns an error.
+func tokenFromFile(path string) (*oauth2.Token, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read token file: %w", err)
+	}
+	var token oauth2.Token
+	if err := json.Unmarshal(data, &token); err != nil {
+		return nil, fmt.Errorf("unmarshal token JSON: %w", err)
+	}
+	return &token, nil
+}
+
+// ----------------- client redirect
 
 func main() {
 	err := godotenv.Load()
@@ -58,11 +181,15 @@ func main() {
 
 	println(encryption_key, "-----", len(encryption_key))
 
+	config = loadOAuthConfig()
 	httpClient := http.Client{}
 	http.HandleFunc("/", getRoot)
+
+	http.HandleFunc("/login", handleLogin)
+	http.HandleFunc("/oauth2callback", handleCallback)
 	// if need new token use this
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
-	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient))
+	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient, config))
 	http.HandleFunc("/checkIfKeyIsValid", CheckIfKeyIsValid(encryption_key_as_byte))
 	http.HandleFunc("/makeAPayment", paymentbackendgo.CreateAndReturnOrderId(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
 	http.HandleFunc("/validatePayment", handlerfunction.VerifyPaymentSignature(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))

@@ -10,6 +10,9 @@ import (
 	askllm "youtubeAdsSkipper/pkg/askLLM"
 	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
+	youtubeapi "youtubeAdsSkipper/pkg/youtubeApi"
+
+	"golang.org/x/oauth2"
 )
 
 type JsonError_HTTPErrorCode_And_Message struct {
@@ -149,7 +152,7 @@ type responseForWhereToSkipVideo struct {
 	Error                  string `json:"error,omitempty"`
 }
 
-func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client) http.HandlerFunc {
+func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client, config *oauth2.Config) http.HandlerFunc {
 	// take the video id out and hash  ,  and api will return (on success)
 
 	//  ads : boolean, if true then starts at _ _ _ and ends at _ _ _
@@ -192,6 +195,13 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		// channel_for_userDetails := make(chan string_and_error_channel)
 		channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
 		ChanForResponseForGettingSubtitlesTiming := make(chan askllmHelper.ResponseForGettingSubtitlesTiming)
+		println("--- get the subtitles form the yt api ---")
+		transcript, err := youtubeapi.GetSubtitlesForVideo(config, "wZGKW5o18oI")
+		if err != nil {
+			println("there is a error in getting the youtube transcript and it is ->", err.Error())
+		} else {
+			fmt.Printf("the text captions obtained are -->%s \n", transcript)
+		}
 
 		go userFormKey.DecryptTheKey(request_for_youtubeVideo_struct.Encrypted_string, channelToDecryptUserKey)
 		// go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
