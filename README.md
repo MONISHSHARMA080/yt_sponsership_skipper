@@ -31,3 +31,7 @@ Both Gemini and Groq offer free API access, so you can grab keys without paying
 ### What's next(in this project)?
 
  I was planning to launch the chrome extension and launch it to the product hunt
+
+
+ ### Workaround:--
+ * We can get the XML timed from the chrome extension and mine it form the backend 
