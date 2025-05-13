@@ -341,7 +341,8 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 	indexa := strings.Index(htmlResponse, "ytInitialPlayerResponse")
 	println("in the string after the ytInitialPlayerResponse do we have playerCaptionsTracklistRenderer there too", strings.Contains(htmlResponse[indexa:], "playerCaptionsTracklistRenderer"), " \n the text after that is(80 plus) ->")
 	if len(htmlResponse) > indexa+80 {
-		println("+80 text is --> ", htmlResponse[indexa:indexa+80])
+		a := htmlResponse[indexa : indexa+80]
+		println("+80 text is --> ", a, "--- and the length of the indexa:indexa+80 is ->", len(a))
 	} else {
 		println("we can't have the text  as +80 dosen't exist")
 	}
