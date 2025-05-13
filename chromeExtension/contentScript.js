@@ -29,11 +29,12 @@ async function main() {
     return;
   }
   // get captions track 
-  let [captionsObjInString, err] = await getCaptionsFromTheVideo()
-  if (err !== null || captionsObjInString === null) {
-    console.log(`there is a error in getting the captions and it is :-- ${err}`)
-    return
-  }
+  // let [captionsObjInString, err] = await getCaptionsFromTheVideo()
+  // if (err !== null || captionsObjInString === null) {
+  //   console.log(`there is a error in getting the captions and it is :-- ${err}`)
+  //   return
+  // }
+  let captionsObjInString = "_++_+_+_++_+_+_+_++_+"
   let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID, captionsObjInString });
   if (errorFromYTApi || responseObject === null) {
     console.log("there is a error in the yt api -->", errorFromYTApi);
@@ -686,6 +687,6 @@ async function getCaptionsFromTheVideo() {
       document.getElementById(scriptId)?.remove();
       console.error('Timeout: Did not receive response from injected script.');
       resolve([null, new Error('Timeout waiting for captions from injected page script.')]);
-    }, 9000); // 9-second timeout
+    }, 19000); // 9-second timeout
   });
 }

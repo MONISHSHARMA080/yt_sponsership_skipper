@@ -336,6 +336,7 @@ func Get_the_subtitles(httpClient http.Client, youtubeUrl string, channel_for_su
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: err, string_value: "", transcript: nil}
 		return
 	}
+	println("does the html response contiand the ytInitialPlayerResponse", strings.Contains(htmlResponse, "ytInitialPlayerResponse"))
 
 	var captionsDataInJson map[string]interface{}
 	// probally take it as a htmlresponse *string
