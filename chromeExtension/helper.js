@@ -265,6 +265,23 @@ export function fetchFunctionBuilder(
   };
 }
 
+
+/**
+ * @typedef {Object} CaptionTrack
+ * @property {string} baseUrl - The URL to fetch the captions from YouTube's API
+ * @property {Object} name - The display name of the caption track
+ * @property {string} name.simpleText - The readable name of the language (e.g., "English", "Spanish")
+ * @property {string} vssId - The video subtitle ID with format like ".en", "a.en", etc.
+ * @property {string} languageCode - The ISO language code (e.g., "en", "fr", "zh")
+ * @property {string} [kind] - Optional field specifying the kind of caption (e.g., "asr" for auto-generated)
+ * @property {boolean} isTranslatable - Whether the caption can be translated
+ * @property {string} trackName - The name of the track (often empty string)
+ *
+ *
+ * @typedef {CaptionTrack[]} CaptionTracks - Array of caption track objects available for the video
+ *
+ */
+
 /**
  * @typedef {Object} ResponseObject
  * @property {number} status - The status code of the response
@@ -284,10 +301,25 @@ export function fetchFunctionBuilder(
  *
  * @param {string} key -- key form the backend
  * @param {string} videoID -- key form the backend
+ * @param {string} jsonStringifiedCaptions -- key form the backend
  *
  * @returns {Promise<[ResponseObject|null, Error|null]>}
  */
-export async function getWhereToSkipInYtVideo(key, videoID) {
+
+export async function getWhereToSkipInYtVideo(key, videoID, jsonStringifiedCaptions) {
+  console.log(`the captions tracks we got in the helper file is ->${jsonStringifiedCaptions}`)
+
+  /** @type CaptionTracks */
+  let captionsTracks
+  try {
+    captionsTracks = JSON.parse(jsonStringifiedCaptions)
+  } catch (error) {
+    console.log(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)
+    // return [null, new Error(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)];
+  }
+
+
+
   /** @type bodyOfTheRequest */
   let requestBody = { youtube_Video_Id: videoID, encrypted_string: key };
   let fetchRequestToBackend = fetchFunctionBuilder(

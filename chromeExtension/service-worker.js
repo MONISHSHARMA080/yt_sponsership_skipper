@@ -118,11 +118,14 @@ chrome.runtime.onMessage.addListener((
  * @property {string} [error] - Error message if something went wrong
  */
 
+
+
 /**
  * @typedef {Object} MessageRequest
  * @property {string} type - The type of message being sent
  * @property {string} encKey - The encryption key
  * @property {string} videoID - The ID of the YouTube video
+ * @property {string} jsonStringifiedCaptions - JSON Stringifiewd captions 
  */
 
 /**
@@ -153,7 +156,7 @@ chrome.runtime.onMessage.addListener((
   if (request.type === "getWhereToSkipInYtVideo") {
     // Execute the key fetch function and handle the response
     console.log("Received message in background script:", request);
-    getWhereToSkipInYtVideo(request.encKey, request.videoID)
+    getWhereToSkipInYtVideo(request.encKey, request.videoID, request.jsonStringifiedCaptions)
       .then(([responseObject, error]) => {
         console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
         sendResponse([responseObject, error]);

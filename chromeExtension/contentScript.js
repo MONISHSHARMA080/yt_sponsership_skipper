@@ -28,7 +28,13 @@ async function main() {
     console.log("video player is not there");
     return;
   }
-  let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID, });
+  // get captions track 
+  let [captionsObjInString, err] = await getCaptionsFromTheVideo()
+  if (err !== null || captionsObjInString === null) {
+    console.log(`there is a error in getting the captions and it is :-- ${err}`)
+    return
+  }
+  let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID, captionsObjInString });
   if (errorFromYTApi || responseObject === null) {
     console.log("there is a error in the yt api -->", errorFromYTApi);
     return;
@@ -536,4 +542,150 @@ function addEventListenerForChangingTheKeyFromSvelte() {
   } catch (error) {
 
   }
+}
+
+/**
+ * This function gets you captions array , and will return error if there is any or the array is not there
+ * @returns {Promise<[ []|null, Error|null ]>}
+ */
+// async function getCaptionsFromTheVideo() {
+//   //@ts-ignore
+//   let a = window.ytInitialPlayerResponse
+//   console.log(`the initial player response is ${a}`)
+
+//   console.log(`-----waiting for 2 sec in the script `)
+//   await new Promise((res) => { setTimeout(() => { res("") }, 4000); })
+//   console.log(`-----waiting for 2 sec in the script `)
+//   try {
+//     //@ts-ignore
+//     const captionTracks = ytInitialPlayerResponse.captions.playerCaptionsTracklistRenderer.captionTracks
+//     if (captionTracks === undefined || captionTracks === null) {
+//       console.log(`the captionsArray is ${captionTracks}`)
+//       return [null, new Error(`there is a error in getting the captionTracks as it is undefined `)]
+//     }
+//     return [captionTracks, null]
+//   } catch (err) {
+//     console.log(`there is a error in returning the captions(try catch) and it is ->${err} `)
+//     return [null, err instanceof Error ? err : new Error(`there is a error in try catch of getting the captions and the eror is ->${err}  `)]
+//   }
+
+// }
+
+/**
+ * This function gets you captions array from the YouTube video page,
+ * and will return an error if there is any or the array is not there.
+ * It injects a script to access page-level variables.
+ * @returns {Promise<[ string|null, Error|null ]>}
+ * The first element is an array of captionTrack objects if successful, otherwise null.
+ * The second element is an Error object if an error occurred, otherwise null.
+ */
+async function getCaptionsFromTheVideo() {
+  return new Promise((resolve) => {
+    const scriptId = 'yt-caption-injector-script-' + Date.now(); // Unique ID for the script element
+
+    // The code for the script to be injected into the page.
+    // This script runs in the page's context, so it can access window.ytInitialPlayerResponse.
+    const injectedScriptCode = `
+            (function() {
+                let attempts = 0;
+                const maxAttempts = 20; // Try for about 5 seconds (20 * 250ms)
+                const intervalId = setInterval(() => {
+                    attempts++;
+                    if (window.ytInitialPlayerResponse) {
+                        clearInterval(intervalId);
+                        try {
+                            const captionTracks = window.ytInitialPlayerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+                            if (captionTracks !== undefined && captionTracks !== null) {
+                                // Stringify the caption tracks array
+                                const captionTracksJsonString = JSON.stringify(captionTracks);
+                                window.postMessage({
+                                    type: 'FROM_PAGE_SCRIPT_YT_RESPONSE',
+                                    payload: captionTracksJsonString, // Send the JSON string
+                                    sourceScriptId: '${scriptId}' // Include ID to verify source
+                                }, '*');
+                            } else {
+                                // If captionTracks is not found, send an error message
+                                window.postMessage({
+                                    type: 'FROM_PAGE_SCRIPT_YT_RESPONSE',
+                                    error: 'captionTracks not found or is undefined/null in ytInitialPlayerResponse.',
+                                    sourceScriptId: '${scriptId}'
+                                }, '*');
+                            }
+                        } catch (e) {
+                             // Catch potential errors during stringification or access
+                             window.postMessage({
+                                type: 'FROM_PAGE_SCRIPT_YT_RESPONSE',
+                                error: 'Error processing ytInitialPlayerResponse: ' + e.message,
+                                sourceScriptId: '${scriptId}'
+                            }, '*');
+                        }
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(intervalId);
+                        window.postMessage({
+                            type: 'FROM_PAGE_SCRIPT_YT_RESPONSE',
+                            error: 'window.ytInitialPlayerResponse not found after ' + maxAttempts + ' attempts.',
+                            sourceScriptId: '${scriptId}'
+                        }, '*');
+                    }
+                }, 250); // Check every 250ms
+            })();
+        `;
+
+    const scriptElement = document.createElement('script');
+    scriptElement.id = scriptId;
+    scriptElement.textContent = injectedScriptCode;
+    console.log(`the script to get the captions is injected and is ${scriptId}`)
+
+    //@ts-ignore
+    const messageListener = (event) => {
+      // Ensure the message is from our injected script and meant for us
+      if (event.source === window &&
+        event.data &&
+        event.data.type === 'FROM_PAGE_SCRIPT_YT_RESPONSE' &&
+        event.data.sourceScriptId === scriptId) {
+        console.log(`the event is received in the script and it is ${event.data}`)
+
+        // Clean up: remove event listener and the injected script
+        window.removeEventListener('message', messageListener);
+        document.getElementById(scriptId)?.remove();
+        // Clear the timeout if the message was received before timeout
+        if (timeoutId) clearTimeout(timeoutId);
+
+
+        if (event.data.error) {
+          console.log(`Error from injected script: ${event.data.error}`);
+          console.error(`Error from injected script: ${event.data.error}`);
+          resolve([null, new Error(event.data.error)]);
+          return;
+        }
+
+        // The payload is now the JSON string
+        const captionTracksJsonString = event.data.payload;
+
+        if (captionTracksJsonString === undefined || captionTracksJsonString === null) {
+          console.error('Injected script did not send a valid payload (JSON string).');
+          resolve([null, new Error('Failed to get caption tracks JSON string from page context (payload was null/undefined).')]);
+          return;
+        }
+
+        // Resolve with the JSON string and no error
+        console.log(`Received captionTracks JSON string: ${captionTracksJsonString}`);
+        resolve([captionTracksJsonString, null]);
+      }
+    };
+
+    window.addEventListener('message', messageListener, false);
+
+    // Append the script to the document head (or body) to execute it
+    (document.head || document.documentElement).appendChild(scriptElement);
+
+    // Set a timeout for the entire operation to prevent hanging indefinitely
+    const timeoutId = setTimeout(() => {
+      // If the timeout hits, it means we didn't get a response from the injected script
+      window.removeEventListener('message', messageListener);
+      document.getElementById(scriptId)?.remove();
+      console.error('Timeout: Did not receive response from injected script.');
+      resolve([null, new Error('Timeout waiting for captions from injected page script.')]);
+    }, 9000); // 9-second timeout
+  });
 }
