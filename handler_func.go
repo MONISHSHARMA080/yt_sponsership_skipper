@@ -248,12 +248,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			println("the user is in free tier")
 			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
 		}
-		// -------------
-		//
-		//hold on something is ewrong, as form my service worker i can see that this is not sending a response, I am blocking a channel somewhere
-		//and it is most likely in the success case in the above function as in that case I am not sending the response
-		//
-		//
 		println("waiting on the result channel")
 		result := <-resultChannel
 		println("got the result for the  sponsorship")

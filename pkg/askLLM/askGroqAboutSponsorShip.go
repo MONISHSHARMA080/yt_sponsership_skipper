@@ -72,8 +72,15 @@ func AskGroqAboutSponsorship(httpClient *http.Client, w http.ResponseWriter, met
 			response.Err = fmt.Errorf(" we got subtitle form groq but have problem finding it via our function and the error is :-> %s ", SubtitlesTimming.Err.Error())
 			resultChannel <- response
 			return
+		} else if SubtitlesTimming.EndTime+SubtitlesTimming.StartTime <= 0 {
+			// the subtitle is not being found via the function or somethign is wrong
+			println("\n\n  ----- the subtitle is not gettign found despite of the llm telling us that it is there ------   \n\n")
+			response.Result.FillTheStructForError("Something is wrong on our side, error getting subtitles timming is not found of the subtitle ", http.StatusInternalServerError)
+			response.Err = fmt.Errorf("the subtitle is not gettign found despite of the llm telling us that it is there ")
+			resultChannel <- response
+			return
 		}
-		response.Result.FillTheStructForSuccess(" subtitle found for the video ", http.StatusOK, int64(SubtitlesTimming.StartTime), int64(SubtitlesTimming.EndTime))
+		response.Result.FillTheStructForSuccess(" subtitle found for the video ", http.StatusOK, int64(SubtitlesTimming.StartTime), int64(SubtitlesTimming.EndTime), groq_response.SponsorshipContent.DoesVideoHaveSponsorship)
 		response.Err = nil
 		resultChannel <- response
 		return

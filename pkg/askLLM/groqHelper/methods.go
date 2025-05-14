@@ -22,12 +22,12 @@ func (r *ResponseForWhereToSkipVideo) FillTheStructForError(errorMessageInTheRes
 }
 
 // the contains subtitle bool is assigned to be true cause duh !
-func (r *ResponseForWhereToSkipVideo) FillTheStructForSuccess(MessageInTheResponse string, status_code int, startTime, endTime int64) {
+func (r *ResponseForWhereToSkipVideo) FillTheStructForSuccess(MessageInTheResponse string, status_code int, startTime, endTime int64, doWeHaveTheSubtitle bool) {
 	// this will fill the struct for the error
 	r.Message = MessageInTheResponse
 	r.Status_code = status_code
 	r.StartTime = startTime
 	r.EndTime = endTime
-	r.ContainSponserSubtitle = true
+	r.ContainSponserSubtitle = doWeHaveTheSubtitle
 	fmt.Printf("we have filled the struct for success and it is -> %+v  \n\n", *r)
 }

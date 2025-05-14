@@ -87,7 +87,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 
 	if !geminiResponse.DoesVideoHaveSponsorship {
 		println("the video does not contain subtitles")
-		response.Result.FillTheStructForSuccess("Success, got the subtitles, and where to skip in the video", http.StatusOK, 0, 0)
+		response.Result.FillTheStructForSuccess("Success, got the subtitles, and where to skip in the video", http.StatusOK, 0, 0, false)
 		response.Err = nil
 		resultChannel <- response
 		return
@@ -108,8 +108,15 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		response.Err = err
 		resultChannel <- response
 		return
+	} else if subtitleTimingResponse.EndTime+subtitleTimingResponse.StartTime <= 0 {
+		// the subtitle is not being found via the function or somethign is wrong
+		println("\n\n  ----- the subtitle is not gettign found despite of the llm telling us that it is there ------   \n\n")
+		response.Result.FillTheStructForError("Something is wrong on our side, error getting subtitles timming is not found of the subtitle ", http.StatusInternalServerError)
+		response.Err = fmt.Errorf("the subtitle is not gettign found despite of the llm telling us that it is there ")
+		resultChannel <- response
+		return
 	}
-	response.Result.FillTheStructForSuccess("Success, got the subtitles, and where to skip in the video", http.StatusOK, int64(subtitleTimingResponse.StartTime), int64(subtitleTimingResponse.EndTime))
+	response.Result.FillTheStructForSuccess("Success, got the subtitles, and where to skip in the video", http.StatusOK, int64(subtitleTimingResponse.StartTime), int64(subtitleTimingResponse.EndTime), geminiResponse.DoesVideoHaveSponsorship)
 	response.Err = nil
 	resultChannel <- response
 }
