@@ -150,7 +150,8 @@ chrome.runtime.onMessage.addListener((
     // before we call this we would need to get the youtbe captions
     (async () => {
       console.log(`getting the active tab`)
-      let activeTab = await chrome.tabs.query({ active: true, currentWindow: true })
+      // let activeTab = await chrome.tabs.query({ active: true, currentWindow: true })
+      let activeTab = await chrome.tabs.query({})
       console.log(`the active tab is ${JSON.stringify(activeTab)} and it's length is ${activeTab.length}`)
       if (activeTab.length < 1) {
         sendResponse([null, new Error(`we were not able to find the active Tab as the value is <1`)]);
