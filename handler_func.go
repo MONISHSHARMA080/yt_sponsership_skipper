@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
+	"html"
 	"net/http"
 	"time"
 	commonstructs "youtubeAdsSkipper/commonStructs"
@@ -10,7 +12,6 @@ import (
 	askllm "youtubeAdsSkipper/pkg/askLLM"
 	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
-	youtubeapi "youtubeAdsSkipper/pkg/youtubeApi"
 
 	"golang.org/x/oauth2"
 )
@@ -141,6 +142,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 type request_for_youtubeVideo_struct struct {
 	Youtube_Video_Id string `json:"youtube_Video_Id"`
 	Encrypted_string string `json:"encrypted_string"`
+	Transcript       string `json:"transcript"`
 }
 
 type responseForWhereToSkipVideo struct {
@@ -188,6 +190,10 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided", http.StatusBadRequest)
 			return
 		}
+		if request_for_youtubeVideo_struct.Transcript == "" {
+			method_to_write_http_and_json_to_respond(w, "Transcript is not present in the request", http.StatusBadRequest)
+			return
+		}
 
 		channelToDecryptUserKey := make(chan common.ErrorAndResultStruct[string])
 		userFormKey := commonstructs.UserKey{}
@@ -195,18 +201,9 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		// channel_for_userDetails := make(chan string_and_error_channel)
 		channel_for_subtitles := make(chan string_and_error_channel_for_subtitles)
 		ChanForResponseForGettingSubtitlesTiming := make(chan askllmHelper.ResponseForGettingSubtitlesTiming)
-		println("--- get the subtitles form the yt api ---")
-		transcript, err := youtubeapi.GetSubtitlesForVideo(config, "wZGKW5o18oI")
-		if err != nil {
-			println("there is a error in getting the youtube transcript and it is ->", err.Error())
-		} else {
-			fmt.Printf("the text captions obtained are -->%s \n", transcript)
-		}
 
 		go userFormKey.DecryptTheKey(request_for_youtubeVideo_struct.Encrypted_string, channelToDecryptUserKey)
-		// go decrypt_and_write_to_channel(request_for_youtubeVideo_struct.Encrypted_string, os_env_key, channel_for_userDetails)
-		go Get_the_subtitles(*httpClient, request_for_youtubeVideo_struct.Youtube_Video_Id, channel_for_subtitles)
-		// getting new user encrypted key decrypted
+		go request_for_youtubeVideo_struct.GetTheTranscript(channel_for_subtitles)
 
 		// result_for_user_details := <-channel_for_userDetails
 		resultForUserKeyChannel := <-channelToDecryptUserKey
@@ -270,4 +267,29 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			panic(err)
 		}
 	}
+}
+
+func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitles chan<- string_and_error_channel_for_subtitles) {
+	if req.Transcript == "" {
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
+		return
+	}
+	transcripts := Transcripts{}
+	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
+	if errorInXMl != nil {
+		println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())
+		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
+		return
+	}
+	// formatting the transcript to be in utf-8
+	println("formatting the transctipt.subtitles.text to be utf-8")
+	for i, text := range transcripts.Subtitles {
+		transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
+	}
+
+	for _, subtitle := range transcripts.Subtitles {
+		fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
+	}
+
+	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }

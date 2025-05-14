@@ -268,27 +268,36 @@ export function fetchFunctionBuilder(
 
 
 /**
+ * makes a fetch request to get the transcript form the url in it
  * @param {captionTracks} captionTrack  
- *
- *
  *  @returns {Promise<[string|null, Error|null]>} - the function will fetch the transcript and will return it 
  */
 async function fetchTheTranscript(captionTrack) {
-  let result = await fetch(captionTrack.baseUrl)
-  console.log(`got the result in fetching the caption's tracks and it is Status:${result.status}, status code : ${result.statusText}, body is -> ${result.body} `)
-  let res = await result.text()
-  console.log(`the result is ${res}`)
-  return [res, null]
+  try {
+    let result = await fetch(captionTrack.baseUrl)
+    console.log(`got the result in fetching the caption's tracks and it is Status:${result.status}, status code : ${result.statusText} `)
+    if (!result.ok) {
+      console.log(` there is a error in fetching the transcript and it is not 200`)
+      return [null, new Error(`there is a error in fetching the transcript and the response is not ok , it is ${result.status}`)]
+    }
+    let res = await result.text()
+    console.log(`@ the result is ${res}`)
+    return [res, null]
+  } catch (err) {
+    return [null, err instanceof Error ? err : new Error(`there is a error in fetching the transcript and it is :->${err}`)]
+  }
 
 }
 
 /**
+ *
+ * gets the preferable captions first if not there then gets the auto gen and if that is also not there then gets the one in the
+ * first index(0) , or error if any one of those is not there
+ *
  * @param {string} jsonStringifiedCaptions  
- *
- *
  *  @returns {Promise<[string|null, Error|null]>} - the function will fetch the transcript and will return it 
  */
-async function GetTheTranscriptFromTheCaption(jsonStringifiedCaptions) {
+async function GetTheTranscriptFromTheCaptions(jsonStringifiedCaptions) {
   console.log(`the captions tracks we got in the helper file is ->${jsonStringifiedCaptions}`)
   try {
     /** @type Captions */
@@ -315,7 +324,9 @@ async function GetTheTranscriptFromTheCaption(jsonStringifiedCaptions) {
         secondChoiceEnAutoGenSub = value
       }
     })
-    console.log(``)
+    console.log(`about to fetch`)
+    /** @type {[string|null, Error|null]} */
+    let resultFromFetching = [null, null]
 
     if (firstChoiceEnSub !== null || secondChoiceEnAutoGenSub !== null && thirdChoiceChooisingTheFirstOne !== null) {
       if (firstChoiceEnSub !== null) {
@@ -323,18 +334,30 @@ async function GetTheTranscriptFromTheCaption(jsonStringifiedCaptions) {
         // if there is a error then we are going to the other one too
         console.log(`fetching the English `)
         let res = await fetchTheTranscript(firstChoiceEnSub)
+        resultFromFetching = res
       } else if (secondChoiceEnAutoGenSub !== null) {
         console.log(`fetching the English (auto-generated)`)
         // call the func and then return
         // if there is a error then we are going to the other one too
         let res = await fetchTheTranscript(secondChoiceEnAutoGenSub)
+        resultFromFetching = res
       } else if (thirdChoiceChooisingTheFirstOne !== null) {
         // call the func and then return
         // if there is a error then we are going to the other one too
         console.log(`fetching the 3rd choice as other onces are null`)
         let res = await fetchTheTranscript(thirdChoiceChooisingTheFirstOne)
+        resultFromFetching = res
       } else {
-
+        console.error(`there is a error in fetching in the transcript as all the choices are null`)
+        return [null, new Error(`there is a error in fetching in the transcript as all the choices are null`)];
+      }
+      // handle the error
+      if (resultFromFetching[1] !== null || resultFromFetching[0] === null) {
+        let e = resultFromFetching[1]
+        return [null, e instanceof Error ? e : new Error(`there is a error in fetching in the transcript and it is:=> ${e}`)];
+      } else {
+        console.log(`the response form fetching the transcript is ok +`)
+        return resultFromFetching;
       }
     } else {
       return [null, new Error(`there is a error in getting the captions tracks from the parsed captions object `)];
@@ -389,31 +412,25 @@ async function GetTheTranscriptFromTheCaption(jsonStringifiedCaptions) {
  * @typedef {Object} bodyOfTheRequest
  * @property {string} youtube_Video_Id -- video ID
  * @property {string} encrypted_string -- video ID
+ * @property {string} transcript -- video ID
  *
  *
  * @param {string} key -- key form the backend
  * @param {string} videoID -- key form the backend
- * @param {string} jsonStringifiedCaptions -- key form the backend
+ * @param {string} transcript -- fetched transcrip 
  *
  * @returns {Promise<[ResponseObject|null, Error|null]>}
  */
 
-export async function getWhereToSkipInYtVideo(key, videoID, jsonStringifiedCaptions) {
-  console.log(`the captions tracks we got in the helper file is ->${jsonStringifiedCaptions}`)
-  let res = await GetTheTranscriptFromTheCaption(jsonStringifiedCaptions)
+export async function getWhereToSkipInYtVideo(key, videoID, transcript) {
+  console.log(`the captions tracks we got in the helper file is ->${transcript}`)
+  let res = await GetTheTranscriptFromTheCaptions(transcript)
   console.log(`the res form getting the transcript form the captions is ${res}---- ${JSON.stringify(res)}`)
-
-
-
-  // } catch (error) {
-  //   console.log(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)
-  //   return [null, new Error(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)];
-  // }
-
+  console.log("------\n\n\n\n\n\n\n")
 
 
   /** @type bodyOfTheRequest */
-  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key };
+  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key, transcript: transcript };
   let fetchRequestToBackend = fetchFunctionBuilder(
     "youtubeVideo",
     "POST",
