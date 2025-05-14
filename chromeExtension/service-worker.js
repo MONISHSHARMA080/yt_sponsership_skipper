@@ -62,9 +62,6 @@ chrome.runtime.onMessage.addListener((
   }
 });
 
-
-
-
 /**
  * @typedef {Object} GetKeyMessage2
  * @property {'getKeyFromStorage'} type - Message type identifier
@@ -105,11 +102,6 @@ chrome.runtime.onMessage.addListener((
     return true;
   }
 });
-
-
-
-// getValueFromTheStorage("key",()=>{})
-
 
 
 /**
@@ -183,21 +175,29 @@ chrome.runtime.onMessage.addListener((
       const res = await chrome.scripting.executeScript({
         target: { tabId: activeTabId, allFrames: false },
         world: "MAIN",
-        // files: ["getCaptions.js"],
         func: () => {
-          console.log(`------Hi form the service worker ----`)
-          // this code runs **in** the page context
+          console.log(`------Hi form the service worker in the youtube ----`)
           // @ts-ignore
           const tracklist = window.ytInitialPlayerResponse.captions.playerCaptionsTracklistRenderer;
           return JSON.stringify(tracklist) || null;
         }
 
       });
+      if (res.length === 0) {
+        console.log(`there is a error in getting the result form the youtube script `)
+        sendResponse([null, new Error(`there is a error in getting the result form the youtube script `)]);
+        return
+      }
+      let result = res[0]
+      if (result.result === null || result.result === undefined) {
+        sendResponse([null, new Error(`there is a error in getting the result form the youtube script (it returned null)`)]);
+        return
+      }
       console.log(`the script executioon is completed and it is ${res}`)
       console.log(`the script executioon is completed and it is (in json string) ->\n\n  ${JSON.stringify(res)} \n\n\n`)
 
       console.log("Received message in background script:", request);
-      getWhereToSkipInYtVideo(request.encKey, request.videoID, request.jsonStringifiedCaptions)
+      getWhereToSkipInYtVideo(request.encKey, request.videoID, result.result)
         .then(([responseObject, error]) => {
           console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
           sendResponse([responseObject, error]);

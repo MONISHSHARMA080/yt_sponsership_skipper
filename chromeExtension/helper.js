@@ -266,19 +266,111 @@ export function fetchFunctionBuilder(
 }
 
 
+
 /**
- * @typedef {Object} CaptionTrack
- * @property {string} baseUrl - The URL to fetch the captions from YouTube's API
- * @property {Object} name - The display name of the caption track
- * @property {string} name.simpleText - The readable name of the language (e.g., "English", "Spanish")
- * @property {string} vssId - The video subtitle ID with format like ".en", "a.en", etc.
- * @property {string} languageCode - The ISO language code (e.g., "en", "fr", "zh")
- * @property {string} [kind] - Optional field specifying the kind of caption (e.g., "asr" for auto-generated)
- * @property {boolean} isTranslatable - Whether the caption can be translated
- * @property {string} trackName - The name of the track (often empty string)
+ * @param {captionTracks} captionTrack  
  *
  *
- * @typedef {CaptionTrack[]} CaptionTracks - Array of caption track objects available for the video
+ *  @returns {Promise<[string|null, Error|null]>} - the function will fetch the transcript and will return it 
+ */
+async function fetchTheTranscript(captionTrack) {
+  let result = await fetch(captionTrack.baseUrl)
+  console.log(`got the result in fetching the caption's tracks and it is Status:${result.status}, status code : ${result.statusText}, body is -> ${result.body} `)
+  let res = await result.text()
+  console.log(`the result is ${res}`)
+  return [res, null]
+
+}
+
+/**
+ * @param {string} jsonStringifiedCaptions  
+ *
+ *
+ *  @returns {Promise<[string|null, Error|null]>} - the function will fetch the transcript and will return it 
+ */
+async function GetTheTranscriptFromTheCaption(jsonStringifiedCaptions) {
+  console.log(`the captions tracks we got in the helper file is ->${jsonStringifiedCaptions}`)
+  try {
+    /** @type Captions */
+    let captions
+    captions = JSON.parse(jsonStringifiedCaptions)
+    console.log(`the lenght of the captionTracks is ${captions.captionTracks.length}`)
+    /** @type {captionTracks|null} */
+    let firstChoiceEnSub = null
+    /** @type {captionTracks|null} */
+    let secondChoiceEnAutoGenSub = null
+    /** @type {captionTracks|null} */
+    let thirdChoiceChooisingTheFirstOne = null
+
+    captions.captionTracks.forEach((value, index) => {
+      if (index === 0) {
+        console.log(`got the captions at 0th index`)
+        thirdChoiceChooisingTheFirstOne = value
+      }
+      if (value.name.simpleText === "English") {
+        console.log(`got the captions at English one`)
+        firstChoiceEnSub = value
+      } else if (value.name.simpleText === "English (auto-generated)") {
+        console.log(`got the captions at English (auto-generated) one`)
+        secondChoiceEnAutoGenSub = value
+      }
+    })
+    console.log(``)
+
+    if (firstChoiceEnSub !== null || secondChoiceEnAutoGenSub !== null && thirdChoiceChooisingTheFirstOne !== null) {
+      if (firstChoiceEnSub !== null) {
+        // call the func and then return
+        // if there is a error then we are going to the other one too
+        console.log(`fetching the English `)
+        let res = await fetchTheTranscript(firstChoiceEnSub)
+      } else if (secondChoiceEnAutoGenSub !== null) {
+        console.log(`fetching the English (auto-generated)`)
+        // call the func and then return
+        // if there is a error then we are going to the other one too
+        let res = await fetchTheTranscript(secondChoiceEnAutoGenSub)
+      } else if (thirdChoiceChooisingTheFirstOne !== null) {
+        // call the func and then return
+        // if there is a error then we are going to the other one too
+        console.log(`fetching the 3rd choice as other onces are null`)
+        let res = await fetchTheTranscript(thirdChoiceChooisingTheFirstOne)
+      } else {
+
+      }
+    } else {
+      return [null, new Error(`there is a error in getting the captions tracks from the parsed captions object `)];
+    }
+
+
+
+  } catch (error) {
+    console.log(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)
+    return [null, new Error(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)];
+  }
+}
+
+
+
+/**
+ * @typedef {object} Captions
+ * @property {captionTracks[]} captionTracks 
+ * @property {object[]} audioTracks
+ * @property {number[]} audioTracks.captionTrackIndices
+ * @property {object[]} translationLanguages
+ * @property {string} translationLanguages.languageCode
+ * @property {object} translationLanguages.languageName
+ * @property {string} translationLanguages.languageName.simpleText
+ * @property {number} defaultAudioTrackIndex
+ *
+ *
+ * @typedef {object} captionTracks 
+ * @property {string} baseUrl
+ * @property {object} name
+ * @property {string} name.simpleText
+ * @property {string} vssId
+ * @property {string} languageCode
+ * @property {string} kind
+ * @property {boolean} isTranslatable
+ * @property {string} trackName
  *
  */
 
@@ -308,15 +400,15 @@ export function fetchFunctionBuilder(
 
 export async function getWhereToSkipInYtVideo(key, videoID, jsonStringifiedCaptions) {
   console.log(`the captions tracks we got in the helper file is ->${jsonStringifiedCaptions}`)
+  let res = await GetTheTranscriptFromTheCaption(jsonStringifiedCaptions)
+  console.log(`the res form getting the transcript form the captions is ${res}---- ${JSON.stringify(res)}`)
 
-  /** @type CaptionTracks */
-  let captionsTracks
-  try {
-    captionsTracks = JSON.parse(jsonStringifiedCaptions)
-  } catch (error) {
-    console.log(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)
-    // return [null, new Error(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)];
-  }
+
+
+  // } catch (error) {
+  //   console.log(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)
+  //   return [null, new Error(`there is a error in pasing the CaptionTracks form the string and it is -> ${error}`)];
+  // }
 
 
 
@@ -357,6 +449,8 @@ export async function getWhereToSkipInYtVideo(key, videoID, jsonStringifiedCapti
     return [null, new Error(String(e))];
   }
 }
+
+
 
 // alwaysSkipTheSponsorAndDoNotShowTheModal :false
 
