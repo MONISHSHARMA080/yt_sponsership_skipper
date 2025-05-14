@@ -427,10 +427,14 @@ export async function getWhereToSkipInYtVideo(key, videoID, transcript) {
   let res = await GetTheTranscriptFromTheCaptions(transcript)
   console.log(`the res form getting the transcript form the captions is ${res}---- ${JSON.stringify(res)}`)
   console.log("------\n\n\n\n\n\n\n")
+  if (res[0] === null || res[0] === "" || res[1] !== null) {
+    console.log(`there is a error in getting the transcript form the captions object and it is -> ${res[1]}`)
+    return [null, res[1] instanceof Error ? res[1] : new Error(` there is a error in getting the result from the transcript and it is ->${res[1]} `)]
+  }
 
 
   /** @type bodyOfTheRequest */
-  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key, transcript: transcript };
+  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key, transcript: res[0] };
   let fetchRequestToBackend = fetchFunctionBuilder(
     "youtubeVideo",
     "POST",

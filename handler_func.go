@@ -274,6 +274,7 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitl
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
 		return
 	}
+	println("the transcripts in xml is ->", req.Transcript, "\n\n\n\n")
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
 	if errorInXMl != nil {

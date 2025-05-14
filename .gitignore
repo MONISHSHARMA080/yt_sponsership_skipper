@@ -14,3 +14,5 @@ screenshot/
 client_secret_438775691418-tu4t4bne8hqqthg5shhn3si6q8lj2tvv.apps.googleusercontent.com.json
 client_secret.json
 token.json
+.env
+*.env
