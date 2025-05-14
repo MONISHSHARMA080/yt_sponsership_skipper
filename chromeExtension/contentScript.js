@@ -23,19 +23,13 @@ async function main() {
     console.log("videoID is  -->", videoID, "and the error getting it is -->", errorFormGettingVideoID);
     return;
   }
+
   let videoPlayer = getVideoPlayer();
   if (videoPlayer === null) {
     console.log("video player is not there");
     return;
   }
-  // get captions track 
-  // let [captionsObjInString, err] = await getCaptionsFromTheVideo()
-  // if (err !== null || captionsObjInString === null) {
-  //   console.log(`there is a error in getting the captions and it is :-- ${err}`)
-  //   return
-  // }
-  let captionsObjInString = "_++_+_+_++_+_+_+_++_+"
-  let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID, captionsObjInString });
+  let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID });
   if (errorFromYTApi || responseObject === null) {
     console.log("there is a error in the yt api -->", errorFromYTApi);
     return;
