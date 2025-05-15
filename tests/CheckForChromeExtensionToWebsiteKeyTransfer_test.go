@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	browserutil "youtubeAdsSkipper/tests/helperPackages/browserUtil"
@@ -11,7 +12,6 @@ import (
 	"youtubeAdsSkipper/tests/helperPackages/extension"
 	userindb "youtubeAdsSkipper/tests/helperPackages/userInDb"
 	userkey "youtubeAdsSkipper/tests/helperPackages/userKey"
-	commonstructs "youtubeAdsSkipper/commonStructs"
 )
 
 func TestCheckForChromeExtensionToWebsiteKeyTransfer(t *testing.T) {
@@ -35,7 +35,7 @@ func TestCheckForChromeExtensionToWebsiteKeyTransfer(t *testing.T) {
 	if userInDBChannResult.Error != nil {
 		t.Fatal("there is a error in getting the user in the DB and it is ->" + userInDBChannResult.Error.Error())
 	}
-	println("the user's id primary key  is ->", userInDBChannResult.Result)
+	fmt.Printf("the user's id primary key  is ->%d \n", userInDBChannResult.Result.UserID)
 	getEncryptedKeyFromUser := make(chan common.ErrorAndResultStruct[string])
 	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result.UserID, getEncryptedKeyFromUser)
 	encryptedKeyFormChannel := <-getEncryptedKeyFromUser

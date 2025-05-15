@@ -41,7 +41,7 @@ func TestSeeIfWeReplaceDeprecatedKey(t *testing.T) {
 	if userInDBChannResult.Error != nil {
 		t.Fatal("there is a error in getting the user in the DB and it is ->" + userInDBChannResult.Error.Error())
 	}
-	println("the user's id primary key  is ->", userInDBChannResult.Result)
+	println("the user's id primary key  is ->", userInDBChannResult.Result.UserID)
 	// first change the env key's value to deprecate
 	println("about to change the env key's value during runtime, and it is ->", os.Getenv("TIMEFORFAKEKEYEXPIRY"))
 	// cause we do not want the other ones to be disturbed by our change here and cause unneccary bugs in the tests

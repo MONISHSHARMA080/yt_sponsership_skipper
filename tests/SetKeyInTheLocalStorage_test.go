@@ -37,7 +37,7 @@ func TestSetKeyInTheLocalStorage(t *testing.T) {
 	if userInDBChannResult.Error != nil {
 		t.Fatal("there is a error in getting the user in the DB and it is ->" + userInDBChannResult.Error.Error())
 	}
-	println("the user's id primary key  is ->", userInDBChannResult.Result)
+	println("the user's id primary key  is ->", userInDBChannResult.Result.UserID)
 
 	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result.UserID, getEncryptedKeyFromUser)
 	encryptedKeyFormChannel := <-getEncryptedKeyFromUser
