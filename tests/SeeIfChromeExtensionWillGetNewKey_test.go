@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 	"time"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
@@ -34,7 +35,7 @@ func TestSeeIfWeReplaceDeprecatedKey(t *testing.T) {
 	userKey := userkey.UserKey{}
 	userInDb := userindb.Userindb{}
 	// make the user
-	getUserIdChann := make(chan common.ErrorAndResultStruct[int64])
+	getUserIdChann := make(chan common.ErrorAndResultStruct[commonstructs.SignupResult])
 	go userInDb.GenerateSpamUserAndSaveItInDB(DB, getUserIdChann)
 	userInDBChannResult := <-getUserIdChann
 	if userInDBChannResult.Error != nil {
@@ -53,7 +54,7 @@ func TestSeeIfWeReplaceDeprecatedKey(t *testing.T) {
 	// value changed value will be 1 ms and a 1 sec pause
 	// make the key
 	getEncryptedKeyFromUser := make(chan common.ErrorAndResultStruct[string])
-	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result, getEncryptedKeyFromUser)
+	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result.UserID, getEncryptedKeyFromUser)
 	encryptedKeyFormChannel := <-getEncryptedKeyFromUser
 	if encryptedKeyFormChannel.Error != nil {
 		t.Fatal("there is a error in getting encrypted user key form  and it is ->" + encryptedKeyFormChannel.Error.Error())

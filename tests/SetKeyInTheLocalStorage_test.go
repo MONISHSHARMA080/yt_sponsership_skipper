@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
 	"youtubeAdsSkipper/tests/helperPackages/DB"
 	commonstateacrosstest "youtubeAdsSkipper/tests/helperPackages/commonStateAcrossTest"
@@ -27,7 +28,7 @@ func TestSetKeyInTheLocalStorage(t *testing.T) {
 	userKey := userkey.UserKey{}
 	userInDb := userindb.Userindb{}
 
-	getUserIdChann := make(chan common.ErrorAndResultStruct[int64])
+	getUserIdChann := make(chan common.ErrorAndResultStruct[commonstructs.SignupResult])
 	getEncryptedKeyFromUser := make(chan common.ErrorAndResultStruct[string])
 
 	go userInDb.GenerateSpamUserAndSaveItInDB(DB, getUserIdChann)
@@ -38,7 +39,7 @@ func TestSetKeyInTheLocalStorage(t *testing.T) {
 	}
 	println("the user's id primary key  is ->", userInDBChannResult.Result)
 
-	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result, getEncryptedKeyFromUser)
+	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result.UserID, getEncryptedKeyFromUser)
 	encryptedKeyFormChannel := <-getEncryptedKeyFromUser
 	if encryptedKeyFormChannel.Error != nil {
 		t.Fatal("there is a error in getting encrypted user key form  and it is ->" + encryptedKeyFormChannel.Error.Error())

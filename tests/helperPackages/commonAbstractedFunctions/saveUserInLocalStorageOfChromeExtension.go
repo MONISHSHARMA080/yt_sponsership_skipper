@@ -8,6 +8,7 @@ import (
 	"youtubeAdsSkipper/tests/helperPackages/extension"
 	userindb "youtubeAdsSkipper/tests/helperPackages/userInDb"
 	userkey "youtubeAdsSkipper/tests/helperPackages/userKey"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 )
 
 func SaveUserInLocalStorageOfChromeExtension(ctx context.Context, extensionID string, userKey *userkey.UserKey, userInDb *userindb.Userindb, chromeExtension *extension.ChromeExtension) error {
@@ -15,7 +16,7 @@ func SaveUserInLocalStorageOfChromeExtension(ctx context.Context, extensionID st
 	// userKey  userkey.UserKey{}
 	// userInDb userindb.Userindb{}
 
-	getUserIdChann := make(chan common.ErrorAndResultStruct[int64])
+	getUserIdChann := make(chan common.ErrorAndResultStruct[commonstructs.SignupResult])
 	getEncryptedKeyFromUser := make(chan common.ErrorAndResultStruct[string])
 
 	go userInDb.GenerateSpamUserAndSaveItInDB(DB, getUserIdChann)
@@ -25,9 +26,9 @@ func SaveUserInLocalStorageOfChromeExtension(ctx context.Context, extensionID st
 		println("there is a error in getting the user in the DB and it is ->" + userInDBChannResult.Error.Error())
 		return userInDBChannResult.Error
 	}
-	println("the user's id primary key  is ->", userInDBChannResult.Result)
+	println("the user's id primary key  is ->", userInDBChannResult.Result.UserID)
 
-	go userKey.InitializeTheStructAndGetEncryptedKey(userInDb, userInDBChannResult.Result, getEncryptedKeyFromUser)
+	go userKey.InitializeTheStructAndGetEncryptedKey(userInDb, userInDBChannResult.Result.UserID, getEncryptedKeyFromUser)
 	encryptedKeyFormChannel := <-getEncryptedKeyFromUser
 	if encryptedKeyFormChannel.Error != nil {
 		println("there is a error in getting encrypted user key form  and it is ->" + encryptedKeyFormChannel.Error.Error())

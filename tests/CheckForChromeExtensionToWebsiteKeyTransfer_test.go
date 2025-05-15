@@ -11,6 +11,7 @@ import (
 	"youtubeAdsSkipper/tests/helperPackages/extension"
 	userindb "youtubeAdsSkipper/tests/helperPackages/userInDb"
 	userkey "youtubeAdsSkipper/tests/helperPackages/userKey"
+	commonstructs "youtubeAdsSkipper/commonStructs"
 )
 
 func TestCheckForChromeExtensionToWebsiteKeyTransfer(t *testing.T) {
@@ -28,7 +29,7 @@ func TestCheckForChromeExtensionToWebsiteKeyTransfer(t *testing.T) {
 	userKey := userkey.UserKey{}
 	userInDb := userindb.Userindb{}
 	// make the user
-	getUserIdChann := make(chan common.ErrorAndResultStruct[int64])
+	getUserIdChann := make(chan common.ErrorAndResultStruct[commonstructs.SignupResult])
 	go userInDb.GenerateSpamUserAndSaveItInDB(DB, getUserIdChann)
 	userInDBChannResult := <-getUserIdChann
 	if userInDBChannResult.Error != nil {
@@ -36,7 +37,7 @@ func TestCheckForChromeExtensionToWebsiteKeyTransfer(t *testing.T) {
 	}
 	println("the user's id primary key  is ->", userInDBChannResult.Result)
 	getEncryptedKeyFromUser := make(chan common.ErrorAndResultStruct[string])
-	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result, getEncryptedKeyFromUser)
+	go userKey.InitializeTheStructAndGetEncryptedKey(&userInDb, userInDBChannResult.Result.UserID, getEncryptedKeyFromUser)
 	encryptedKeyFormChannel := <-getEncryptedKeyFromUser
 	if encryptedKeyFormChannel.Error != nil {
 		t.Fatal("there is a error in getting encrypted user key form  and it is ->" + encryptedKeyFormChannel.Error.Error())

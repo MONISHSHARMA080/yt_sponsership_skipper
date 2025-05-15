@@ -45,7 +45,7 @@ func (userInDb *Userindb) generateSpamUser() {
 }
 
 // generates a spam user and saves it in the DB and on the struct, when we have saved the user in the DB we will return the primary ID of the use
-func (usrk *Userindb) GenerateSpamUserAndSaveItInDB(db *sql.DB, getuserIdChann chan common.ErrorAndResultStruct[int64]) {
+func (usrk *Userindb) GenerateSpamUserAndSaveItInDB(db *sql.DB, getuserIdChann chan common.ErrorAndResultStruct[commonstructs.SignupResult]) {
 	usrk.generateSpamUser()
 	go usrk.user.InsertNewUserInDb(db, getuserIdChann)
 }
