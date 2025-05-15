@@ -94,16 +94,16 @@ func (rl *RateLimiterForUser) getAllowedReqPerDayBasedOnUserTierPanic(userTier s
 		reqPerDay := os.Getenv("ALLOWEDREQPERDAYFORFREETIER")
 		if reqPerDay == "" {
 			// hardcoded value is
-			allowedReqFromEnv = "10"
-			hardcodedReqPerDay = 10
+			allowedReqFromEnv = "6"
+			hardcodedReqPerDay = 6
 		}
 	case 2:
 		// one time
 		reqPerDay := os.Getenv("ALLOWEDREQPERDAYFORONETIER")
 		if reqPerDay == "" {
 			// hardcoded value is
-			allowedReqFromEnv = "6"
-			hardcodedReqPerDay = 6
+			allowedReqFromEnv = "10"
+			hardcodedReqPerDay = 10
 		}
 	default:
 		panic(fmt.Errorf("there are only 3 user tier and we got the value that is not in that , ranging over the array failed"))

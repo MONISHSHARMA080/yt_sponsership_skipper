@@ -1,4 +1,4 @@
-package genericresulttype
+package genericResultType
 
 type ErrorAndResultType[T any] struct {
 	Err    error

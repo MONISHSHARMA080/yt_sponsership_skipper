@@ -3,6 +3,8 @@ package llmreqratelimiter
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/tursodatabase/go-libsql"
 )
 
 func GetRateLimiterDb(dbFilePath string) (*sql.DB, error) {
@@ -11,14 +13,15 @@ func GetRateLimiterDb(dbFilePath string) (*sql.DB, error) {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_email TEXT NOT NULL,
     request_timestamp DATETIME NOT NULL
-  )
+  );
   CREATE INDEX IF NOT EXISTS idx_user_email ON rate_limit_user(user_email);
   CREATE INDEX IF NOT EXISTS idx_request_timestamp ON rate_limit_user(request_timestamp);
   -- A composite index is often very beneficial for queries filtering by user and time
   CREATE INDEX IF NOT EXISTS idx_user_time ON rate_limit_user(user_email, request_timestamp);
   `
+	println("in the DB create func")
 
-	db, err := sql.Open("sqlite3", dbFilePath)
+	db, err := sql.Open("libsql", dbFilePath)
 	if err != nil {
 		// Return the error if opening the database fails
 		return nil, fmt.Errorf("failed to open database file %s: %w", dbFilePath, err)

@@ -16,3 +16,4 @@ client_secret.json
 token.json
 .env
 *.env
+rateLimitterForReq.db

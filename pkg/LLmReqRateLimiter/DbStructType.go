@@ -18,17 +18,18 @@ func (rt *RateLimiterForUser) IsMyStructEmpty() bool {
 	return rt.UserEmail == ""
 }
 
+// this function is to insert the user in the Db , ie. they are making a req and we want to count this
 func (rt *RateLimiterForUser) NewRequestMadeUpdateDb(db *sql.DB, errAndResChannel chan genericresulttype.ErrorAndResultType[bool]) {
 	if rt.IsMyStructEmpty() {
 		errAndResChannel <- genericresulttype.ErrorAndResultType[bool]{Result: false, Err: fmt.Errorf("the struct is not initialized")}
 		return
 	}
-	currentTime := time.Now().Format("2006-01-02 15:04:05") // Standard Go time formatting
+	// currentTime := time.Now().Format("2006-01-02 15:04:05") // Standard Go time formatting
 	sqlStatement := `
-		INSERT INTO request_log (user_email, request_timestamp)
-		VALUES (?, ?);
+		INSERT INTO rate_limit_user(user_email, request_timestamp)
+		VALUES (?, date('now'));
 	`
-	_, err := db.Exec(sqlStatement, rt.UserEmail, currentTime)
+	_, err := db.Exec(sqlStatement, rt.UserEmail)
 	if err != nil {
 		// Handle the error appropriately (log it, return it, etc.)
 		errAndResChannel <- genericresulttype.ErrorAndResultType[bool]{Result: false, Err: fmt.Errorf("failed to log request for user %s: %w", rt.UserEmail, err)}
