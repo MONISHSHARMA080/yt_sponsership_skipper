@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -9,11 +10,11 @@ import (
 	"time"
 	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
+	genericResulttype "youtubeAdsSkipper/pkg/GenericResultType"
+	llmreqratelimiter "youtubeAdsSkipper/pkg/LLmReqRateLimiter"
 	askllm "youtubeAdsSkipper/pkg/askLLM"
 	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
-
-	"golang.org/x/oauth2"
 )
 
 type JsonError_HTTPErrorCode_And_Message struct {
@@ -154,7 +155,7 @@ type responseForWhereToSkipVideo struct {
 	Error                  string `json:"error,omitempty"`
 }
 
-func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client, config *oauth2.Config) http.HandlerFunc {
+func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client, rateLimiterDb *sql.DB) http.HandlerFunc {
 	// take the video id out and hash  ,  and api will return (on success)
 
 	//  ads : boolean, if true then starts at _ _ _ and ends at _ _ _
@@ -214,6 +215,26 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		} else {
 			fmt.Printf("resultForUserKeyChannel: %v\n", resultForUserKeyChannel.Result)
 		}
+		rateLimiterForUser := llmreqratelimiter.RateLimiterForUser{UserEmail: userFormKey.Email}
+		chanForRateLimit := make(chan genericResulttype.ErrorAndResultType[bool])
+		go rateLimiterForUser.ShouldWeRateLimitUser(rateLimiterDb, userFormKey.UserTier, chanForRateLimit)
+		rateLimitTheUser := <-chanForRateLimit
+		if rateLimitTheUser.Err != nil {
+			println("there is a error in gettign that should we rate limit the user or not, so here is the error->", rateLimitTheUser.Err.Error())
+			method_to_write_http_and_json_to_respond(w, "Something went wrong on out side", http.StatusInternalServerError)
+			return
+		}
+
+		if rateLimitTheUser.Result {
+			println("the user is getting rate limited as the result form the channel is true")
+			method_to_write_http_and_json_to_respond(w, "you have excceded your quota limit for today, see you tomorrow", http.StatusTooManyRequests)
+			return
+		} else {
+			println("the user is not gettign rate limited as the result is false --")
+			println("trying to add the user in the Db for the Rate limiting")
+		}
+		chanForUpdateTheDbForNewReq := make(chan genericResulttype.ErrorAndResultType[bool])
+		go rateLimiterForUser.NewRequestMadeUpdateDb(rateLimiterDb, chanForUpdateTheDbForNewReq)
 
 		if userFormKey.ShouldWeTellUserToGoGetANewKeyPanic() {
 			println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
@@ -254,6 +275,14 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		// if we have a error then log it and either way send the response
 		if result.Err != nil {
 			fmt.Printf("\n the error in giving the sponsorship of the video is -> %s  \n ", result.Err.Error())
+		}
+		// seeing if we are able to inset the request in the DB
+		updatedTheDbOnNewReq := <-chanForUpdateTheDbForNewReq
+		if updatedTheDbOnNewReq.Err != nil {
+			// well we have spend this respourse, we will let this go, se here is a free lunch for the user
+			println("\n\n\n --- there is a error in inserting the new req in the rate limiting DB and it is-> ", updatedTheDbOnNewReq.Err.Error(), " ------  \n\n\n")
+		} else {
+			println(" successfully added the req by the user in the rate limiter Db ")
 		}
 		err = result.SendResponse(w)
 		if err != nil {
