@@ -1,0 +1,8 @@
+
+a go code to create a in memory or connect to the turso Db -- may be do it in the intializiation func or if the DB does not exist
+also make a function  that gets the no of req a user (on a tier) is alloed in a day and also hardcoded value if it is not there, set it on the env as the we will need it(if it is not there then do assertion based crashing) or in global var
+
+STEPS:--
+1) user makes a req.
+2) when the user comes then fetch the last one, if the time(form the last req to now) is greater than the day then reset the row and new one if not  then check if the user is allowed to go through i.e have not exceded there quota, if it has then they can't go through, if not then 
+3) update the Db with the user Ip and the email or IdPrimaryKey (as the operation ints will be much faster) if the user is making req 
