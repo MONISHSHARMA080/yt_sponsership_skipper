@@ -457,7 +457,7 @@ export async function getWhereToSkipInYtVideo(key, videoID, transcript) {
     /** @type ResponseObject */
     let responseOBJ = await response.json();
     if (responseOBJ.status !== 200) {
-      console.log("there is a error in the yt api -->", responseOBJ);
+      console.log("there is a error in the yt api(response is not 200) -->", JSON.stringify(responseOBJ));
       return [null, new Error(response.statusText)];
     }
     return [responseOBJ, null];

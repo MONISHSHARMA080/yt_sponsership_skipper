@@ -31,7 +31,7 @@ async function main() {
   }
   let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID });
   if (errorFromYTApi || responseObject === null) {
-    console.log("there is a error in the yt api -->", errorFromYTApi);
+    console.log("there is a error in the yt api, either there is a error in getting the response form the api , or the response obj is null -->", errorFromYTApi);
     return;
   }
   console.log("the response object is -->", responseObject);
