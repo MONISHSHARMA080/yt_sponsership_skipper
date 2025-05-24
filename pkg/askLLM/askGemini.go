@@ -11,6 +11,7 @@ import (
 	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
 	askllm "youtubeAdsSkipper/pkg/askLLM/groqHelper"
 
+	"go.uber.org/zap"
 	"google.golang.org/genai"
 )
 
@@ -21,12 +22,13 @@ type geminiResponseType struct {
 
 func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_for_subtitles askllm.String_and_error_channel_for_subtitles,
 	ChanForResponseForGettingSubtitlesTiming chan askllm.ResponseForGettingSubtitlesTiming, resultChannel chan commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo],
+	logger *zap.Logger,
 ) {
 	response := commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo]{}
 	ctx := context.Background()
 	apiKey, err := getRandomApiKey()
 	if err != nil {
-		println("there is a error in getting a random api key and it js ->", err.Error())
+		logger.Warn("there is a error in getting a random api key and it is->", zap.Error(err))
 		response.Result.FillTheStructForError("somethign went wrong on our side", http.StatusInternalServerError)
 		response.Err = err
 		resultChannel <- response
@@ -37,7 +39,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		Backend: genai.BackendGeminiAPI,
 	})
 	if err != nil {
-		println("there is a getting the gemini client and it is ", err.Error())
+		logger.Warn("there is a getting the gemini client", zap.Error(err))
 		response.Result.FillTheStructForError("somethign went wrong on our side", http.StatusInternalServerError)
 		response.Err = err
 		resultChannel <- response
@@ -45,7 +47,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 	}
 
 	geminiSystemPrompt := os.Getenv("GEMINI_MESSAGE_CONTENT")
-	println("geminiSystemPrompt is ", geminiSystemPrompt)
+	logger.Info("gemini system prompt that we go from the env", zap.String("gemini system prompt", geminiSystemPrompt))
 
 	config := &genai.GenerateContentConfig{
 		SystemInstruction: genai.NewContentFromText(geminiSystemPrompt, genai.RoleUser),
@@ -72,9 +74,9 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		resultChannel <- response
 		return
 	}
-	fmt.Printf("the gemini's response is -> %+v \n", result)
+	logger.Info("gemini's response that we got", zap.Any("gemini's whole response", result))
+	logger.Info("gemini's response.text() ", zap.String("gemini's result.text()", result.Text()))
 
-	fmt.Println(result.Text())
 	geminiResponse, err := getGemniResponseDecoded(result.Text())
 	if err != nil {
 		println("there is a error in decoding the gemini response and it is ", err.Error())
@@ -97,13 +99,13 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 	println("got the subtitleTimingResponse in the gemini")
 	if subtitleTimingResponse.Err != nil {
 		if subtitleTimingResponse.Err.Error() == "" {
-			println("there is a error in getting the subtitles and the error is also '' ", subtitleTimingResponse.Err.Error())
+			logger.Warn("there is a error in decoding the gemini's Response", zap.Error(subtitleTimingResponse.Err))
 			response.Result.FillTheStructForError("no subtitle found for the video", http.StatusNotFound)
 			response.Err = err
 			resultChannel <- response
 			return
 		}
-		println("there is a error in decoding the gemini response and it is ", subtitleTimingResponse.Err.Error())
+		logger.Warn("there is a error in decoding the gemini's Response", zap.Error(subtitleTimingResponse.Err))
 		response.Result.FillTheStructForError("Something is wrong on our side, error getting subtitles timming ", http.StatusInternalServerError)
 		response.Err = err
 		resultChannel <- response
@@ -111,6 +113,8 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 	} else if subtitleTimingResponse.EndTime+subtitleTimingResponse.StartTime <= 0 {
 		// the subtitle is not being found via the function or somethign is wrong
 		println("\n\n  ----- the subtitle is not gettign found despite of the llm telling us that it is there ------   \n\n")
+		logger.Info("the subtitle is not gettign found despite of the llm telling us that it is there", zap.Skip())
+		logger.Warn("the subtitle is not gettign found despite of the llm telling us that it is there", zap.Skip())
 		response.Result.FillTheStructForError("Something is wrong on our side, error getting subtitles timming is not found of the subtitle ", http.StatusInternalServerError)
 		response.Err = fmt.Errorf("the subtitle is not gettign found despite of the llm telling us that it is there ")
 		resultChannel <- response

@@ -277,7 +277,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
 		if userFormKey.IsUserPaid {
 			logger.Info("the user is paid and we are about to ask the gemini", zap.Skip())
-			go askllm.AskGeminiAboutSponsorShipAndGetTheSponsorTiming(result_for_subtitles.string_value, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+			go askllm.AskGeminiAboutSponsorShipAndGetTheSponsorTiming(result_for_subtitles.string_value, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel, logger)
 		} else {
 			// what about the free user and paid user channel/key_channel and prompt the groq
 			apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userFormKey.IsUserPaid)
