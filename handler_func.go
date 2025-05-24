@@ -70,6 +70,17 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		// checking if the user has not provided the field
 		println("22")
 		fmt.Printf("the user request is %+v \n", signup_user_details_temp)
+		if signup_user_details_temp.AccountID == "" || signup_user_details_temp.UserToken == "" {
+			ResponseFromTheUserAuth.Status_code = http.StatusBadRequest
+			ResponseFromTheUserAuth.Message = "Request body is invalid(the account id or the user token is invalid)"
+			ResponseFromTheUserAuth.Success = false
+			println("3.3")
+			err := ResponseFromTheUserAuth.writeJSONAndHttpForUserSignupFunc(w)
+			if err != nil {
+				println("problem with json encoding in the struct method", err.Error())
+			}
+			return
+		}
 
 		db := DbConnect()
 		resultAndErrChan := make(chan common.ErrorAndResultStruct[string])
