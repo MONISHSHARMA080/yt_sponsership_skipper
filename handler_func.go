@@ -307,7 +307,12 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitl
 		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
 		return
 	}
-	println("the transcripts in xml is ->", req.Transcript, "\n\n\n\n")
+
+	lenOfTranscript := len(req.Transcript)
+	if lenOfTranscript > 50 {
+		println("the transcripts in xml is ->", req.Transcript[50], "\n\n\n\n")
+	}
+	println("the transcripts sent by user's lenght is ", lenOfTranscript)
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
 	if errorInXMl != nil {
@@ -324,6 +329,5 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitl
 	for _, subtitle := range transcripts.Subtitles {
 		fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
 	}
-
 	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }

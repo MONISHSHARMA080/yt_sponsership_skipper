@@ -1,7 +1,7 @@
 {
   "name": "Youtube Sponsorship Skipper",
   "description": "Helps you skip YouTube sponsorships",
-  "version": "1.0",
+  "version": "1.2",
   "manifest_version": 3,
   "permissions": [
     "tabs",
@@ -60,7 +60,6 @@
   },
   "host_permissions": [
     "https://*.youtube.com/*",
-    "http://localhost:8080/",
     "https://youtube-sponsership-skipper.vercel.app/",
     "https://ytsponsershipskipper-production.up.railway.app/"
   ]
