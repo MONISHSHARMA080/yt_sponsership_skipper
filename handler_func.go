@@ -15,6 +15,8 @@ import (
 	askllm "youtubeAdsSkipper/pkg/askLLM"
 	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
+
+	"go.uber.org/zap"
 )
 
 type JsonError_HTTPErrorCode_And_Message struct {
@@ -167,7 +169,7 @@ type responseForWhereToSkipVideo struct {
 	Error                  string `json:"error,omitempty"`
 }
 
-func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client, rateLimiterDb *sql.DB) http.HandlerFunc {
+func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client, rateLimiterDb *sql.DB, logger *zap.Logger) http.HandlerFunc {
 	// take the video id out and hash  ,  and api will return (on success)
 
 	//  ads : boolean, if true then starts at _ _ _ and ends at _ _ _
@@ -182,6 +184,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			// if err != nil {
 			// 	// idk
 			// }
+			logger.Warn("invalid method for the path by the user", zap.String("method", r.Method))
 			return
 		}
 		var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
@@ -190,20 +193,24 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			println(err.Error())
 			_, errorInUserResponse := err.(*json.UnmarshalTypeError)
 			if errorInUserResponse {
+				logger.Info("error decoding json as the user's request in json is not right", zap.Error(err))
 				http.Error(w, "request json object does not match the expected result", http.StatusBadRequest)
 				json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result", ContainSponserSubtitle: false})
 				return
 			}
 			http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side", ContainSponserSubtitle: false})
+			logger.Error("json decode failed of th user request", zap.Error(err))
 			return
 		}
 
 		if request_for_youtubeVideo_struct.Youtube_Video_Id == "" {
+			logger.Info("the client left the youtube video id empty", zap.String("Youtube_Video_Id", ""))
 			method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided", http.StatusBadRequest)
 			return
 		}
 		if request_for_youtubeVideo_struct.Transcript == "" {
+			logger.Info("the client left the youtube video Transcript empty", zap.String("Transcript", ""))
 			method_to_write_http_and_json_to_respond(w, "Transcript is not present in the request", http.StatusBadRequest)
 			return
 		}
@@ -221,82 +228,86 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		// result_for_user_details := <-channel_for_userDetails
 		resultForUserKeyChannel := <-channelToDecryptUserKey
 		if resultForUserKeyChannel.Error != nil {
-			println("there is a erron in decoding the encrypted_key ->", resultForUserKeyChannel.Error.Error())
+			// println("there is a erron in decoding the encrypted_key ->", resultForUserKeyChannel.Error.Error())
+			logger.Info("there is a error in decoding the encrypted_key of the user ", zap.Error(resultForUserKeyChannel.Error))
 			method_to_write_http_and_json_to_respond(w, "Something is wrong with your encrypted string", http.StatusBadRequest)
 			return
 		} else {
-			fmt.Printf("resultForUserKeyChannel: %v\n", resultForUserKeyChannel.Result)
+			logger.Info("the user is decrypted successfully from the user key channel and it is ", zap.Any("resultForUserKeyChannel", resultForUserKeyChannel.Result))
 		}
 		rateLimiterForUser := llmreqratelimiter.RateLimiterForUser{UserEmail: userFormKey.Email}
 		chanForRateLimit := make(chan genericResulttype.ErrorAndResultType[bool])
 		go rateLimiterForUser.ShouldWeRateLimitUser(rateLimiterDb, userFormKey.UserTier, chanForRateLimit)
 		rateLimitTheUser := <-chanForRateLimit
 		if rateLimitTheUser.Err != nil {
-			println("there is a error in gettign that should we rate limit the user or not, so here is the error->", rateLimitTheUser.Err.Error())
+			// println("there is a error in getting that should we rate limit the user or not, so here is the error->", rateLimitTheUser.Err.Error())
+			logger.Warn("there is a error in getting that should we rate limit the user or not", zap.Error(rateLimitTheUser.Err))
 			method_to_write_http_and_json_to_respond(w, "Something went wrong on out side", http.StatusInternalServerError)
 			return
 		}
 
 		if rateLimitTheUser.Result {
-			println("the user is getting rate limited as the result form the channel is true")
+			// println("the user is getting rate limited as the result form the channel is true")
+			logger.Info("the user is getting rate limited as the result form the channel is true", zap.Bool(" rateLimitTheUser.Result", rateLimitTheUser.Result))
 			method_to_write_http_and_json_to_respond(w, "you have excceded your quota limit for today, see you tomorrow", http.StatusTooManyRequests)
 			return
 		} else {
-			println("the user is not gettign rate limited as the result is false --")
-			println("trying to add the user in the Db for the Rate limiting")
+			logger.Info("the user is not getting rate limited and we will try to add the user to the Db for using the service(increase the rate limiting no for the user ) ", zap.Bool(" rateLimitTheUser.Result", rateLimitTheUser.Result))
 		}
 		chanForUpdateTheDbForNewReq := make(chan genericResulttype.ErrorAndResultType[bool])
 		go rateLimiterForUser.NewRequestMadeUpdateDb(rateLimiterDb, chanForUpdateTheDbForNewReq)
 
 		if userFormKey.ShouldWeTellUserToGoGetANewKeyPanic() {
-			println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
+			// println("\n\n ==the user should be upgraded as it's time ran out ===\n\n ")
+			logger.Warn("the user should be upgraded as it's time ran out ", zap.Bool("userFormKey.ShouldWeTellUserToGoGetANewKeyPanic", true))
 			method_to_write_http_and_json_to_respond(w, "upgrade your key as it's time ran out", http.StatusUpgradeRequired)
 			return
 		}
 		result_for_subtitles := <-channel_for_subtitles
 		if result_for_subtitles.err != nil {
 			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side", http.StatusInternalServerError)
-			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
+			// println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
+			logger.Warn("there is a error in getting the result for decoding the transctipt given by the user ", zap.Error(result_for_subtitles.err))
 			return
 		}
-		print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
+		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
+		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles)))
 
-		// what about the free user and paid user channel/key_channel and prompt the groq
-		apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userFormKey.IsUserPaid)
-		if err != nil {
-			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
-			println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
-		}
-		println("and the random key picked by the logic is --> ", apiKey[:len(apiKey)-4], " and the lenght is ->", len(apiKey))
-		println("the user on paid tier ->", userFormKey.IsUserPaid)
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
-		println("+++++++++++++++++++++")
 		if userFormKey.IsUserPaid {
-			println("the user is paid and we are using the gemini for the response ")
+			logger.Info("the user is paid and we are about to ask the gemini", zap.Skip())
 			go askllm.AskGeminiAboutSponsorShipAndGetTheSponsorTiming(result_for_subtitles.string_value, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
 		} else {
-			println("the user is in free tier")
+			// what about the free user and paid user channel/key_channel and prompt the groq
+			apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userFormKey.IsUserPaid)
+			if err != nil {
+				method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
+				logger.Warn("there is somthing wrong with getting the api key for the groq ", zap.Error(err))
+				return
+			}
+			logger.Info(" key picked info  ", zap.String("first 4 word of the key", apiKey[:len(apiKey)-4]), zap.Int("length of the key(groq)", len(apiKey)))
+			logger.Info("the user is in free tier and we are about to ask the groq", zap.Skip())
 			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
 		}
-		println("waiting on the result channel")
 		result := <-resultChannel
-		println("got the result for the  sponsorship")
+		logger.Info("got the result for the sponsorship", zap.Any("resul returned form the channel ", result))
 		// if we have a error then log it and either way send the response
 		if result.Err != nil {
 			fmt.Printf("\n the error in giving the sponsorship of the video is -> %s  \n ", result.Err.Error())
+			logger.Warn("the result from the sponsorship is not ok(err) ", zap.Error(result.Err))
 		}
 		// seeing if we are able to inset the request in the DB
 		updatedTheDbOnNewReq := <-chanForUpdateTheDbForNewReq
 		if updatedTheDbOnNewReq.Err != nil {
 			// well we have spend this respourse, we will let this go, se here is a free lunch for the user
-			println("\n\n\n --- there is a error in inserting the new req in the rate limiting DB and it is-> ", updatedTheDbOnNewReq.Err.Error(), " ------  \n\n\n")
+			logger.Warn("there is a error in inserting the new req in the rate limiting DB", zap.Error(updatedTheDbOnNewReq.Err))
 		} else {
-			println(" successfully added the req by the user in the rate limiter Db ")
+			logger.Info(" successfully added the req by the user in the rate limiter Db ", zap.Skip())
 		}
 		err = result.SendResponse(w)
 		if err != nil {
-			println("we are going to panic as we should have filled the struct in a good way but clearly we did not do that and the error is ->", err.Error())
+			logger.Warn(" we are going to panic as we should have filled the struct in a good way but clearly we did not do that", zap.Error(err))
 			panic(err)
 		}
 	}
@@ -326,8 +337,9 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitl
 		transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
 	}
 
-	for _, subtitle := range transcripts.Subtitles {
-		fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
-	}
+	// why are we trying to log the Transcript as this will increase the response time
+	// for _, subtitle := range transcripts.Subtitles {
+	// 	fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
+	// }
 	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }

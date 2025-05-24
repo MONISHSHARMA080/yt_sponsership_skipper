@@ -17,6 +17,7 @@ import (
 	askllmHelper "youtubeAdsSkipper/pkg/askLLM/groqHelper"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
@@ -74,6 +75,14 @@ func main() {
 
 	println(encryption_key, "-----", len(encryption_key))
 
+	// -- structurred logger
+	logger, err := zap.NewProduction()
+	if err != nil {
+		println("there is a error in initializing  the logger and it is ->", err.Error())
+		panic(err)
+	}
+	defer logger.Sync()
+
 	// config = loadOAuthConfig()
 	httpClient := http.Client{}
 	http.HandleFunc("/", getRoot)
@@ -82,7 +91,7 @@ func main() {
 	// http.HandleFunc("/oauth2callback", handleCallback)
 	// if need new token use this
 	http.HandleFunc("/signup", User_signup_handler(encryption_key))
-	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient, rateLimiterDb))
+	http.HandleFunc("/youtubeVideo", Return_to_client_where_to_skip_to_in_videos(encryption_key_as_byte, &httpClient, rateLimiterDb, logger))
 	http.HandleFunc("/checkIfKeyIsValid", CheckIfKeyIsValid(encryption_key_as_byte))
 	http.HandleFunc("/makeAPayment", paymentbackendgo.CreateAndReturnOrderId(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
 	http.HandleFunc("/validatePayment", handlerfunction.VerifyPaymentSignature(os.Getenv("RAZORPAY_KEY_ID"), os.Getenv("RAZORPAY_SECRET_ID"), encryption_key_as_byte))
