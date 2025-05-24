@@ -86,6 +86,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		return
 	}
 	fmt.Printf("the gemini's decoded  response is -> %+v \n", geminiResponse)
+	logger.Info("gemini's decoded response", zap.Any("decoded response from gemini", geminiResponse))
 
 	if !geminiResponse.DoesVideoHaveSponsorship {
 		println("the video does not contain subtitles")
