@@ -241,7 +241,7 @@ func (r *ResponseFromTheUserAuthStruct) handleJSONSentByUserError(err error, w h
 		response.Status_code = http.StatusBadRequest
 	default:
 		// Log the error for debugging
-		println("Server error while decoding JSON:", err.Error())
+		fmt.Printf("Server error while decoding JSON for the user --- %+v --- is ->%s \n\n", err.Error())
 		response.Message = "Internal server error"
 		response.Status_code = http.StatusInternalServerError
 	}

@@ -31,7 +31,8 @@ async function main() {
   }
   let [responseObject, errorFromYTApi] = await chrome.runtime.sendMessage({ type: "getWhereToSkipInYtVideo", encKey: key, videoID: videoID });
   if (errorFromYTApi || responseObject === null) {
-    console.log("there is a error in the yt api, either there is a error in getting the response form the api , or the response obj is null -->", errorFromYTApi);
+    console.log("there is a error in the yt api, either there is a error in getting the response form the api , or the response obj is null -->", errorFromYTApi, `-- json stringfied error --${JSON.stringify(errorFromYTApi)} \n -- and the response ${JSON.stringify(responseObject)} `);
+    console.log("there is a error in the yt api, either there is a error in getting the response form the api , or the response obj is null -->", JSON.stringify(errorFromYTApi), `-- json stringfied error --${JSON.stringify(errorFromYTApi)} \n -- and the response ${JSON.stringify(responseObject)} `);
     return;
   }
   console.log("the response object is -->", responseObject);
@@ -181,6 +182,7 @@ function beforeSomeTimeExecuteSomething(timeToCallTheFunc, videoPlayer, callback
   console.log("in the video player func ->");
 
   if (videoPlayer.currentTime >= timeToCallTheFunc && skippedTheSponsorOBJ.videoSponsorSkipper === false) {
+    console.log(`++++ called the callback for the modal`)
     // skippedTheSponsorOBJ.videoSponsorSkipper = false; // first as if the func throw we would not be able to update the state
     try {
       callbackFunction()

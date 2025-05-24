@@ -69,6 +69,7 @@ func User_signup_handler(os_env_key string) http.HandlerFunc {
 		}
 		// checking if the user has not provided the field
 		println("22")
+		fmt.Printf("the user request is %+v \n", signup_user_details_temp)
 
 		db := DbConnect()
 		resultAndErrChan := make(chan common.ErrorAndResultStruct[string])
@@ -257,8 +258,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		}
 		println("and the random key picked by the logic is --> ", apiKey[:len(apiKey)-4], " and the lenght is ->", len(apiKey))
 		println("the user on paid tier ->", userFormKey.IsUserPaid)
-		// -------------
-		// if !userFormKey.IsUserPaid
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
 		println("+++++++++++++++++++++")

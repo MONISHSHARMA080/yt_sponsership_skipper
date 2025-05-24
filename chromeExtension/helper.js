@@ -313,20 +313,20 @@ async function GetTheTranscriptFromTheCaptions(jsonStringifiedCaptions) {
 
     captions.captionTracks.forEach((value, index) => {
       if (index === 0) {
-        console.log(`got the captions at 0th index`)
+        console.log(`got the captions at 0th index and the url here is ${value.baseUrl} \n`)
         thirdChoiceChooisingTheFirstOne = value
       }
-      if (value.name.simpleText === "English") {
-        console.log(`got the captions at English one`)
+      if (!value.name.simpleText.includes("English (auto-generated)") && value.name.simpleText.includes("English")) {
+        console.log(`got the captions at English(this  one includes English in the value.name.simpleText and does not contain English (auto-generated) it is  ${value.name.simpleText}) one and the url is ${value.baseUrl} \n`)
         firstChoiceEnSub = value
       } else if (value.name.simpleText === "English (auto-generated)") {
-        console.log(`got the captions at English (auto-generated) one`)
+        console.log(`got the captions at English (auto-generated) one  ${value.baseUrl} \n`)
         secondChoiceEnAutoGenSub = value
       }
     })
     console.log(`about to fetch`)
     /** @type {[string|null, Error|null]} */
-    let resultFromFetching = [null, null]
+    let resultFromFetching
 
     if (firstChoiceEnSub !== null || secondChoiceEnAutoGenSub !== null && thirdChoiceChooisingTheFirstOne !== null) {
       if (firstChoiceEnSub !== null) {
@@ -351,6 +351,7 @@ async function GetTheTranscriptFromTheCaptions(jsonStringifiedCaptions) {
         console.error(`there is a error in fetching in the transcript as all the choices are null`)
         return [null, new Error(`there is a error in fetching in the transcript as all the choices are null`)];
       }
+      console.log(`the result from the fetch transcript functin is ${JSON.stringify(resultFromFetching)}`)
       // handle the error
       if (resultFromFetching[1] !== null || resultFromFetching[0] === null) {
         let e = resultFromFetching[1]
