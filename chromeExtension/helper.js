@@ -34,7 +34,7 @@ async function userAuthAndGetTheKey(config) {
     // Get user info
     const userInfo = await new Promise((resolve, reject) => {
       chrome.identity.getProfileUserInfo(
-        { accountStatus: "SYNC" },
+        { accountStatus: "ANY" },
         (userInfoFromChrome) => {
           if (chrome.runtime.lastError) {
             reject(chrome.runtime.lastError);
