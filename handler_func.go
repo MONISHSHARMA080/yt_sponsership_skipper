@@ -270,8 +270,11 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			logger.Warn("there is a error in getting the result for decoding the transctipt given by the user ", zap.Error(result_for_subtitles.err))
 			return
 		}
+
 		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
-		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles))) // zap.Any("result for subtitle channel's result", result_for_subtitles.transcript),
+		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles)),
+			zap.String("full captions in the transcripts", result_for_subtitles.string_value),
+		) // zap.Any("result for subtitle channel's result", result_for_subtitles.transcript),
 
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
@@ -320,9 +323,6 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	}
 
 	lenOfTranscript := len(req.Transcript)
-	if lenOfTranscript > 50 {
-		println("the transcripts in xml is ->", req.Transcript[50], "\n\n\n\n")
-	}
 	println("the transcripts sent by user's lenght is ", lenOfTranscript)
 	transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)

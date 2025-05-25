@@ -231,6 +231,7 @@ type ResponseForGettingSubtitlesTiming struct {
 	Err       error
 }
 
+// func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
 func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
 	// this function will return the timming of the sub form the args
 	//
@@ -239,6 +240,24 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	//  just reach the end and  start from indexes and just calculate the dur, start
 	// mean just go to that string location and get the dur and start
 	//
+	// sanitizing the  full_captions and the sponsership_subtitles_form_groq so that they both have same space etc between the words and that can cause the error
+	// we first make it lower case then we remove the \n and 2space with single space (" ")
+	newFullCaptions := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(*full_captions), "  ", " "), "\n", " ")
+	newSponsorShipFromLLm := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(*sponsership_subtitles_form_groq), "  ", " "), "\n", " ")
+	// newSponsorShipFromLLm := strings.ReplaceAll(strings.ToLower(*sponsership_subtitles_form_groq), "  ", " ")
+	//
+	//
+	//now remove the multiple " " or "   "... spaces form the full_captions
+	newFullCaptions = strings.Join(strings.Fields(newFullCaptions), " ")
+	// just to be sure
+	newSponsorShipFromLLm = strings.Join(strings.Fields(newSponsorShipFromLLm), " ")
+	//
+	full_captions = &newFullCaptions
+	sponsership_subtitles_form_groq = &newSponsorShipFromLLm
+
+	println("\n\n ---- the full captions in the lower case is---- \n ", *full_captions, "---- \n\n\n")
+	println("\n\n ---- the sponsership_subtitles_form_groq in the lower case is --- \n", *sponsership_subtitles_form_groq, "---- \n\n\n")
+
 	sponsershipSubtitlesStartIndex := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
 	if sponsershipSubtitlesStartIndex == -1 {
 		println("subtitle is not there and the strings.Index returned -1 as the ans")
