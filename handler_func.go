@@ -271,7 +271,9 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			return
 		}
 		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
-		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles)))
+		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles)),
+			zap.Any("result for subtitle channel's result", result_for_subtitles),
+		)
 
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
@@ -291,7 +293,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
 		}
 		result := <-resultChannel
-		logger.Info("got the result for the sponsorship", zap.Any("resul returned form the channel ", result))
+		logger.Info("got the result for the sponsorship", zap.Any("result returned form the channel ", result))
 		// if we have a error then log it and either way send the response
 		if result.Err != nil {
 			fmt.Printf("\n the error in giving the sponsorship of the video is -> %s  \n ", result.Err.Error())
@@ -313,9 +315,9 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 	}
 }
 
-func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitles chan<- string_and_error_channel_for_subtitles) {
+func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubtitles chan<- string_and_error_channel_for_subtitles) {
 	if req.Transcript == "" {
-		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
+		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
 		return
 	}
 
@@ -328,7 +330,7 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitl
 	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
 	if errorInXMl != nil {
 		println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())
-		channel_for_subtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
+		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
 		return
 	}
 	// formatting the transcript to be in utf-8
@@ -341,5 +343,5 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channel_for_subtitl
 	// for _, subtitle := range transcripts.Subtitles {
 	// 	fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
 	// }
-	channel_for_subtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
+	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }
