@@ -79,7 +79,6 @@ type Transcripts struct {
 	Subtitles []Subtitle `xml:"text"`
 }
 
-
 func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_response chan<- String_and_error_channel_for_groq_response, APIKEY_according_to_users_tier string, subtitlesInTheVideo *string) {
 	err, http_req := factoryGroqPostReqCreator(APIKEY_according_to_users_tier, subtitlesInTheVideo)
 	if err != nil {
@@ -242,7 +241,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	//
 	sponsershipSubtitlesStartIndex := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
 	if sponsershipSubtitlesStartIndex == -1 {
-		println("subtitle is not there")
+		println("subtitle is not there and the strings.Index returned -1 as the ans")
 		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("can't find the subtitles")}
 		return // string is not present
 	}

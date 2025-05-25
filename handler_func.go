@@ -271,9 +271,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			return
 		}
 		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
-		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles)),
-			zap.Any("result for subtitle channel's result", result_for_subtitles),
-		)
+		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles))) // zap.Any("result for subtitle channel's result", result_for_subtitles.transcript),
 
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
@@ -340,8 +338,8 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	}
 
 	// why are we trying to log the Transcript as this will increase the response time
-	// for _, subtitle := range transcripts.Subtitles {
-	// 	fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
-	// }
+	for _, subtitle := range transcripts.Subtitles {
+		fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
+	}
 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }

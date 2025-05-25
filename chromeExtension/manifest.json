@@ -60,6 +60,7 @@
   },
   "host_permissions": [
     "https://*.youtube.com/*",
+    "http://localhost:8080/*",
     "https://youtube-sponsership-skipper.vercel.app/",
     "https://ytsponsershipskipper-production.up.railway.app/"
   ]

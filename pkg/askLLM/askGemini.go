@@ -75,7 +75,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		return
 	}
 	logger.Info("gemini's response that we got", zap.Any("gemini's whole response", result))
-	logger.Info("gemini's response.text() ", zap.String("gemini's result.text()", result.Text()))
+	// logger.Info("gemini's response.text() ", zap.String("gemini's result.text()", result.Text()))
 
 	geminiResponse, err := getGemniResponseDecoded(result.Text())
 	if err != nil {
