@@ -274,9 +274,8 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		}
 
 		// print("\n string value is this --> ", result_for_subtitles.string_value, "<--string value was this ")
-		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles)),
-			zap.String("full captions in the transcripts", result_for_subtitles.string_value),
-		) // zap.Any("result for subtitle channel's result", result_for_subtitles.transcript),
+		logger.Info("the decoded transctipt are received(get a sense of how long the transcript array is ) ", zap.Int("the no of elements in transctipt('s subtitle) array is", len(result_for_subtitles.transcript.Subtitles))) // zap.String("full captions in the transcripts", result_for_subtitles.string_value),
+		// zap.Any("result for subtitle channel's result", result_for_subtitles.transcript),
 
 		resultFromSubtitiles := askllmHelper.String_and_error_channel_for_subtitles{Err: result_for_subtitles.err, String_value: result_for_subtitles.string_value, Transcript: result_for_subtitles.transcript}
 		resultChannel := make(chan commonresultchannel.ResultAndErrorChannel[askllmHelper.ResponseForWhereToSkipVideo])
@@ -362,9 +361,9 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	// formatting the transcript to be in utf-8
 	wg.Wait()
 	// see that the subtitles are perfectly arranged and well sanitized
-	// for i, subtitle := range transcripts.Subtitles {
-	// 	fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, subtitle.Text)
-	// }
+	for i, subtitle := range transcripts.Subtitles {
+		fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, subtitle.Text)
+	}
 	println("formatting the transctipt.subtitles.text to be utf-8")
 
 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}

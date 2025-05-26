@@ -74,8 +74,6 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		resultChannel <- response
 		return
 	}
-	logger.Info("gemini's response that we got", zap.Any("gemini's whole response", result))
-	// logger.Info("gemini's response.text() ", zap.String("gemini's result.text()", result.Text()))
 
 	geminiResponse, err := getGemniResponseDecoded(result.Text())
 	if err != nil {
@@ -95,7 +93,9 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		resultChannel <- response
 		return
 	}
-	go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
+	// go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
+	go askllm.GetTimeAndDurInTheSubtitles2(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, logger)
+
 	subtitleTimingResponse := <-ChanForResponseForGettingSubtitlesTiming
 	println("got the subtitleTimingResponse in the gemini")
 	if subtitleTimingResponse.Err != nil {
