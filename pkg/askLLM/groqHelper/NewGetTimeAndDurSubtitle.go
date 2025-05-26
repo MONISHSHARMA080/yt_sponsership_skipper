@@ -7,6 +7,13 @@ func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromL
 	newsponserSubtitleFromLLM := SanatizeStrignsForSearching(sponserSubtitleFromLLM)
 	full_captions = &newFullCaptions
 	sponserSubtitleFromLLM = &newsponserSubtitleFromLLM
+
+	// now I need to get the start and end time/index(both) from the transcript
+	// I know that both of the transcripts.subtitles and the full caption and the sponserSubtitleFromLLM is sanitized
+	// NOTE: the strings are utf-8 encoded
+	//
+	//we are going to get the subtitles using the lenght technique:--> first we will get the sponsership start index in the full captions and  the we will get the end index by
+	// doing start index plus the string lenght (make sure to get the last " " , haven't thought this through ), then we just take this out in a var
 }
 
 // this will write to the location of the string and this is not a pass by copy,

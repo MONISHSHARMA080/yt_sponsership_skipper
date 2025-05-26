@@ -336,7 +336,7 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	lenOfSubtitles := len(transcripts.Subtitles)
 
 	var wg sync.WaitGroup
-	noOfWorkers := 8
+	noOfWorkers := 12
 	noOfWorkers = min(noOfWorkers, lenOfSubtitles)
 	// here even if the thing can result in 3.4 (float) but since we are operating on a int the decimal value is discarded
 	chunkSize := (lenOfSubtitles + noOfWorkers - 1) / noOfWorkers
@@ -353,25 +353,20 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 			defer wg.Done()
 			for i, subtitleArrayElement := range subtitleArray {
 				subtitleArray[i].Text = SanatizeStrignsForSearchingWithoutPtr(html.UnescapeString(subtitleArrayElement.Text))
-				println("\n -- at index:", i, "++", transcripts.Subtitles[i].Text, "++")
+				// println("\n -- at index:", i, "++", transcripts.Subtitles[i].Text, "++")
+				// fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, transcripts.Subtitles[i].Text)
 			}
 		}(transcripts.Subtitles[arrStart:arrEnd])
 	}
 
-	println("the lenOfSubtitles was ", lenOfSubtitles, " and the summed end array lenght is ", endArrayLen, " and the endArrayLen + initial chucnk size is ->", endArrayLen+chunkSize, " chunksize total is ->", chunkSize*noOfWorkers)
 	// formatting the transcript to be in utf-8
-	println("formatting the transctipt.subtitles.text to be utf-8")
 	wg.Wait()
-	// for i, text := range transcripts.Subtitles {
-	// 	transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
-	// 	println("++", transcripts.Subtitles[i].Text, "++")
+	// see that the subtitles are perfectly arranged and well sanitized
+	// for i, subtitle := range transcripts.Subtitles {
+	// 	fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, subtitle.Text)
 	// }
+	println("formatting the transctipt.subtitles.text to be utf-8")
 
-	// why are we trying to log the Transcript as this will increase the response time
-	// for _, subtitle := range transcripts.Subtitles {
-	// fmt.Printf("[start %s]-+%s+-[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
-	// println("++", subtitle.Text, "++")
-	// }
 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
 }
 
