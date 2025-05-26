@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
 	commonstructs "youtubeAdsSkipper/commonStructs"
 	"youtubeAdsSkipper/paymentBackendGO/common"
@@ -331,15 +333,51 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
 		return
 	}
-	// formatting the transcript to be in utf-8
-	println("formatting the transctipt.subtitles.text to be utf-8")
-	for i, text := range transcripts.Subtitles {
-		transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
+	lenOfSubtitles := len(transcripts.Subtitles)
+
+	var wg sync.WaitGroup
+	noOfWorkers := 8
+	noOfWorkers = min(noOfWorkers, lenOfSubtitles)
+	// here even if the thing can result in 3.4 (float) but since we are operating on a int the decimal value is discarded
+	chunkSize := (lenOfSubtitles + noOfWorkers - 1) / noOfWorkers
+	println(" the chunksize is ->", chunkSize, " and the lenOfSubtitles is :", lenOfSubtitles)
+
+	wg.Add(noOfWorkers)
+	endArrayLen := 0
+
+	for w := 0; w < noOfWorkers; w++ {
+		arrStart := w * chunkSize
+		arrEnd := arrStart + chunkSize
+		endArrayLen += arrEnd
+		go func(subtitleArray []Subtitle) {
+			defer wg.Done()
+			for i, subtitleArrayElement := range subtitleArray {
+				subtitleArray[i].Text = SanatizeStrignsForSearchingWithoutPtr(html.UnescapeString(subtitleArrayElement.Text))
+				println("\n -- at index:", i, "++", transcripts.Subtitles[i].Text, "++")
+			}
+		}(transcripts.Subtitles[arrStart:arrEnd])
 	}
 
+	println("the lenOfSubtitles was ", lenOfSubtitles, " and the summed end array lenght is ", endArrayLen, " and the endArrayLen + initial chucnk size is ->", endArrayLen+chunkSize, " chunksize total is ->", chunkSize*noOfWorkers)
+	// formatting the transcript to be in utf-8
+	println("formatting the transctipt.subtitles.text to be utf-8")
+	wg.Wait()
+	// for i, text := range transcripts.Subtitles {
+	// 	transcripts.Subtitles[i].Text = html.UnescapeString(text.Text)
+	// 	println("++", transcripts.Subtitles[i].Text, "++")
+	// }
+
 	// why are we trying to log the Transcript as this will increase the response time
-	for _, subtitle := range transcripts.Subtitles {
-		fmt.Printf("[start %s]- %s -[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
-	}
+	// for _, subtitle := range transcripts.Subtitles {
+	// fmt.Printf("[start %s]-+%s+-[Duration: %s]\n", subtitle.Start, subtitle.Text, subtitle.Dur)
+	// println("++", subtitle.Text, "++")
+	// }
 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
+}
+
+// this one will not use a ptr
+// takes the string and cleans it by removign any more than one " "(spaces) and "\n" with " " and also make it in the lower cap
+func SanatizeStrignsForSearchingWithoutPtr(s string) string {
+	newStr := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(s), "  ", " "), "\n", " ")
+	return strings.Join(strings.Fields(newStr), " ")
 }

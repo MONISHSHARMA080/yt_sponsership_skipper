@@ -232,7 +232,8 @@ type ResponseForGettingSubtitlesTiming struct {
 }
 
 // func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
-func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles_form_groq *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
+
+func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming) {
 	// this function will return the timming of the sub form the args
 	//
 	// reach the first position and get the timeandDur and then the last and ...
@@ -243,7 +244,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	// sanitizing the  full_captions and the sponsership_subtitles_form_groq so that they both have same space etc between the words and that can cause the error
 	// we first make it lower case then we remove the \n and 2space with single space (" ")
 	newFullCaptions := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(*full_captions), "  ", " "), "\n", " ")
-	newSponsorShipFromLLm := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(*sponsership_subtitles_form_groq), "  ", " "), "\n", " ")
+	newSponsorShipFromLLm := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(*sponserSubtitleFromLLM), "  ", " "), "\n", " ")
 	// newSponsorShipFromLLm := strings.ReplaceAll(strings.ToLower(*sponsership_subtitles_form_groq), "  ", " ")
 	//
 	//
@@ -253,18 +254,18 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 	newSponsorShipFromLLm = strings.Join(strings.Fields(newSponsorShipFromLLm), " ")
 	//
 	full_captions = &newFullCaptions
-	sponsership_subtitles_form_groq = &newSponsorShipFromLLm
+	sponserSubtitleFromLLM = &newSponsorShipFromLLm
 
 	println("\n\n ---- the full captions in the lower case is---- \n ", *full_captions, "---- \n\n\n")
-	println("\n\n ---- the sponsership_subtitles_form_groq in the lower case is --- \n", *sponsership_subtitles_form_groq, "---- \n\n\n")
+	println("\n\n ---- the sponsership_subtitles_form_groq in the lower case is --- \n", *sponserSubtitleFromLLM, "---- \n\n\n")
 
-	sponsershipSubtitlesStartIndex := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponsership_subtitles_form_groq))
+	sponsershipSubtitlesStartIndex := strings.Index(strings.ToLower(*full_captions), strings.ToLower(*sponserSubtitleFromLLM))
 	if sponsershipSubtitlesStartIndex == -1 {
 		println("subtitle is not there and the strings.Index returned -1 as the ans")
 		responseForTimmingChannel <- ResponseForGettingSubtitlesTiming{0, 0, fmt.Errorf("can't find the subtitles")}
 		return // string is not present
 	}
-	sponsershipSubtitlesEndIndex := sponsershipSubtitlesStartIndex + len(*sponsership_subtitles_form_groq)
+	sponsershipSubtitlesEndIndex := sponsershipSubtitlesStartIndex + len(*sponserSubtitleFromLLM)
 	sponsershipLengthTracker := 0
 	sponsershipStartSubtitleIndex := 0
 	sponsershipEndSubtitleIndex := 0
@@ -285,7 +286,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 					println("got overboard, the text in prev one is(I think correct)-->", transcripts.Subtitles[i-1].Text)
 					println("this text is -->", subtitle.Text)
 					// now the subtitle is either here or in prev subtitle
-					sponsershipStartSubtitleIndex = getIndexOfSponserSubtitleForEndFromAdjacentIndex(*transcripts, i, sponsership_subtitles_form_groq, true, lengthOfTranscriptSubtitle)
+					sponsershipStartSubtitleIndex = getIndexOfSponserSubtitleForEndFromAdjacentIndex(*transcripts, i, sponserSubtitleFromLLM, true, lengthOfTranscriptSubtitle)
 					if sponsershipStartSubtitleIndex == i-1 {
 						sponsershipLengthTracker = sponsershipLengthTracker - len(subtitle.Text+" ") // over counted
 					} // else we are just on track
@@ -306,7 +307,7 @@ func GetTimeAndDurInTheSubtitles(transcripts *Transcripts, sponsership_subtitles
 			if sponsershipLengthTracker > sponsershipSubtitlesEndIndex {
 				// if i>0 will result in true
 				// i+1 cause this checks on the prev and current one(yes it is a hack)
-				sponsershipEndSubtitleIndex = getIndexOfSponserSubtitleForEndFromAdjacentIndex(*transcripts, i, sponsership_subtitles_form_groq, false, lengthOfTranscriptSubtitle)
+				sponsershipEndSubtitleIndex = getIndexOfSponserSubtitleForEndFromAdjacentIndex(*transcripts, i, sponserSubtitleFromLLM, false, lengthOfTranscriptSubtitle)
 				// if sponsershipStartSubtitleIndex == i-1 { // do I need to do it as it is unnecessary (in the end)
 				// 	sponsershipLengthTracker = sponsershipLengthTracker - len(transcripts.Subtitles[i].Text+" ") // over counted
 				// }
