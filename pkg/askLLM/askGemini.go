@@ -94,7 +94,7 @@ func AskGeminiAboutSponsorShipAndGetTheSponsorTiming(videoScript string, result_
 		return
 	}
 	// go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
-	go askllm.GetTimeAndDurInTheSubtitles2(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, logger)
+	go askllm.GetTimeAndDurInTheSubtitles2(result_for_subtitles.Transcript, &geminiResponse.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming, logger)
 
 	subtitleTimingResponse := <-ChanForResponseForGettingSubtitlesTiming
 	println("got the subtitleTimingResponse in the gemini")

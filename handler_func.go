@@ -292,7 +292,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			}
 			logger.Info(" key picked info  ", zap.String("first 4 word of the key", apiKey[:len(apiKey)-4]), zap.Int("length of the key(groq)", len(apiKey)))
 			logger.Info("the user is in free tier and we are about to ask the groq", zap.Skip())
-			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel)
+			go askllm.AskGroqAboutSponsorship(httpClient, w, method_to_write_http_and_json_to_respond, apiKey, resultFromSubtitiles, ChanForResponseForGettingSubtitlesTiming, resultChannel, logger)
 		}
 		result := <-resultChannel
 		logger.Info("got the result for the sponsorship", zap.Any("result returned form the channel ", result))

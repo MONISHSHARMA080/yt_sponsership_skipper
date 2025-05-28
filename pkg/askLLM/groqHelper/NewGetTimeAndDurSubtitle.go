@@ -1,6 +1,7 @@
 package askllm
 
 import (
+	"strconv"
 	"strings"
 
 	"go.uber.org/zap"
@@ -18,8 +19,9 @@ type sponsershipPositionIndex struct {
 	SubtitleStringCounterAtThe2ndPreviousLoopIteration int
 }
 
-// func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming, logger *zap.Logger) {
-func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, logger *zap.Logger) {
+func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, responseForTimmingChannel chan<- ResponseForGettingSubtitlesTiming, logger *zap.Logger) {
+	// func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromLLM *string, full_captions *string, logger *zap.Logger)
+	subtitleTimming := ResponseForGettingSubtitlesTiming{}
 	newFullCaptions := SanatizeStrignsForSearching(full_captions)
 	newsponserSubtitleFromLLM := SanatizeStrignsForSearching(sponserSubtitleFromLLM)
 	full_captions = &newFullCaptions
@@ -98,9 +100,9 @@ func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromL
 	logger.Info("got the index of the start and the end subtitles, now goting to get the actual subtitles from the adjacent indices", zap.Any("sponserShipEndIndexForSubtitlesArray is ", sponserShipEndIndexForSubtitlesArray),
 		zap.Any("sponserShipStartIndexForSubtitlesArray is ", sponserShipStartIndexForSubtitlesArray),
 	)
-	preciseStartIndex := getPreciseIndexOfSubtitle(transcripts, &sponserShipStartIndexForSubtitlesArray, sponsershipStartIndex, true)
+	preciseStartIndex := getPreciseIndexOfSubtitle(transcripts, &sponserShipStartIndexForSubtitlesArray, sponsershipStartIndex)
 	println("=============================")
-	preciseEndIndex := getPreciseIndexOfSubtitle(transcripts, &sponserShipEndIndexForSubtitlesArray, sponserShipEndIndex, false)
+	preciseEndIndex := getPreciseIndexOfSubtitle(transcripts, &sponserShipEndIndexForSubtitlesArray, sponserShipEndIndex)
 
 	// -- in the end just make rough assert that the strings.contains() sponserSubtitleFromLLM and the rought string that you generated to make sure that we are right
 	//  for eg if the sponser is form index 1 to 10 I might get the 90 percent accuraccy as there might be some strings there too, but all in all (create a massive string form start to
@@ -120,10 +122,41 @@ func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromL
 
 	println("the precise start index is:", preciseStartIndex, " and the text there is ->", transcripts.Subtitles[preciseStartIndex].Text, " \n\n")
 	println("the precise end index is:", preciseEndIndex, " and the text there is ->", transcripts.Subtitles[preciseEndIndex].Text, " \n\n ")
+	startTime, err := getTimeOutOfString(transcripts.Subtitles[preciseStartIndex].Start)
+	if err != nil {
+		println("the error in the startTime's precise index str to time conversion is ->", err.Error())
+		startTime, err := getTimeOutOfString(transcripts.Subtitles[sponserShipStartIndexForSubtitlesArray.IndexAt].Start)
+		if err != nil {
+			println("the error in the endTime's sponserShipStartIndexForSubtitlesArray.IndexAt index str to time conversion is ->", err.Error())
+			subtitleTimming.Err = err
+			responseForTimmingChannel <- subtitleTimming
+			return
+		}
+		subtitleTimming.StartTime = int(startTime)
+	} else {
+		subtitleTimming.StartTime = int(startTime)
+	}
+
+	endTime, err := getTimeOutOfString(transcripts.Subtitles[preciseEndIndex].Start)
+	if err != nil {
+		println("the error in the endTime's precise index str to time conversion is ->", err.Error())
+		endTime, err := getTimeOutOfString(transcripts.Subtitles[sponserShipEndIndexForSubtitlesArray.IndexAt].Start)
+		if err != nil {
+			println("the error in the endTime's sponserShipEndIndexForSubtitlesArray.IndexAt index str to time conversion is ->", err.Error())
+			subtitleTimming.Err = err
+			responseForTimmingChannel <- subtitleTimming
+			return
+		}
+		subtitleTimming.EndTime = int(endTime)
+	} else {
+		subtitleTimming.EndTime = int(endTime)
+	}
+	subtitleTimming.Err = nil
+	responseForTimmingChannel <- subtitleTimming
 }
 
 // this func is designed to be used when we have gotten the subtitle but it there is a possibility that it could be a error as it might be in the adjacent index
-func getPreciseIndexOfSubtitle(transcript *Transcripts, sponserShipIndexInSubtitlesArray *sponsershipPositionIndex, sponserShipAt int, isTheSponserShipPositionForTheStartIndex bool) int {
+func getPreciseIndexOfSubtitle(transcript *Transcripts, sponserShipIndexInSubtitlesArray *sponsershipPositionIndex, sponserShipAt int) int {
 	// this is a  generic, so it can be used as the first one and the last one
 	// ok get the index and form the index-1 to index +1 if we are not able to get it back then we return error
 	//
@@ -151,31 +184,14 @@ func getPreciseIndexOfSubtitle(transcript *Transcripts, sponserShipIndexInSubtit
 				println(" in the case where sponserShipIndexTracker == sponserShipAt and we got the exact position")
 				println("-the sponserShipAt(index):->", sponserShipAt, " the current index of words is (sponserShipIndexTracker, track of if we reached sponserShipAt)  ", sponserShipIndexTracker, " and the index found at(rough one) the sponserShipIndexInSubtitlesArray.IndexAt", sponserShipIndexInSubtitlesArray.IndexAt, "word at:", j, " at is ->", wordWithoutSpace, "--   ")
 				println(" len(transcript.Subtitles[i].Text) - sponserShipIndexTracker", len(transcript.Subtitles[i].Text)-sponserShipIndexTracker, " \n ")
+				//
 				// the reason for this if statement is that the  sponserShipIndexTracker == sponserShipAt means we are only one index(in strings) behind the sponserShip start and
 				// in the edge case (assume last word in the end of the subtitles index) the sponseShip is in the next index and to be presice we need to skip over
 				// but in the case it is for the end function there the end index is the end. These differences is cause of how the len fuc work and how we decided to calculate the
 				// start index and the end one(strings.Index gived you the start but the index + full_captions gives you the end word)
-				// if isTheSponserShipPositionForTheStartIndex {
-				// 	switch lengthLeftInSubArrForMoreString := len(transcript.Subtitles[i].Text) - sponserShipIndexTracker; {
-				// 	case lengthLeftInSubArrForMoreString >= 1:
-				// 		// return the current index
-				// 		return i
-				// 		println("we are in the section where there is lengthLeftInSubArrForMoreString >= 1 is true, btw the full subtitle in the row is ->", transcript.Subtitles[i].Text)
-				// 	case lengthLeftInSubArrForMoreString < 1:
-				// 		println("we are in the section  lengthLeftInSubArrForMoreString<1 and the full subtitles is ->", transcript.Subtitles[i].Text)
-				// 		// there is no base case by(mathematically) btw
-				// 		if len(transcript.Subtitles) > i+1 {
-				// 			return i + 1
-				// 		} else {
-				// 			return i
-				// 		}
-				// 		// return
-				// 	}
-				// } else {
-				// 	// we are returning the current index as in the case of the end index this is the last string, unlike the start part where the index is the part before
-				// 	// the start of word
-				// 	return i
-				// }
+				//
+				// ya we ditched that cause if the end sponserShip is at the subtitle end then we have a problem as the video should start from the next index and
+				// so we are doing that
 				switch lengthLeftInSubArrForMoreString := len(transcript.Subtitles[i].Text) - sponserShipIndexTracker; {
 				case lengthLeftInSubArrForMoreString >= 1:
 					// return the current index
@@ -224,4 +240,9 @@ func SanatizeStrignsForSearching(s *string) string {
 func SanatizeStrignsForSearchingWithoutPtr(s string) string {
 	newStr := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(s), "  ", " "), "\n", " ")
 	return strings.Join(strings.Fields(newStr), " ")
+}
+
+func getTimeOutOfString(t string) (float64, error) {
+	i, err := strconv.ParseFloat(t, 64)
+	return i, err
 }

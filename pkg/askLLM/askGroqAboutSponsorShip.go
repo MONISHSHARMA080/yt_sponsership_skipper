@@ -5,6 +5,8 @@ import (
 	"net/http"
 	commonresultchannel "youtubeAdsSkipper/pkg/askLLM/commonResultChannel"
 	askllm "youtubeAdsSkipper/pkg/askLLM/groqHelper"
+
+	"go.uber.org/zap"
 )
 
 type HttpJsonResponder func(w http.ResponseWriter, message string, http_status_code int64)
@@ -13,7 +15,7 @@ type HttpJsonResponder func(w http.ResponseWriter, message string, http_status_c
 // is ==  nil then continue with yout work
 func AskGroqAboutSponsorship(httpClient *http.Client, w http.ResponseWriter, method_to_write_http_and_json_to_respond HttpJsonResponder, apiKey string,
 	result_for_subtitles askllm.String_and_error_channel_for_subtitles, ChanForResponseForGettingSubtitlesTiming chan askllm.ResponseForGettingSubtitlesTiming,
-	resultChannel chan commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo],
+	resultChannel chan commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo], logger *zap.Logger,
 ) {
 	response := commonresultchannel.ResultAndErrorChannel[askllm.ResponseForWhereToSkipVideo]{}
 
@@ -55,7 +57,8 @@ func AskGroqAboutSponsorship(httpClient *http.Client, w http.ResponseWriter, met
 	if groq_response.SponsorshipContent.DoesVideoHaveSponsorship && groq_response.SponsorshipContent.SponsorshipSubtitle != "" {
 		// if the subtitles is found
 		println("the sponsorship subtitles are found in the video")
-		go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &groq_response.SponsorshipContent.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
+		// go askllm.GetTimeAndDurInTheSubtitles(result_for_subtitles.Transcript, &groq_response.SponsorshipContent.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming)
+		go askllm.GetTimeAndDurInTheSubtitles2(result_for_subtitles.Transcript, &groq_response.SponsorshipContent.SponsorshipSubtitle, &result_for_subtitles.String_value, ChanForResponseForGettingSubtitlesTiming, logger)
 
 		SubtitlesTimming := <-ChanForResponseForGettingSubtitlesTiming
 		println("we got the subtitle timing --")
