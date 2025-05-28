@@ -98,10 +98,10 @@ func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromL
 	logger.Info("got the index of the start and the end subtitles, now goting to get the actual subtitles from the adjacent indices", zap.Any("sponserShipEndIndexForSubtitlesArray is ", sponserShipEndIndexForSubtitlesArray),
 		zap.Any("sponserShipStartIndexForSubtitlesArray is ", sponserShipStartIndexForSubtitlesArray),
 	)
-	getPreciseIndexOfSubtitle(transcripts, &sponserShipStartIndexForSubtitlesArray, sponsershipStartIndex, true)
-	getPreciseIndexOfSubtitle(transcripts, &sponserShipEndIndexForSubtitlesArray, sponserShipEndIndex, false)
+	preciseStartIndex := getPreciseIndexOfSubtitle(transcripts, &sponserShipStartIndexForSubtitlesArray, sponsershipStartIndex, true)
+	println("=============================")
+	preciseEndIndex := getPreciseIndexOfSubtitle(transcripts, &sponserShipEndIndexForSubtitlesArray, sponserShipEndIndex, false)
 
-	//
 	// -- in the end just make rough assert that the strings.contains() sponserSubtitleFromLLM and the rought string that you generated to make sure that we are right
 	//  for eg if the sponser is form index 1 to 10 I might get the 90 percent accuraccy as there might be some strings there too, but all in all (create a massive string form start to
 	//  end for testing/assrting) is mostly right, as that huge generated string will have the sponserSubtitleFromLLM string in it
@@ -117,11 +117,13 @@ func GetTimeAndDurInTheSubtitles2(transcripts *Transcripts, sponserSubtitleFromL
 	// ---------------------------
 	//
 	// -----quick assertion testing(see above comment) to make sure tings are alwright --
-	// .........To Implement.......
+
+	println("the precise start index is:", preciseStartIndex, " and the text there is ->", transcripts.Subtitles[preciseStartIndex].Text, " \n\n")
+	println("the precise end index is:", preciseEndIndex, " and the text there is ->", transcripts.Subtitles[preciseEndIndex].Text, " \n\n ")
 }
 
 // this func is designed to be used when we have gotten the subtitle but it there is a possibility that it could be a error as it might be in the adjacent index
-func getPreciseIndexOfSubtitle(transcript *Transcripts, sponserShipIndexInSubtitlesArray *sponsershipPositionIndex, sponserShipAt int, isTheSponserShipPositionForTheStartIndex bool) {
+func getPreciseIndexOfSubtitle(transcript *Transcripts, sponserShipIndexInSubtitlesArray *sponsershipPositionIndex, sponserShipAt int, isTheSponserShipPositionForTheStartIndex bool) int {
 	// this is a  generic, so it can be used as the first one and the last one
 	// ok get the index and form the index-1 to index +1 if we are not able to get it back then we return error
 	//
@@ -153,45 +155,60 @@ func getPreciseIndexOfSubtitle(transcript *Transcripts, sponserShipIndexInSubtit
 				// in the edge case (assume last word in the end of the subtitles index) the sponseShip is in the next index and to be presice we need to skip over
 				// but in the case it is for the end function there the end index is the end. These differences is cause of how the len fuc work and how we decided to calculate the
 				// start index and the end one(strings.Index gived you the start but the index + full_captions gives you the end word)
-				if isTheSponserShipPositionForTheStartIndex {
-					switch lengthLeftInSubArrForMoreString := len(transcript.Subtitles[i].Text) - sponserShipIndexTracker; {
-					case lengthLeftInSubArrForMoreString >= 1:
-						// return the current index
-						// return  i
-						println("we are in the section where there is lengthLeftInSubArrForMoreString >= 1 is true, btw the full subtitle in the row is ->", transcript.Subtitles[i].Text)
-					case lengthLeftInSubArrForMoreString < 1:
-						println("we are in the section  lengthLeftInSubArrForMoreString<1 and the full subtitles is ->", transcript.Subtitles[i].Text)
-						// there is no base case by(mathematically)
-						if len(transcript.Subtitles) > i+1 {
-							// return i+1
-						} else {
-							// return i
-						}
-						return
+				// if isTheSponserShipPositionForTheStartIndex {
+				// 	switch lengthLeftInSubArrForMoreString := len(transcript.Subtitles[i].Text) - sponserShipIndexTracker; {
+				// 	case lengthLeftInSubArrForMoreString >= 1:
+				// 		// return the current index
+				// 		return i
+				// 		println("we are in the section where there is lengthLeftInSubArrForMoreString >= 1 is true, btw the full subtitle in the row is ->", transcript.Subtitles[i].Text)
+				// 	case lengthLeftInSubArrForMoreString < 1:
+				// 		println("we are in the section  lengthLeftInSubArrForMoreString<1 and the full subtitles is ->", transcript.Subtitles[i].Text)
+				// 		// there is no base case by(mathematically) btw
+				// 		if len(transcript.Subtitles) > i+1 {
+				// 			return i + 1
+				// 		} else {
+				// 			return i
+				// 		}
+				// 		// return
+				// 	}
+				// } else {
+				// 	// we are returning the current index as in the case of the end index this is the last string, unlike the start part where the index is the part before
+				// 	// the start of word
+				// 	return i
+				// }
+				switch lengthLeftInSubArrForMoreString := len(transcript.Subtitles[i].Text) - sponserShipIndexTracker; {
+				case lengthLeftInSubArrForMoreString >= 1:
+					// return the current index
+					return i
+					println("we are in the section where there is lengthLeftInSubArrForMoreString >= 1 is true, btw the full subtitle in the row is ->", transcript.Subtitles[i].Text)
+				case lengthLeftInSubArrForMoreString < 1:
+					println("we are in the section  lengthLeftInSubArrForMoreString<1 and the full subtitles is ->", transcript.Subtitles[i].Text)
+					// there is no base case by(mathematically) btw
+					if len(transcript.Subtitles) > i+1 {
+						return i + 1
+					} else {
+						return i
 					}
-				} else {
-					// return i
-					return
+				default:
+					println("----\n\n\n\n  we hit the base case in the switch statement this should be not happening(mathematically) fix this    ----\n\n\n\n")
+					return i
 				}
-
 			}
 			if sponserShipIndexTracker > sponserShipAt {
 				println("the sponserShipAt(index):->", sponserShipAt, " the current index of words is (sponserShipIndexTracker, track of if we reached sponserShipAt)  ", sponserShipIndexTracker, " and the index found at(rough one) the sponserShipIndexInSubtitlesArray.IndexAt", sponserShipIndexInSubtitlesArray.IndexAt, "word at:", j, " at is ->", wordWithoutSpace, "--")
 				println("--this one is less desirable ---")
 				println("but fuck it had to return the current Subtitle")
-				return
-				// return i
+				return i
 			}
 			println("word at:", j, " at is ->", wordWithoutSpace, "--", "sponserShipIndexTracker:", sponserShipIndexTracker, " and sponserShi starts at ->", sponserShipAt)
 			sponserShipIndexTracker += len(" ")
-
 		}
 		println("+++++++++++++++++++++++++++++++++++++++++++++++++ \n")
 		sponserShipIndexTracker += len(" ")
 	}
 	println("in the end of getPreciseIndexOfSubtitle() and the sponserShipAt:->", sponserShipAt, " and the index found at(rough one) the sponserShipIndexInSubtitlesArray.IndexAt", sponserShipIndexInSubtitlesArray.IndexAt)
-
-	// return error
+	println(" -- you should probally not reach here but since you have I will just accept that there is some error and will return the index  ")
+	return sponserShipIndexInSubtitlesArray.IndexAt
 }
 
 // this will write to the location of the string and this is not a pass by copy,
