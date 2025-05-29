@@ -347,6 +347,7 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	for w := 0; w < noOfWorkers; w++ {
 		arrStart := w * chunkSize
 		arrEnd := arrStart + chunkSize
+		arrEnd = min(arrEnd, lenOfSubtitles)
 		endArrayLen += arrEnd
 		go func(subtitleArray []Subtitle) {
 			defer wg.Done()
@@ -361,9 +362,9 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	// formatting the transcript to be in utf-8
 	wg.Wait()
 	// see that the subtitles are perfectly arranged and well sanitized
-	for i, subtitle := range transcripts.Subtitles {
-		fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, subtitle.Text)
-	}
+	// for i, subtitle := range transcripts.Subtitles {
+	// 	fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, subtitle.Text)
+	// }
 	println("formatting the transctipt.subtitles.text to be utf-8")
 
 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: nil, string_value: generateSubtitleString(transcripts.Subtitles), transcript: &transcripts}
