@@ -183,10 +183,6 @@ chrome.runtime.onMessage.addListener((
           return JSON.stringify(tracklist) || null;
         }
 
-        //let a =document.getElementById('movie_player') 
-        // a.toggleSubtitles()
-        // get the captions through and when the captions network req. is received then call it again to turn it off 
-        // make a abstract function that tries one method(first cap. through network) and if not work then tries another
       });
       if (res.length === 0) {
         console.log(`there is a error in getting the result form the youtube script `)
