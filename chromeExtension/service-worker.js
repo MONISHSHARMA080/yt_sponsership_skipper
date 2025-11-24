@@ -268,10 +268,10 @@ chrome.runtime.onMessage.addListener((
           console.error("Error in background script:", error);
           sendResponse([null, error]);
         });
-      return true;
+      // return true;
     })();
     // Return true to indicate we will send response asynchronously
-    return false;
+    return true;
   }
 });
 /**
