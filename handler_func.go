@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"html"
 	"net/http"
@@ -374,12 +373,12 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 	}
 
 	// transcripts := Transcripts{}
-	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
-	if errorInXMl != nil {
-		println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())
-		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
-		return
-	}
+	// errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
+	// if errorInXMl != nil {
+	// 	println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())
+	// 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
+	// 	return
+	// }
 	lenOfSubtitles := len(transcripts.Subtitles)
 
 	var wg sync.WaitGroup
