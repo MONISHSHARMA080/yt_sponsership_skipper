@@ -206,9 +206,8 @@ chrome.runtime.onMessage.addListener((
                 storedCaptionsData = captionsData.events;
               } catch (e) {
                 storedCaptionsData = "";
-
               }
-              resolve(captionsData);
+              resolve(storedCaptionsData);
 
             } catch (e) {
               console.error("Fetch failed during interception:", e);

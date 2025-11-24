@@ -170,6 +170,54 @@ type responseForWhereToSkipVideo struct {
 	Error                  string `json:"error,omitempty"`
 }
 
+// temp structs to put it back into
+type Seg struct {
+	Utf8      string `json:"utf8"`
+	TOffsetMs int    `json:"tOffsetMs,omitempty"` // Offset within the parent caption line
+	AcAsrConf int    `json:"acAsrConf,omitempty"` // ASR confidence, if present
+}
+
+// JSONSubtitleItem represents one item in the main JSON array
+type JSONSubtitleItem struct {
+	TStartMs     int   `json:"tStartMs"`
+	DDurationMs  int   `json:"dDurationMs"`
+	ID           int   `json:"id,omitempty"`
+	WpWinPosId   int   `json:"wpWinPosId,omitempty"`
+	WsWinStyleId int   `json:"wsWinStyleId,omitempty"`
+	WWinId       int   `json:"wWinId,omitempty"`
+	Segs         []Seg `json:"segs,omitempty"` // The text segments
+}
+
+func decodeNewAndPutItInOriginalStruct(target *request_for_youtubeVideo_struct, req *http.Request) error {
+	type tempRequest struct {
+		Youtube_Video_Id string             `json:"youtube_Video_Id"`
+		Encrypted_string string             `json:"encrypted_string"`
+		Transcript       []JSONSubtitleItem `json:"transcript"`
+	}
+	var temp tempRequest
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&temp)
+	if err != nil {
+		// Handle error (log it or return it depending on your function signature)
+		// For now, we just return so we don't panic
+		return err
+	}
+
+	// 3. Map the simple fields to your original struct
+	target.Youtube_Video_Id = temp.Youtube_Video_Id
+	target.Encrypted_string = temp.Encrypted_string
+
+	// 4. Handle the Transcript.
+	// Since the target struct expects a String, we have two common options:
+
+	// Option A: Store the raw JSON array as a string
+	transcriptBytes, err := json.Marshal(temp.Transcript)
+	if err == nil {
+		target.Transcript = string(transcriptBytes)
+	}
+	return nil
+}
+
 func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *http.Client, rateLimiterDb *sql.DB, logger *zap.Logger) http.HandlerFunc {
 	// take the video id out and hash  ,  and api will return (on success)
 
@@ -186,22 +234,28 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			return
 		}
 		var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
-		err := json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
+		// err := json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
+		// if err != nil {
+		// 	println(err.Error())
+		// 	_, errorInUserResponse := err.(*json.UnmarshalTypeError)
+		// 	if errorInUserResponse {
+		// 		logger.Info("error decoding json as the user's request in json is not right", zap.Error(err))
+		// 		http.Error(w, "request json object does not match the expected result", http.StatusBadRequest)
+		// 		json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result", ContainSponserSubtitle: false})
+		// 		return
+		// 	}
+		// 	http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
+		// 	json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side", ContainSponserSubtitle: false})
+		// 	logger.Error("json decode failed of th user request", zap.Error(err))
+		// 	return
+		// }
+		err := decodeNewAndPutItInOriginalStruct(&request_for_youtubeVideo_struct, r)
 		if err != nil {
-			println(err.Error())
-			_, errorInUserResponse := err.(*json.UnmarshalTypeError)
-			if errorInUserResponse {
-				logger.Info("error decoding json as the user's request in json is not right", zap.Error(err))
-				http.Error(w, "request json object does not match the expected result", http.StatusBadRequest)
-				json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result", ContainSponserSubtitle: false})
-				return
-			}
 			http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side", ContainSponserSubtitle: false})
 			logger.Error("json decode failed of th user request", zap.Error(err))
 			return
 		}
-
 		if request_for_youtubeVideo_struct.Youtube_Video_Id == "" {
 			logger.Info("the client left the youtube video id empty", zap.String("Youtube_Video_Id", ""))
 			method_to_write_http_and_json_to_respond(w, "Parameter youtube_video_id  not provided", http.StatusBadRequest)
@@ -313,24 +367,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 	}
 }
 
-// temp structs to put it back into
-type Seg struct {
-	Utf8      string `json:"utf8"`
-	TOffsetMs int    `json:"tOffsetMs,omitempty"` // Offset within the parent caption line
-	AcAsrConf int    `json:"acAsrConf,omitempty"` // ASR confidence, if present
-}
-
-// JSONSubtitleItem represents one item in the main JSON array
-type JSONSubtitleItem struct {
-	TStartMs     int   `json:"tStartMs"`
-	DDurationMs  int   `json:"dDurationMs"`
-	ID           int   `json:"id,omitempty"`
-	WpWinPosId   int   `json:"wpWinPosId,omitempty"`
-	WsWinStyleId int   `json:"wsWinStyleId,omitempty"`
-	WWinId       int   `json:"wWinId,omitempty"`
-	Segs         []Seg `json:"segs,omitempty"` // The text segments
-}
-
 func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubtitles chan<- string_and_error_channel_for_subtitles) {
 	if req.Transcript == "" {
 		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
@@ -360,8 +396,8 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 			}
 
 			// Convert milliseconds to seconds (as string) for your Subtitle struct
-			startSec := float64(item.TStartMs)
-			durSec := float64(item.DDurationMs)
+			startSec := float64(item.TStartMs) / 1000
+			durSec := float64(item.DDurationMs) / 1000
 
 			subtitle := Subtitle{
 				Text:  fullText,
@@ -372,13 +408,6 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 		}
 	}
 
-	// transcripts := Transcripts{}
-	// errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
-	// if errorInXMl != nil {
-	// 	println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())
-	// 	channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: errorInXMl, string_value: "", transcript: nil}
-	// 	return
-	// }
 	lenOfSubtitles := len(transcripts.Subtitles)
 
 	var wg sync.WaitGroup
@@ -400,8 +429,6 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 			defer wg.Done()
 			for i, subtitleArrayElement := range subtitleArray {
 				subtitleArray[i].Text = SanatizeStrignsForSearchingWithoutPtr(html.UnescapeString(subtitleArrayElement.Text))
-				// println("\n -- at index:", i, "++", transcripts.Subtitles[i].Text, "++")
-				// fmt.Printf(" -- at index:%d ---|||%s|||---  \n ", i, transcripts.Subtitles[i].Text)
 			}
 		}(transcripts.Subtitles[arrStart:arrEnd])
 	}
