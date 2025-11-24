@@ -198,10 +198,16 @@ chrome.runtime.onMessage.addListener((
               const fetchResponse = await fetch(fetchUrl);
               // 2. Store the response body in a variable
               // This is the response body of the original YouTube Captions request!
-              const captionsData = await fetchResponse.text();
+              const captionsData = await fetchResponse.json();
+              // const a = await fetchResponse.json()
 
               // Store the data in the global variable and resolve the promise
-              storedCaptionsData = captionsData;
+              try {
+                storedCaptionsData = captionsData.events;
+              } catch (e) {
+                storedCaptionsData = "";
+
+              }
               resolve(captionsData);
 
             } catch (e) {
@@ -250,11 +256,6 @@ chrome.runtime.onMessage.addListener((
       const req = await interceptPromise;
       if (req === "") {
         sendResponse([null, new Error(`getting caotions or fetching it failled(resoonse text is "")`)]);
-      }
-      try {
-        req = req.
-        } catch (error) {
-
       }
 
       console.log("Intercepted Request Data is now stored:", storedCaptionsData ? "Yes" : "No", "and it is  ", req, `\n and it's type is ${typeof req} `, "\n and req is ", request)
