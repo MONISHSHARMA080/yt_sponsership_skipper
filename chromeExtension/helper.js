@@ -437,7 +437,7 @@ async function GetTheTranscriptFromTheCaptions(jsonStringifiedCaptions) {
  */
 
 export async function getWhereToSkipInYtVideo(key, videoID, transcript) {
-  console.log(`the captions tracks we got in the helper file is ->${transcript}`)
+  // console.log(`the captions tracks we got in the helper file is ->${transcript}`)
   // let res = await GetTheTranscriptFromTheCaptions(transcript)
   // console.log(`the res form getting the transcript form the captions is ${res}---- ${JSON.stringify(res)}`)
   // console.log("------\n\n\n\n\n\n\n")

@@ -259,31 +259,15 @@ chrome.runtime.onMessage.addListener((
 
       console.log("Intercepted Request Data is now stored:", storedCaptionsData ? "Yes" : "No", "and it is  ", req, `\n and it's type is ${typeof req} `, "\n and req is ", request)
       // sendResponse([req, null]);
-      getWhereToSkipInYtVideo(request.encKey, request.videoID, req).then(result => {
-
-
-
-
-
-
-        getWhereToSkipInYtVideo(request.encKey, request.videoID, req)
-          .then(([responseObject, error]) => {
-            console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
-            sendResponse([responseObject, error]);
-          })
-          .catch(error => {
-            console.error("Error in background script:", error);
-            sendResponse([null, error]);
-          });
-
-
-
-
-
-
-
-
-      })
+      getWhereToSkipInYtVideo(request.encKey, request.videoID, req)
+        .then(([responseObject, error]) => {
+          console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
+          sendResponse([responseObject, error]);
+        })
+        .catch(error => {
+          console.error("Error in background script:", error);
+          sendResponse([null, error]);
+        });
       return true;
     })();
     // Return true to indicate we will send response asynchronously
