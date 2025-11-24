@@ -257,6 +257,22 @@ chrome.runtime.onMessage.addListener((
         sendResponse([null, new Error(`getting caotions or fetching it failled(resoonse text is "")`)]);
       }
 
+      await chrome.scripting.executeScript({
+        target: { tabId: activeTabId, allFrames: false },
+        world: "MAIN",
+        func: () => {
+          console.log("Attempting to click the CC button...");
+          /** @type {HTMLElement|null} */
+          const ccButton = document.querySelector("#movie_player > div.ytp-chrome-bottom > div.ytp-chrome-controls > div.ytp-right-controls > div.ytp-right-controls-left > button.ytp-subtitles-button.ytp-button");
+          if (ccButton === null) {
+            console.error("CC button not found");
+            return false;
+          }
+          // This click triggers the network request you want to intercept
+          ccButton.click();
+          return true;
+        }
+      });
       console.log("Intercepted Request Data is now stored:", storedCaptionsData ? "Yes" : "No", "and it is  ", req, `\n and it's type is ${typeof req} `, "\n and req is ", request)
       // sendResponse([req, null]);
       getWhereToSkipInYtVideo(request.encKey, request.videoID, req)
