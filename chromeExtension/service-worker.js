@@ -137,6 +137,7 @@ chrome.runtime.onMessage.addListener((
  * @type {MessageCallback}
  */
 
+// NOTE:
 chrome.runtime.onMessage.addListener((
   /**@type {MessageRequest} request */
   request,
@@ -173,48 +174,115 @@ chrome.runtime.onMessage.addListener((
         return
       }
 
-      const res = await chrome.scripting.executeScript({
+      // 2. --- SETUP WEB REQUEST INTERCEPTOR (The Core Logic) ---
+      let isIntercepted = false;
+      let storedCaptionsData = null;
+      /** @type {Promise<string>} */
+      let interceptPromise = new Promise((resolve) => {
+
+        /** @type {function(chrome.webRequest.WebRequestBodyEvent): Promise<void>} */
+        const listener = async (details) => {
+          // Check if it's the specific URL we need
+          if (details.url.startsWith("https://www.youtube.com/api/timedtext")) {
+            if (isIntercepted) {
+              return;
+            }
+            chrome.webRequest.onBeforeSendHeaders.removeListener(listener);
+            console.log("Interceptor Fired: Captions Request Found!", details.requestHeaders);
+
+            const reqHeaders = details.requestHeaders;
+            // 1. Make the new fetch request to your service using the original URL
+            const fetchUrl = details.url;
+            isIntercepted = true;
+            try {
+              const fetchResponse = await fetch(fetchUrl);
+              // 2. Store the response body in a variable
+              // This is the response body of the original YouTube Captions request!
+              const captionsData = await fetchResponse.text();
+
+              // Store the data in the global variable and resolve the promise
+              storedCaptionsData = captionsData;
+              resolve(captionsData);
+
+            } catch (e) {
+              console.error("Fetch failed during interception:", e);
+              resolve(""); // Resolve with empty string or handle error
+            }
+
+            // 3. IMPORTANT: Remove the listener immediately after the first intercept
+            chrome.webRequest.onBeforeSendHeaders.removeListener(listener);
+          }
+        };
+
+        // Add the listener. Using onBeforeSendHeaders gives you request headers.
+        // The URL is sufficient to make a new request, but we capture the headers anyway.
+        chrome.webRequest.onBeforeSendHeaders.addListener(
+          //@ts-ignore
+          listener,
+          { urls: ["*://www.youtube.com/api/timedtext?*"] },
+          ["requestHeaders"] // Option needed to see request headers
+        );
+      });
+
+      console.log("Web Request Interceptor Registered.");
+
+      // 3. --- TRIGGER THE REQUEST VIA SCRIPTING ---
+
+      await chrome.scripting.executeScript({
         target: { tabId: activeTabId, allFrames: false },
         world: "MAIN",
         func: () => {
-          console.log(`------Hi form the service worker in the youtube ----`)
-          // @ts-ignore
-          const tracklist = window.ytInitialPlayerResponse.captions.playerCaptionsTracklistRenderer;
-          return JSON.stringify(tracklist) || null;
+          console.log("Attempting to click the CC button...");
+          /** @type {HTMLElement|null} */
+          const ccButton = document.querySelector("#movie_player > div.ytp-chrome-bottom > div.ytp-chrome-controls > div.ytp-right-controls > div.ytp-right-controls-left > button.ytp-subtitles-button.ytp-button");
+          if (ccButton === null) {
+            console.error("CC button not found");
+            return false;
+          }
+          // This click triggers the network request you want to intercept
+          ccButton.click();
+          return true;
         }
-
-        //let a =document.getElementById('movie_player') 
-        // a.toggleSubtitles()
-        // get the captions through and when the captions network req. is received then call it again to turn it off 
-        // make a abstract function that tries one method(first cap. through network) and if not work then tries another
       });
-      if (res.length === 0) {
-        console.log(`there is a error in getting the result form the youtube script `)
-        sendResponse([null, new Error(`there is a error in getting the result form the youtube script `)]);
-        return
-      }
-      let result = res[0]
-      if (result.result === null || result.result === undefined) {
-        sendResponse([null, new Error(`there is a error in getting the result form the youtube script (it returned null)`)]);
-        return
-      }
-      console.log(`the script executioon is completed and it is ${res}`)
-      console.log(`the script executioon is completed and it is (in json string) ->\n\n  ${JSON.stringify(res)} \n\n\n`)
+      // 4. --- WAIT FOR THE INTERCEPTION AND FETCH TO COMPLETE ---
 
-      console.log("Received message in background script:", request);
-      getWhereToSkipInYtVideo(request.encKey, request.videoID, result.result)
-        .then(([responseObject, error]) => {
-          console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
-          sendResponse([responseObject, error]);
-        })
-        .catch(error => {
-          console.error("Error in background script:", error);
-          sendResponse([null, error]);
-        });
+      // Wait for the Promise to resolve, meaning the fetch and storage is done.
+      const req = await interceptPromise;
+      if (req === "") {
+        sendResponse([null, new Error(`getting caotions or fetching it failled(resoonse text is "")`)]);
+      }
 
+      console.log("Intercepted Request Data is now stored:", storedCaptionsData ? "Yes" : "No", "and it is  ", req, `\n and it's type is ${typeof req} `, "\n and req is ", request)
+      // sendResponse([req, null]);
+      getWhereToSkipInYtVideo(request.encKey, request.videoID, req).then(result => {
+
+
+
+
+
+
+        getWhereToSkipInYtVideo(request.encKey, request.videoID, req)
+          .then(([responseObject, error]) => {
+            console.log("Key fetch completed for where to skip in the video", { key: responseObject, error });
+            sendResponse([responseObject, error]);
+          })
+          .catch(error => {
+            console.error("Error in background script:", error);
+            sendResponse([null, error]);
+          });
+
+
+
+
+
+
+
+
+      })
+      return true;
     })();
     // Return true to indicate we will send response asynchronously
-    return true;
+    return false;
   }
 });
 /**
@@ -445,5 +513,139 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 
+
+// claude one 
+/**
+ * @typedef {Object} ClickCCButtonRequest
+ * @property {'clickCCButtonAndGetCaptions'} type - Message type identifier
+ * @property {string} videoID - The ID of the YouTube video
+ */
+/**
+ * @typedef {Object} ClickCCButtonResponse
+ * @property {boolean} success - Indicates if the script execution was attempted.
+ * @property {string} [error] - Error message if something went wrong.
+ * @property {string} [captionData] - The intercepted caption data from timedtext API.
+ */
+/**
+ * Message handler to click the CC button in the active tab and intercept captions.
+ */
+chrome.runtime.onMessage.addListener(
+  /**
+   * @param {ClickCCButtonRequest} request - Information about the sender
+   * @param {chrome.runtime.MessageSender} sender - Information about the sender
+   * @param {function(ClickCCButtonResponse): void} sendResponse - Function to call with the response
+   */
+  (request, sender, sendResponse) => {
+    if (request.type === "clickCCButtonAndGetCaptions") {
+      (async () => {
+        console.log("Received request to click CC button:", request);
+
+        // 1. Find the tab containing the videoID
+        let activeTab = await chrome.tabs.query({});
+        /** @type {number|undefined} */
+        let activeTabId;
+
+        // Find the tab with the correct video ID
+        activeTab.find((tab) => {
+          if (tab.url?.includes(request.videoID)) {
+            activeTabId = tab.id;
+            return true;
+          }
+          return false;
+        });
+
+        if (activeTabId === undefined) {
+          console.error(`Tab with video ID ${request.videoID} not found.`);
+          return sendResponse({ success: false, error: "Tab not found" });
+        }
+
+        try {
+          // 2. Attach debugger to intercept network requests
+          await chrome.debugger.attach({ tabId: activeTabId }, "1.3");
+          await chrome.debugger.sendCommand({ tabId: activeTabId }, "Network.enable");
+
+          // 3. Set up listener for network responses
+          let captionData = null;
+          let capturedRequestId = null;
+
+          const networkListener = (source, method, params) => {
+            if (source.tabId !== activeTabId) return;
+
+            // Capture the request ID when timedtext request is made
+            if (method === "Network.requestWillBeSent" &&
+              params.request.url.includes("timedtext") &&
+              params.request.url.includes("video.google.com")) {
+              console.log("Detected timedtext request:", params.request.url);
+              capturedRequestId = params.requestId;
+            }
+
+            // Capture the response body when it arrives
+            if (method === "Network.loadingFinished" && params.requestId === capturedRequestId) {
+              chrome.debugger.sendCommand(
+                { tabId: activeTabId },
+                "Network.getResponseBody",
+                { requestId: params.requestId }
+              ).then(response => {
+                captionData = response.body;
+                console.log("Successfully captured caption data");
+              }).catch(err => {
+                console.error("Error getting response body:", err);
+              });
+            }
+          };
+
+          chrome.debugger.onEvent.addListener(networkListener);
+
+          // 4. Click the CC button
+          await chrome.scripting.executeScript({
+            target: { tabId: activeTabId, allFrames: false },
+            world: "MAIN",
+            func: () => {
+              console.log("Attempting to click the CC button...");
+              /** @type {HTMLElement|null} */
+              const ccButton = document.querySelector("#movie_player > div.ytp-chrome-bottom > div.ytp-chrome-controls > div.ytp-right-controls > div.ytp-right-controls-left > button.ytp-subtitles-button.ytp-button");
+
+              if (ccButton === null) {
+                console.error("CC button not found");
+                return false;
+              }
+
+              ccButton.click();
+              return true;
+            }
+          });
+
+          console.log("CC button clicked, waiting for timedtext response...");
+
+          // 5. Wait for caption data to be captured (with timeout)
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+          // 6. Clean up
+          chrome.debugger.onEvent.removeListener(networkListener);
+          await chrome.debugger.detach({ tabId: activeTabId });
+
+          if (captionData) {
+            sendResponse({ success: true, captionData: captionData });
+          } else {
+            //@ts-ignore
+            sendResponse({ success: true, captionData: null });
+          }
+
+        } catch (error) {
+          console.error("Error in CC button click and caption capture:", error);
+          // Try to detach debugger if still attached
+          try {
+            await chrome.debugger.detach({ tabId: activeTabId });
+          } catch (e) { }
+          //@ts-ignore
+          sendResponse({ success: false, error: error.toString() });
+        }
+      })();
+
+      // Return true to indicate we will send response asynchronously
+      return true;
+    }
+  }
+);
 
 

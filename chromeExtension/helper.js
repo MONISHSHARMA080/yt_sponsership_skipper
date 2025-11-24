@@ -274,6 +274,16 @@ export function fetchFunctionBuilder(
  */
 async function fetchTheTranscript(captionTrack) {
   try {
+
+    // first we are going to get the transcript clicking the caption button and 
+
+    // let response = await chrome.runtime.sendMessage({ action: "clickCCButtonAndGetCaptions" })
+
+    // console.log(`the response from send message is ${response}\n`)
+
+    //
+
+
     let result = await fetch(captionTrack.baseUrl)
     console.log(`got the result in fetching the caption's tracks and it is Status:${result.status}, status code : ${result.statusText} `)
     if (!result.ok) {
@@ -281,6 +291,9 @@ async function fetchTheTranscript(captionTrack) {
       return [null, new Error(`there is a error in fetching the transcript and the response is not ok , it is ${result.status}`)]
     }
     let res = await result.text()
+    if (res === "") {
+      return [null, new Error('the fetched transcript is empty\n')]
+    }
     console.log(`@ the result is ${res}`)
     return [res, null]
   } catch (err) {
@@ -303,27 +316,27 @@ async function GetTheTranscriptFromTheCaptions(jsonStringifiedCaptions) {
     /** @type Captions */
     let captions
     captions = JSON.parse(jsonStringifiedCaptions)
-    console.log(`the lenght of the captionTracks is ${captions.captionTracks.length}`)
-    /** @type {captionTracks|null} */
-    let firstChoiceEnSub = null
-    /** @type {captionTracks|null} */
-    let secondChoiceEnAutoGenSub = null
-    /** @type {captionTracks|null} */
-    let thirdChoiceChooisingTheFirstOne = null
-
-    captions.captionTracks.forEach((value, index) => {
-      if (index === 0) {
-        console.log(`got the captions at 0th index and the url here is ${value.baseUrl} \n`)
-        thirdChoiceChooisingTheFirstOne = value
-      }
-      if (!value.name.simpleText.includes("English (auto-generated)") && value.name.simpleText.includes("English")) {
-        console.log(`got the captions at English(this  one includes English in the value.name.simpleText and does not contain English (auto-generated) it is  ${value.name.simpleText}) one and the url is ${value.baseUrl} \n`)
-        firstChoiceEnSub = value
-      } else if (value.name.simpleText === "English (auto-generated)") {
-        console.log(`got the captions at English (auto-generated) one  ${value.baseUrl} \n`)
-        secondChoiceEnAutoGenSub = value
-      }
-    })
+    // console.log(`the lenght of the captionTracks is ${captions}`)
+    // /** @type {captionTracks|null} */
+    // let firstChoiceEnSub = null
+    // /** @type {captionTracks|null} */
+    // let secondChoiceEnAutoGenSub = null
+    // /** @type {captionTracks|null} */
+    // let thirdChoiceChooisingTheFirstOne = null
+    //
+    // captions.captionTracks.forEach((value, index) => {
+    //   if (index === 0) {
+    //     console.log(`got the captions at 0th index and the url here is ${value.baseUrl} \n`)
+    //     thirdChoiceChooisingTheFirstOne = value
+    //   }
+    //   if (!value.name.simpleText.includes("English (auto-generated)") && value.name.simpleText.includes("English")) {
+    //     console.log(`got the captions at English(this  one includes English in the value.name.simpleText and does not contain English (auto-generated) it is  ${value.name.simpleText}) one and the url is ${value.baseUrl} \n`)
+    //     firstChoiceEnSub = value
+    //   } else if (value.name.simpleText === "English (auto-generated)") {
+    //     console.log(`got the captions at English (auto-generated) one  ${value.baseUrl} \n`)
+    //     secondChoiceEnAutoGenSub = value
+    //   }
+    // })
     console.log(`about to fetch`)
     /** @type {[string|null, Error|null]} */
     let resultFromFetching
@@ -425,17 +438,17 @@ async function GetTheTranscriptFromTheCaptions(jsonStringifiedCaptions) {
 
 export async function getWhereToSkipInYtVideo(key, videoID, transcript) {
   console.log(`the captions tracks we got in the helper file is ->${transcript}`)
-  let res = await GetTheTranscriptFromTheCaptions(transcript)
-  console.log(`the res form getting the transcript form the captions is ${res}---- ${JSON.stringify(res)}`)
-  console.log("------\n\n\n\n\n\n\n")
-  if (res[0] === null || res[0] === "" || res[1] !== null) {
-    console.log(`there is a error in getting the transcript form the captions object and it is -> ${res[1]}`)
-    return [null, res[1] instanceof Error ? res[1] : new Error(` there is a error in getting the result from the transcript and it is ->${res[1]} `)]
-  }
+  // let res = await GetTheTranscriptFromTheCaptions(transcript)
+  // console.log(`the res form getting the transcript form the captions is ${res}---- ${JSON.stringify(res)}`)
+  // console.log("------\n\n\n\n\n\n\n")
+  // if (res[0] === null || res[0] === "" || res[1] !== null) {
+  //   console.log(`there is a error in getting the transcript form the captions object and it is -> ${res[1]}`)
+  //   return [null, res[1] instanceof Error ? res[1] : new Error(` there is a error in getting the result from the transcript and it is ->${res[1]} `)]
+  // }
 
 
   /** @type bodyOfTheRequest */
-  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key, transcript: res[0] };
+  let requestBody = { youtube_Video_Id: videoID, encrypted_string: key, transcript: transcript };
   let fetchRequestToBackend = fetchFunctionBuilder(
     "youtubeVideo",
     "POST",
