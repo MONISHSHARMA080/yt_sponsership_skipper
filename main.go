@@ -21,24 +21,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// type Subtitle struct {
-// 	Text  string `xml:",chardata"`
-// 	Start string `xml:"start,attr"`
-// 	Dur   string `xml:"dur,attr"`
-// }
-
-// // Transcripts holds an array of Subtitle elements
-// type Transcripts struct {
-// 	Subtitles []Subtitle `xml:"text"`
-// }
-
-// type alias so that I have common types
 type (
 	Transcripts = askllmHelper.Transcripts
 	Subtitle    = askllmHelper.Subtitle
 )
-
-// ----------------- client redirect
 
 var (
 	// change this to the same URI you configured in Google Cloud Console:

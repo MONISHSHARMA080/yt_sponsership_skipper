@@ -183,9 +183,6 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			http.Error(w, "Invalid request method", http.StatusBadRequest)
 			// this cpuld return in error , if there is a error decoding json then I am sending the same error in the request code
 			_ = json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Message: "Invalid request method", Status_code: http.StatusBadRequest, ContainSponserSubtitle: false})
-			// if err != nil {
-			// 	// idk
-			// }
 			logger.Warn("invalid method for the path by the user", zap.String("method", r.Method))
 			return
 		}
@@ -317,6 +314,24 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 	}
 }
 
+// temp structs to put it back into
+type Seg struct {
+	Utf8      string `json:"utf8"`
+	TOffsetMs int    `json:"tOffsetMs,omitempty"` // Offset within the parent caption line
+	AcAsrConf int    `json:"acAsrConf,omitempty"` // ASR confidence, if present
+}
+
+// JSONSubtitleItem represents one item in the main JSON array
+type JSONSubtitleItem struct {
+	TStartMs     int   `json:"tStartMs"`
+	DDurationMs  int   `json:"dDurationMs"`
+	ID           int   `json:"id,omitempty"`
+	WpWinPosId   int   `json:"wpWinPosId,omitempty"`
+	WsWinStyleId int   `json:"wsWinStyleId,omitempty"`
+	WWinId       int   `json:"wWinId,omitempty"`
+	Segs         []Seg `json:"segs,omitempty"` // The text segments
+}
+
 func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubtitles chan<- string_and_error_channel_for_subtitles) {
 	if req.Transcript == "" {
 		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: fmt.Errorf("the transcript by the user is empty"), string_value: "", transcript: nil}
@@ -325,7 +340,40 @@ func (req *request_for_youtubeVideo_struct) GetTheTranscript(channelToReturnSubt
 
 	lenOfTranscript := len(req.Transcript)
 	println("the transcripts sent by user's lenght is ", lenOfTranscript)
+
+	var jsonTranscript []JSONSubtitleItem
+	errorInJSON := json.Unmarshal([]byte(req.Transcript), &jsonTranscript)
+	if errorInJSON != nil {
+		println("there is an error in Unmarshaling the JSON in the transcript struct and it is ->", errorInJSON.Error())
+		channelToReturnSubtitles <- string_and_error_channel_for_subtitles{err: errorInJSON, string_value: "", transcript: nil}
+		return
+	}
+
+	// 3. Map the complex JSON structure to your existing Transcripts struct
 	transcripts := Transcripts{}
+
+	// We only care about items that have actual text segments
+	for _, item := range jsonTranscript {
+		if len(item.Segs) > 0 {
+			var fullText string
+			for _, seg := range item.Segs {
+				fullText += seg.Utf8
+			}
+
+			// Convert milliseconds to seconds (as string) for your Subtitle struct
+			startSec := float64(item.TStartMs)
+			durSec := float64(item.DDurationMs)
+
+			subtitle := Subtitle{
+				Text:  fullText,
+				Start: fmt.Sprintf("%.5f", startSec), // Format to match the XML's precision
+				Dur:   fmt.Sprintf("%.5f", durSec),
+			}
+			transcripts.Subtitles = append(transcripts.Subtitles, subtitle)
+		}
+	}
+
+	// transcripts := Transcripts{}
 	errorInXMl := xml.Unmarshal([]byte(req.Transcript), &transcripts)
 	if errorInXMl != nil {
 		println("there is a error in Unmarshaling the xml in the transcript struct and it is ->", errorInXMl.Error())

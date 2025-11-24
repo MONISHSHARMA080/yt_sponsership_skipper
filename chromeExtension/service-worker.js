@@ -251,6 +251,11 @@ chrome.runtime.onMessage.addListener((
       if (req === "") {
         sendResponse([null, new Error(`getting caotions or fetching it failled(resoonse text is "")`)]);
       }
+      try {
+        req = req.
+        } catch (error) {
+
+      }
 
       console.log("Intercepted Request Data is now stored:", storedCaptionsData ? "Yes" : "No", "and it is  ", req, `\n and it's type is ${typeof req} `, "\n and req is ", request)
       // sendResponse([req, null]);
