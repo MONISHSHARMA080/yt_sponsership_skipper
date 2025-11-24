@@ -267,7 +267,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		}
 		result_for_subtitles := <-channel_for_subtitles
 		if result_for_subtitles.err != nil {
-			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side", http.StatusInternalServerError)
+			method_to_write_http_and_json_to_respond(w, "Something is wrong on our side", http.StatusBadRequest)
 			// println("error in result_for_subtitles.err --> ", result_for_subtitles.err.Error())
 			logger.Warn("there is a error in getting the result for decoding the transctipt given by the user ", zap.Error(result_for_subtitles.err))
 			return
@@ -286,7 +286,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			// what about the free user and paid user channel/key_channel and prompt the groq
 			apiKey, err := getAPIKEYForGroqBasedOnUsersTeir(userFormKey.IsUserPaid)
 			if err != nil {
-				method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusInternalServerError)
+				method_to_write_http_and_json_to_respond(w, "Something is wrong on our side, error generating a random number", http.StatusBadRequest)
 				logger.Warn("there is somthing wrong with getting the api key for the groq ", zap.Error(err))
 				return
 			}
