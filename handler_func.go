@@ -234,21 +234,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 			return
 		}
 		var request_for_youtubeVideo_struct request_for_youtubeVideo_struct
-		// err := json.NewDecoder(r.Body).Decode(&request_for_youtubeVideo_struct)
-		// if err != nil {
-		// 	println(err.Error())
-		// 	_, errorInUserResponse := err.(*json.UnmarshalTypeError)
-		// 	if errorInUserResponse {
-		// 		logger.Info("error decoding json as the user's request in json is not right", zap.Error(err))
-		// 		http.Error(w, "request json object does not match the expected result", http.StatusBadRequest)
-		// 		json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusBadRequest, Message: "request json object does not match the expected result", ContainSponserSubtitle: false})
-		// 		return
-		// 	}
-		// 	http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
-		// 	json.NewEncoder(w).Encode(responseForWhereToSkipVideo{Status_code: http.StatusInternalServerError, Message: "something went wrong on out side", ContainSponserSubtitle: false})
-		// 	logger.Error("json decode failed of th user request", zap.Error(err))
-		// 	return
-		// }
+
 		err := decodeNewAndPutItInOriginalStruct(&request_for_youtubeVideo_struct, r)
 		if err != nil {
 			http.Error(w, "something went wrong on out side", http.StatusInternalServerError)
@@ -287,6 +273,7 @@ func Return_to_client_where_to_skip_to_in_videos(os_env_key []byte, httpClient *
 		} else {
 			logger.Info("the user is decrypted successfully from the user key channel and it is ", zap.Any("resultForUserKeyChannel", resultForUserKeyChannel.Result))
 		}
+		fmt.Printf("++ the user:%s made a req for the videoId:%s \n", userFormKey.Email, request_for_youtubeVideo_struct.Youtube_Video_Id)
 		rateLimiterForUser := llmreqratelimiter.RateLimiterForUser{UserEmail: userFormKey.Email}
 		chanForRateLimit := make(chan genericResulttype.ErrorAndResultType[bool])
 		go rateLimiterForUser.ShouldWeRateLimitUser(rateLimiterDb, userFormKey.UserTier, chanForRateLimit)

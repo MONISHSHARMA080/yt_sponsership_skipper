@@ -30,7 +30,7 @@ func AskGroqabouttheSponsorship(httpClient *http.Client, channel_for_groq_respon
 	defer http_response.Body.Close()
 
 	println(http_response != nil, "http_response is not null")
-	fmt.Printf("the htto response form th groq is --> %+v\n", http_response)
+	// fmt.Printf("the htto response form th groq is --> %+v\n", http_response)
 
 	// Read and print the response body
 	bodyBytes, err := io.ReadAll(http_response.Body)
