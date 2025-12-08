@@ -19,7 +19,6 @@ func GetRateLimiterDb(dbFilePath string) (*sql.DB, error) {
   -- A composite index is often very beneficial for queries filtering by user and time
   CREATE INDEX IF NOT EXISTS idx_user_time ON rate_limit_user(user_email, request_timestamp);
   `
-	println("in the DB create func")
 
 	db, err := sql.Open("libsql", dbFilePath)
 	if err != nil {

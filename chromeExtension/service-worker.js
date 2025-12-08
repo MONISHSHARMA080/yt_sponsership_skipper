@@ -257,15 +257,16 @@ chrome.runtime.onMessage.addListener((
         sendResponse([null, new Error(`getting caotions or fetching it failled(resoonse text is "")`)]);
       }
 
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await chrome.scripting.executeScript({
         target: { tabId: activeTabId, allFrames: false },
         world: "MAIN",
         func: () => {
-          console.log("Attempting to click the CC button...");
+          console.log("Attempting to click the CC button 2nd time for closing it ...");
           /** @type {HTMLElement|null} */
           const ccButton = document.querySelector("#movie_player > div.ytp-chrome-bottom > div.ytp-chrome-controls > div.ytp-right-controls > div.ytp-right-controls-left > button.ytp-subtitles-button.ytp-button");
           if (ccButton === null) {
-            console.error("CC button not found");
+            console.error("CC button not found 2nd time");
             return false;
           }
           // This click triggers the network request you want to intercept
